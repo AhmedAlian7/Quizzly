@@ -5,6 +5,15 @@ VisualStudioVersion = 17.14.36408.4 d17.14
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Quizzly.Web", "Quizzly.Web\Quizzly.Web.csproj", "{AD8E7C3D-95CF-42D3-B810-691EF961D028}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Quizzly.Business", "Quizzly.Business\Quizzly.Business.csproj", "{FD245256-EBC5-4F9F-8668-C37037DC61DE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Quizzly.DataAccess", "Quizzly.DataAccess\Quizzly.DataAccess.csproj", "{5C0A14B0-37C4-41EB-AFB1-17091E37A5BC}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docs", "Docs", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
+	ProjectSection(SolutionItems) = preProject
+		..\..\..\..\Downloads\Quizzly-diagram.png = ..\..\..\..\Downloads\Quizzly-diagram.png
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +24,14 @@ Global
 		{AD8E7C3D-95CF-42D3-B810-691EF961D028}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AD8E7C3D-95CF-42D3-B810-691EF961D028}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AD8E7C3D-95CF-42D3-B810-691EF961D028}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FD245256-EBC5-4F9F-8668-C37037DC61DE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FD245256-EBC5-4F9F-8668-C37037DC61DE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FD245256-EBC5-4F9F-8668-C37037DC61DE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FD245256-EBC5-4F9F-8668-C37037DC61DE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5C0A14B0-37C4-41EB-AFB1-17091E37A5BC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5C0A14B0-37C4-41EB-AFB1-17091E37A5BC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5C0A14B0-37C4-41EB-AFB1-17091E37A5BC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5C0A14B0-37C4-41EB-AFB1-17091E37A5BC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
