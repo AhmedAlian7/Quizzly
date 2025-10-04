@@ -8,6 +8,7 @@ namespace Quizzly.Web
 
             // Add services to the container.
             builder.Services.AddControllersWithViews();
+           
 
             var app = builder.Build();
 

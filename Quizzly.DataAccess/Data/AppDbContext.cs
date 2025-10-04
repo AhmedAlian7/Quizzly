@@ -26,5 +26,17 @@ namespace Quizzly.DataAccess.Data
 
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
         }
+
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        {
+            base.OnConfiguring(optionsBuilder);
+
+            var connectionstring = new ConfigurationBuilder()
+                .AddJsonFile("appsettings.json")
+                .Build()
+                .GetSection("ConnectionStrings:HostingConnection").Value;
+
+            optionsBuilder.UseSqlServer(connectionstring);
+        }
     }
 }
