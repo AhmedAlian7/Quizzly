@@ -25,10 +25,10 @@ namespace Quizzly.DataAccess.Data.Config
                 .HasMaxLength(255);
 
             // Relationship: Instructor has many Quizzes
-            builder.HasMany(i => i.Quizzes)
-                .WithOne(q => q.Instructor)
-                .HasForeignKey(q => q.InstructorId)
-                .OnDelete(DeleteBehavior.Restrict);
+            //builder.HasMany(i => i.Quizzes)
+            //    .WithOne(q => q.Instructor)
+            //    .HasForeignKey(q => q.InstructorId)
+            //    .OnDelete(DeleteBehavior.Restrict);
 
             // Relationship: Instructor has many QuizCategories
             builder.HasMany(i => i.QuizCategories)

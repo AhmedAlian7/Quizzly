@@ -8,6 +8,7 @@ namespace Quizzly.DataAccess.Entities
         public string Text { get; set; }
         public string? ImageUrl { get; set; }
         public QuestionType QuestionType { get; set; }
+        public decimal Points { get; set; }
         public int Order { get; set; }
         public bool ShuffleChoices { get; set; }
         public bool ShowFeedback { get; set; }
