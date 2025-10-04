@@ -21,17 +21,17 @@ namespace Quizzly.DataAccess.Data.Config
 
 
             builder.Property(q => q.Description)
-                .HasMaxLength(500);
+                .HasColumnType("nvarchar(1000)");
 
             builder.Property(q => q.Title)
                 .IsRequired()
-                .HasMaxLength(100);
+                .HasColumnType("nvarchar(200)");
 
             builder.Property(q => q.DurationMintes)
                 .IsRequired();
 
             builder.Property(q => q.PassingScore)
-                .HasMaxLength(50);
+                .HasColumnType("decimal(5,2)");
 
             builder.Property(q => q.ShuffleQuestions)
                 .IsRequired();
@@ -60,12 +60,23 @@ namespace Quizzly.DataAccess.Data.Config
             
             // Configure relationships
 
-            builder.HasOne<Instructor>()
+            builder.HasOne(qz => qz.Instructor)
                 .WithMany(i => i.Quizzes) 
                 .HasForeignKey(q => q.InstructorId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            builder.HasOne<QuizCategory>()
+
+            // this generate a new foreign key in the Quiz table called InstructorId
+            /*
+             
+                builder.HasOne<Instructor>()
+                    .WithMany(i => i.Quizzes) 
+                    .HasForeignKey(q => q.InstructorId)
+                    .OnDelete(DeleteBehavior.Restrict);
+             
+             */
+
+            builder.HasOne(qz => qz.QuizCategory)
                 .WithMany(c => c.Quizzes) 
                 .HasForeignKey(q => q.QuizCategoryId)
                 .OnDelete(DeleteBehavior.Restrict);

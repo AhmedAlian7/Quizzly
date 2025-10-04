@@ -18,8 +18,8 @@ namespace Quizzly.DataAccess.Entities
         public bool ShowCorrectAnswers { get; set; }
         public bool ShowScoreImmediatlely { get; set; }
         public string AccessToken { get; set; }
-        public string? PassingScore { get; set; }
-     
+        public decimal? PassingScore { get; set; } // total score needed to pass the quiz
+
         // Navigation
         public int InstructorId { get; set; }
         public Instructor Instructor { get; set; }

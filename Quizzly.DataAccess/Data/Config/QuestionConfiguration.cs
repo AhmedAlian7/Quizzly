@@ -22,6 +22,10 @@ namespace Quizzly.DataAccess.Data.Config
             builder.Property(q => q.QuestionType)
                 .IsRequired();
 
+            builder.Property(q => q.Points)
+                .IsRequired()
+                .HasColumnType("decimal(5,2)");
+
             builder.Property(q => q.Order)
                 .IsRequired();
 

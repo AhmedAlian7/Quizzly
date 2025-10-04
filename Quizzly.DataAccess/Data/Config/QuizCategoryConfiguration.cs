@@ -26,10 +26,10 @@ namespace Quizzly.DataAccess.Data.Config
                 .OnDelete(DeleteBehavior.Restrict);
 
             // Relationship: QuizCategory has many Quizzes
-            builder.HasMany(qc => qc.Quizzes)
-                .WithOne(q => q.QuizCategory)
-                .HasForeignKey(q => q.QuizCategoryId)
-                .OnDelete(DeleteBehavior.Restrict);
+            //builder.HasMany(qc => qc.Quizzes)
+            //    .WithOne(q => q.QuizCategory)
+            //    .HasForeignKey(q => q.QuizCategoryId)
+            //    .OnDelete(DeleteBehavior.Restrict);
 
 
         }
