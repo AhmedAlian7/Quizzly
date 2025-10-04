@@ -22,7 +22,9 @@ namespace Quizzly.DataAccess.Entities
      
         // Navigation
         public int InstructorId { get; set; }
+        public Instructor Instructor { get; set; }
         public int QuizCategoryId { get; set; }
+        public QuizCategory QuizCategory { get; set; }
         public ICollection<StudentInfoField> Students { get; set; } = new List<StudentInfoField>();
         public ICollection<QuizAttempt> QuizAttempts { get; set; } = new List<QuizAttempt>();
         public ICollection<Question> Questions { get; set; } = new List<Question>();

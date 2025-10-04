@@ -7,7 +7,8 @@
 
         //Navigation
         public int InstructorId { get; set; }
-
+        public Instructor Instructor { get; set; }
+        public ICollection<Quiz> Quizzes { get; set; }
 
 
     }

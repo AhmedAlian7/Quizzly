@@ -12,10 +12,7 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Data\Config\" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="9.0.9" />
   </ItemGroup>
 
 </Project>

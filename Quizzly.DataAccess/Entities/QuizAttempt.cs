@@ -19,5 +19,6 @@
         public ICollection<Answer> Answers { get; set; } = new List<Answer>();
         public ICollection<StudentInfoResponse> StudentInfoResponses { get; set; } = new List<StudentInfoResponse>();
         public int QuizId { get; set; }
+        public Quiz Quiz { get; set; }
     }
 }

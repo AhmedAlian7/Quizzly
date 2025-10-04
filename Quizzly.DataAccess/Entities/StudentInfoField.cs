@@ -14,5 +14,6 @@ namespace Quizzly.DataAccess.Entities
 
         //Navigation
         public int QuizId { get; set; }
+        public Quiz Quiz { get; set; }
     }
 }

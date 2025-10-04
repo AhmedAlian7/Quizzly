@@ -26,6 +26,5 @@ namespace Quizzly.DataAccess.Data
 
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
         }
-
     }
 }
