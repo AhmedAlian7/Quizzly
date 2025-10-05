@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Query.Internal;
 using Quizzly.DataAccess.Data;
 using Quizzly.DataAccess.Repositories.Interfaces;
 namespace Quizzly.DataAccess.Repositories.Implementions
@@ -23,6 +24,7 @@ namespace Quizzly.DataAccess.Repositories.Implementions
         {
             return await _dbSet.CountAsync();
         }
+    
 
         public async Task DeleteAsync(int id)
         {

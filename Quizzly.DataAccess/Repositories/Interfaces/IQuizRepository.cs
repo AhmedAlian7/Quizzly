@@ -4,5 +4,6 @@ namespace Quizzly.DataAccess.Repositories.Interfaces
 {
     public interface IQuizRepository : IRepository<Quiz>
     {
+       Task<int> GetTotalQuizzes(int InstructorId);
     }
 }
