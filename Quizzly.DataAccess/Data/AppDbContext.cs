@@ -1,12 +1,14 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Quizzly.DataAccess.Entities;
 namespace Quizzly.DataAccess.Data
 {
-    public class AppDbContext : DbContext
+    public class AppDbContext : IdentityDbContext<ApplicationUser>
     {
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) {}
 
+        public DbSet<Student> Students { get; set; }
         public DbSet<Quiz> Quizzes { get; set; }
         public DbSet<Instructor> Instructors { get; set; }
         public DbSet<QuizCategory> QuizCategories { get; set; }

@@ -6,27 +6,173 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Quizzly.DataAccess.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class AddIdentityAndStudent : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "Instructors",
+                name: "AspNetRoles",
+                columns: table => new
+                {
+                    Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
+                    NormalizedName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
+                    ConcurrencyStamp = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AspNetRoles", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "AspNetUsers",
+                columns: table => new
+                {
+                    Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    FirstName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    LastName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    Discriminator = table.Column<string>(type: "nvarchar(21)", maxLength: 21, nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: true),
+                    Title = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
+                    UserId = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Student_CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    Student_UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    Student_IsDeleted = table.Column<bool>(type: "bit", nullable: true),
+                    Student_UserId = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    StudentNumber = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
+                    UserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
+                    NormalizedUserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
+                    Email = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: false),
+                    NormalizedEmail = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
+                    EmailConfirmed = table.Column<bool>(type: "bit", nullable: false),
+                    PasswordHash = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    SecurityStamp = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ConcurrencyStamp = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    PhoneNumber = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    PhoneNumberConfirmed = table.Column<bool>(type: "bit", nullable: false),
+                    TwoFactorEnabled = table.Column<bool>(type: "bit", nullable: false),
+                    LockoutEnd = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
+                    LockoutEnabled = table.Column<bool>(type: "bit", nullable: false),
+                    AccessFailedCount = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AspNetUsers", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_AspNetUsers_AspNetUsers_Student_UserId",
+                        column: x => x.Student_UserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "AspNetRoleClaims",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    FirstName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    LastName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    Email = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    IsDeleted = table.Column<bool>(type: "bit", nullable: false)
+                    RoleId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    ClaimType = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ClaimValue = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Instructors", x => x.Id);
+                    table.PrimaryKey("PK_AspNetRoleClaims", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_AspNetRoleClaims_AspNetRoles_RoleId",
+                        column: x => x.RoleId,
+                        principalTable: "AspNetRoles",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "AspNetUserClaims",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    ClaimType = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ClaimValue = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AspNetUserClaims", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_AspNetUserClaims_AspNetUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "AspNetUserLogins",
+                columns: table => new
+                {
+                    LoginProvider = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    ProviderKey = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    ProviderDisplayName = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AspNetUserLogins", x => new { x.LoginProvider, x.ProviderKey });
+                    table.ForeignKey(
+                        name: "FK_AspNetUserLogins_AspNetUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "AspNetUserRoles",
+                columns: table => new
+                {
+                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    RoleId = table.Column<string>(type: "nvarchar(450)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AspNetUserRoles", x => new { x.UserId, x.RoleId });
+                    table.ForeignKey(
+                        name: "FK_AspNetUserRoles_AspNetRoles_RoleId",
+                        column: x => x.RoleId,
+                        principalTable: "AspNetRoles",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_AspNetUserRoles_AspNetUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "AspNetUserTokens",
+                columns: table => new
+                {
+                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    LoginProvider = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    Value = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AspNetUserTokens", x => new { x.UserId, x.LoginProvider, x.Name });
+                    table.ForeignKey(
+                        name: "FK_AspNetUserTokens_AspNetUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -37,7 +183,7 @@ namespace Quizzly.DataAccess.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Name = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
                     Description = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true),
-                    InstructorId = table.Column<int>(type: "int", nullable: false),
+                    InstructorId = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     IsDeleted = table.Column<bool>(type: "bit", nullable: false)
@@ -46,9 +192,9 @@ namespace Quizzly.DataAccess.Migrations
                 {
                     table.PrimaryKey("PK_QuizCategories", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_QuizCategories_Instructors_InstructorId",
+                        name: "FK_QuizCategories_AspNetUsers_InstructorId",
                         column: x => x.InstructorId,
-                        principalTable: "Instructors",
+                        principalTable: "AspNetUsers",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                 });
@@ -59,8 +205,8 @@ namespace Quizzly.DataAccess.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Title = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    Description = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
+                    Title = table.Column<string>(type: "nvarchar(200)", nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(1000)", nullable: true),
                     DurationMintes = table.Column<int>(type: "int", nullable: false),
                     StartAt = table.Column<DateTime>(type: "datetime2", nullable: true),
                     EndAt = table.Column<DateTime>(type: "datetime2", nullable: true),
@@ -73,11 +219,9 @@ namespace Quizzly.DataAccess.Migrations
                     ShowCorrectAnswers = table.Column<bool>(type: "bit", nullable: false),
                     ShowScoreImmediatlely = table.Column<bool>(type: "bit", nullable: false),
                     AccessToken = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    PassingScore = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
-                    InstructorId = table.Column<int>(type: "int", nullable: false),
-                    InstructorId1 = table.Column<int>(type: "int", nullable: false),
+                    PassingScore = table.Column<decimal>(type: "decimal(5,2)", nullable: true),
+                    InstructorId = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     QuizCategoryId = table.Column<int>(type: "int", nullable: false),
-                    QuizCategoryId1 = table.Column<int>(type: "int", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     IsDeleted = table.Column<bool>(type: "bit", nullable: false)
@@ -86,29 +230,17 @@ namespace Quizzly.DataAccess.Migrations
                 {
                     table.PrimaryKey("PK_Quizzes", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Quizzes_Instructors_InstructorId",
+                        name: "FK_Quizzes_AspNetUsers_InstructorId",
                         column: x => x.InstructorId,
-                        principalTable: "Instructors",
+                        principalTable: "AspNetUsers",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_Quizzes_Instructors_InstructorId1",
-                        column: x => x.InstructorId1,
-                        principalTable: "Instructors",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_Quizzes_QuizCategories_QuizCategoryId",
                         column: x => x.QuizCategoryId,
                         principalTable: "QuizCategories",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_Quizzes_QuizCategories_QuizCategoryId1",
-                        column: x => x.QuizCategoryId1,
-                        principalTable: "QuizCategories",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -120,9 +252,11 @@ namespace Quizzly.DataAccess.Migrations
                     Text = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: false),
                     ImageUrl = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
                     QuestionType = table.Column<int>(type: "int", nullable: false),
-                    Order = table.Column<int>(type: "int", nullable: false),
+                    Points = table.Column<decimal>(type: "decimal(5,2)", nullable: false),
+                    OrderIndex = table.Column<int>(type: "int", nullable: false),
                     ShuffleChoices = table.Column<bool>(type: "bit", nullable: false),
                     ShowFeedback = table.Column<bool>(type: "bit", nullable: false),
+                    IsRequired = table.Column<bool>(type: "bit", nullable: false),
                     Explanation = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true),
                     QuizId = table.Column<int>(type: "int", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
@@ -150,15 +284,15 @@ namespace Quizzly.DataAccess.Migrations
                     StudentIdentifier = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
                     StartedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     FinishedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    Score = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
-                    MaxScore = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    Percentage = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
+                    Score = table.Column<decimal>(type: "decimal(10,2)", precision: 10, scale: 2, nullable: true),
+                    MaxScore = table.Column<decimal>(type: "decimal(10,2)", precision: 10, scale: 2, nullable: false),
+                    Percentage = table.Column<decimal>(type: "decimal(5,2)", precision: 5, scale: 2, nullable: true),
                     IsCompleted = table.Column<bool>(type: "bit", nullable: false),
                     IsAutoGraded = table.Column<bool>(type: "bit", nullable: false),
                     IsPublished = table.Column<bool>(type: "bit", nullable: false),
                     IpAddress = table.Column<string>(type: "nvarchar(45)", maxLength: 45, nullable: false),
-                    UserAgent = table.Column<string>(type: "nvarchar(600)", maxLength: 600, nullable: true),
                     QuizId = table.Column<int>(type: "int", nullable: false),
+                    StudentId = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     IsDeleted = table.Column<bool>(type: "bit", nullable: false)
@@ -166,6 +300,12 @@ namespace Quizzly.DataAccess.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_QuizAttempts", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_QuizAttempts_AspNetUsers_StudentId",
+                        column: x => x.StudentId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_QuizAttempts_Quizzes_QuizId",
                         column: x => x.QuizId,
@@ -236,6 +376,7 @@ namespace Quizzly.DataAccess.Migrations
                     ResponseValue = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: false),
                     StudentInfoFieldId = table.Column<int>(type: "int", nullable: false),
                     QuizAttemptId = table.Column<int>(type: "int", nullable: false),
+                    StudentInfoFieldId1 = table.Column<int>(type: "int", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     IsDeleted = table.Column<bool>(type: "bit", nullable: false)
@@ -255,6 +396,11 @@ namespace Quizzly.DataAccess.Migrations
                         principalTable: "StudentInfoFields",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_StudentInfoResponses_StudentInfoFields_StudentInfoFieldId1",
+                        column: x => x.StudentInfoFieldId1,
+                        principalTable: "StudentInfoFields",
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -267,6 +413,7 @@ namespace Quizzly.DataAccess.Migrations
                     MaxPoints = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     PointsAwarded = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
                     IsCorrect = table.Column<bool>(type: "bit", nullable: false),
+                    IsGraded = table.Column<bool>(type: "bit", nullable: false),
                     GradedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
                     QuizAttemptId = table.Column<int>(type: "int", nullable: false),
                     QuestionId = table.Column<int>(type: "int", nullable: false),
@@ -313,6 +460,65 @@ namespace Quizzly.DataAccess.Migrations
                 column: "QuizAttemptId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_AspNetRoleClaims_RoleId",
+                table: "AspNetRoleClaims",
+                column: "RoleId");
+
+            migrationBuilder.CreateIndex(
+                name: "RoleNameIndex",
+                table: "AspNetRoles",
+                column: "NormalizedName",
+                unique: true,
+                filter: "[NormalizedName] IS NOT NULL");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_AspNetUserClaims_UserId",
+                table: "AspNetUserClaims",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_AspNetUserLogins_UserId",
+                table: "AspNetUserLogins",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_AspNetUserRoles_RoleId",
+                table: "AspNetUserRoles",
+                column: "RoleId");
+
+            migrationBuilder.CreateIndex(
+                name: "EmailIndex",
+                table: "AspNetUsers",
+                column: "NormalizedEmail");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_AspNetUsers_Email",
+                table: "AspNetUsers",
+                column: "Email",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_AspNetUsers_Student_UserId",
+                table: "AspNetUsers",
+                column: "Student_UserId",
+                unique: true,
+                filter: "[UserId] IS NOT NULL");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_AspNetUsers_StudentNumber",
+                table: "AspNetUsers",
+                column: "StudentNumber",
+                unique: true,
+                filter: "[StudentNumber] IS NOT NULL");
+
+            migrationBuilder.CreateIndex(
+                name: "UserNameIndex",
+                table: "AspNetUsers",
+                column: "NormalizedUserName",
+                unique: true,
+                filter: "[NormalizedUserName] IS NOT NULL");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Choices_QuestionId",
                 table: "Choices",
                 column: "QuestionId");
@@ -326,6 +532,11 @@ namespace Quizzly.DataAccess.Migrations
                 name: "IX_QuizAttempts_QuizId",
                 table: "QuizAttempts",
                 column: "QuizId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_QuizAttempts_StudentId",
+                table: "QuizAttempts",
+                column: "StudentId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_QuizCategories_InstructorId",
@@ -344,19 +555,9 @@ namespace Quizzly.DataAccess.Migrations
                 column: "InstructorId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Quizzes_InstructorId1",
-                table: "Quizzes",
-                column: "InstructorId1");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_Quizzes_QuizCategoryId",
                 table: "Quizzes",
                 column: "QuizCategoryId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Quizzes_QuizCategoryId1",
-                table: "Quizzes",
-                column: "QuizCategoryId1");
 
             migrationBuilder.CreateIndex(
                 name: "IX_StudentInfoFields_QuizId",
@@ -372,6 +573,11 @@ namespace Quizzly.DataAccess.Migrations
                 name: "IX_StudentInfoResponses_StudentInfoFieldId",
                 table: "StudentInfoResponses",
                 column: "StudentInfoFieldId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_StudentInfoResponses_StudentInfoFieldId1",
+                table: "StudentInfoResponses",
+                column: "StudentInfoFieldId1");
         }
 
         /// <inheritdoc />
@@ -381,10 +587,28 @@ namespace Quizzly.DataAccess.Migrations
                 name: "Answers");
 
             migrationBuilder.DropTable(
+                name: "AspNetRoleClaims");
+
+            migrationBuilder.DropTable(
+                name: "AspNetUserClaims");
+
+            migrationBuilder.DropTable(
+                name: "AspNetUserLogins");
+
+            migrationBuilder.DropTable(
+                name: "AspNetUserRoles");
+
+            migrationBuilder.DropTable(
+                name: "AspNetUserTokens");
+
+            migrationBuilder.DropTable(
                 name: "StudentInfoResponses");
 
             migrationBuilder.DropTable(
                 name: "Choices");
+
+            migrationBuilder.DropTable(
+                name: "AspNetRoles");
 
             migrationBuilder.DropTable(
                 name: "QuizAttempts");
@@ -402,7 +626,7 @@ namespace Quizzly.DataAccess.Migrations
                 name: "QuizCategories");
 
             migrationBuilder.DropTable(
-                name: "Instructors");
+                name: "AspNetUsers");
         }
     }
 }

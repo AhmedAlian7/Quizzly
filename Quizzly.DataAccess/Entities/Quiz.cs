@@ -1,4 +1,6 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Quizzly.DataAccess.Entities
 {
@@ -21,13 +23,12 @@ namespace Quizzly.DataAccess.Entities
         public decimal? PassingScore { get; set; } // total score needed to pass the quiz
 
         // Navigation
-        public int InstructorId { get; set; }
+        public int InstructorId { get; set; } // FK to Instructor
         public Instructor Instructor { get; set; }
         public int QuizCategoryId { get; set; }
         public QuizCategory QuizCategory { get; set; }
-        public ICollection<StudentInfoField> Students { get; set; } = new List<StudentInfoField>();
+        public ICollection<StudentInfoField> StudentInfoFields { get; set; } = new List<StudentInfoField>();
         public ICollection<QuizAttempt> QuizAttempts { get; set; } = new List<QuizAttempt>();
         public ICollection<Question> Questions { get; set; } = new List<Question>();
-
     }
 }

@@ -1,5 +1,7 @@
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Quizzly.DataAccess.Data;
+using Quizzly.DataAccess.Entities;
 using Quizzly.DataAccess.Repositories.Implementions;
 using Quizzly.DataAccess.Repositories.Interfaces;
 
@@ -19,6 +21,23 @@ namespace Quizzly.Web
                 options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
             builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+
+            // Add Identity
+            builder.Services.AddIdentity<ApplicationUser, IdentityRole<string>>(options =>
+            {
+                options.SignIn.RequireConfirmedAccount = false;
+                options.Password.RequireDigit = true;
+                options.Password.RequireLowercase = true;
+                options.Password.RequireUppercase = true;
+                options.Password.RequireNonAlphanumeric = false;
+                options.Password.RequiredLength = 6;
+
+                // Lockout settings
+                options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
+                options.Lockout.MaxFailedAccessAttempts = 5;
+            })
+            .AddEntityFrameworkStores<AppDbContext>()
+            .AddDefaultTokenProviders();
 
             var app = builder.Build();
 

@@ -24,7 +24,12 @@ namespace Quizzly.DataAccess.Data.Config
 
 
             builder.Property(qa => qa.MaxScore)
+                .HasPrecision(10,2)
                 .IsRequired();
+            builder.Property(qa => qa.Score)
+                .HasPrecision(10, 2);
+            builder.Property(qa => qa.Percentage)
+                .HasPrecision(5, 2);
 
             builder.Property(qa => qa.IsCompleted)
                 .IsRequired();
@@ -39,13 +44,21 @@ namespace Quizzly.DataAccess.Data.Config
                 .IsRequired()
                 .HasMaxLength(45); // IPv6 max length
 
-            builder.Property(qa => qa.UserAgent)
-                .HasMaxLength(600);
+
+            // FK type update
+            builder.Property(qa => qa.StudentId)
+                .IsRequired();
 
             // Relationship: QuizAttempt belongs to one Quiz
             builder.HasOne(qa => qa.Quiz)
                 .WithMany(q => q.QuizAttempts)
                 .HasForeignKey(qa => qa.QuizId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Relationship: QuizAttempt belongs to one Student
+            builder.HasOne(qa => qa.Student)
+                .WithMany(s => s.QuizAttempts)
+                .HasForeignKey(qa => qa.StudentId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             // Relationship: QuizAttempt has many Answers

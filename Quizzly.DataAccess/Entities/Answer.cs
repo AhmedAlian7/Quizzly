@@ -4,8 +4,10 @@
     {
         public string? TextAnswer { get; set; } 
         public decimal MaxPoints { get; set; } 
-        public decimal? PointsAwarded { get; set; } 
+        public decimal? PointsAwarded { get; set; } // via manaual grading
         public bool? IsCorrect { get; set; }
+        public bool IsGraded { get; set; }
+
         public DateTime? GradedAt { get; set; }
 
         //Navigation

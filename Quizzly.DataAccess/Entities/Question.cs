@@ -9,9 +9,10 @@ namespace Quizzly.DataAccess.Entities
         public string? ImageUrl { get; set; }
         public QuestionType QuestionType { get; set; }
         public decimal Points { get; set; }
-        public int Order { get; set; }
+        public int OrderIndex { get; set; }
         public bool ShuffleChoices { get; set; }
         public bool ShowFeedback { get; set; }
+        public bool IsRequired { get; set; } = true;
         public string? Explanation { get; set; }
 
         //Navigation

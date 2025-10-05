@@ -19,20 +19,13 @@ namespace Quizzly.DataAccess.Data.Config
             builder.Property(qc => qc.Description)
                 .HasMaxLength(1000);
 
-            // Relationship: QuizCategory belongs to one Instructor
+            builder.Property(qc => qc.InstructorId)
+                .IsRequired();
+
             builder.HasOne(qc => qc.Instructor)
                 .WithMany(i => i.QuizCategories)
                 .HasForeignKey(qc => qc.InstructorId)
                 .OnDelete(DeleteBehavior.Restrict);
-
-            // Relationship: QuizCategory has many Quizzes
-            //builder.HasMany(qc => qc.Quizzes)
-            //    .WithOne(q => q.QuizCategory)
-            //    .HasForeignKey(q => q.QuizCategoryId)
-            //    .OnDelete(DeleteBehavior.Restrict);
-
-
         }
-
     }
 }

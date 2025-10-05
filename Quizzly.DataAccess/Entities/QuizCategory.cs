@@ -4,12 +4,8 @@
     {
         public string Name { get; set; }
         public string? Description { get; set; }
-
-        //Navigation
-        public int InstructorId { get; set; }
+        public int InstructorId { get; set; } // FK to Instructor
         public Instructor Instructor { get; set; }
-        public ICollection<Quiz> Quizzes { get; set; }
-
-
+        public ICollection<Quiz> Quizzes { get; set; } = new List<Quiz>();
     }
 }

@@ -26,7 +26,7 @@ namespace Quizzly.DataAccess.Data.Config
                 .IsRequired()
                 .HasColumnType("decimal(5,2)");
 
-            builder.Property(q => q.Order)
+            builder.Property(q => q.OrderIndex)
                 .IsRequired();
 
             builder.Property(q => q.ShuffleChoices)

@@ -12,8 +12,8 @@ using Quizzly.DataAccess.Data;
 namespace Quizzly.DataAccess.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20251004141115_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20251005144653_FixRelationshipWithUser")]
+    partial class FixRelationshipWithUser
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -24,6 +24,139 @@ namespace Quizzly.DataAccess.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("ConcurrencyStamp")
+                        .IsConcurrencyToken()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("NormalizedName")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("NormalizedName")
+                        .IsUnique()
+                        .HasDatabaseName("RoleNameIndex")
+                        .HasFilter("[NormalizedName] IS NOT NULL");
+
+                    b.ToTable("AspNetRoles", (string)null);
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ClaimType")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ClaimValue")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("RoleId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RoleId");
+
+                    b.ToTable("AspNetRoleClaims", (string)null);
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ClaimType")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ClaimValue")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("AspNetUserClaims", (string)null);
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
+                {
+                    b.Property<string>("LoginProvider")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("ProviderKey")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("ProviderDisplayName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("LoginProvider", "ProviderKey");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("AspNetUserLogins", (string)null);
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<string>", b =>
+                {
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("RoleId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("UserId", "RoleId");
+
+                    b.HasIndex("RoleId");
+
+                    b.ToTable("AspNetUserRoles", (string)null);
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
+                {
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("LoginProvider")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Value")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("UserId", "LoginProvider", "Name");
+
+                    b.ToTable("AspNetUserTokens", (string)null);
+                });
 
             modelBuilder.Entity("Quizzly.DataAccess.Entities.Answer", b =>
                 {
@@ -46,6 +179,9 @@ namespace Quizzly.DataAccess.Migrations
                         .HasColumnType("bit");
 
                     b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsGraded")
                         .HasColumnType("bit");
 
                     b.Property<decimal>("MaxPoints")
@@ -76,6 +212,85 @@ namespace Quizzly.DataAccess.Migrations
                     b.HasIndex("QuizAttemptId");
 
                     b.ToTable("Answers");
+                });
+
+            modelBuilder.Entity("Quizzly.DataAccess.Entities.ApplicationUser", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("AccessFailedCount")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ConcurrencyStamp")
+                        .IsConcurrencyToken()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<bool>("EmailConfirmed")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("FirstName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("LastName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<bool>("LockoutEnabled")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTimeOffset?>("LockoutEnd")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("NormalizedEmail")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("NormalizedUserName")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("PasswordHash")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PhoneNumber")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("PhoneNumberConfirmed")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("SecurityStamp")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("TwoFactorEnabled")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("UserName")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Email")
+                        .IsUnique();
+
+                    b.HasIndex("NormalizedEmail")
+                        .HasDatabaseName("EmailIndex");
+
+                    b.HasIndex("NormalizedUserName")
+                        .IsUnique()
+                        .HasDatabaseName("UserNameIndex")
+                        .HasFilter("[NormalizedUserName] IS NOT NULL");
+
+                    b.ToTable("AspNetUsers", (string)null);
                 });
 
             modelBuilder.Entity("Quizzly.DataAccess.Entities.Choice", b =>
@@ -127,28 +342,23 @@ namespace Quizzly.DataAccess.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("Email")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
-
-                    b.Property<string>("FirstName")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
-                    b.Property<string>("LastName")
-                        .IsRequired()
+                    b.Property<string>("Title")
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("Instructors");
                 });
@@ -175,8 +385,14 @@ namespace Quizzly.DataAccess.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
-                    b.Property<int>("Order")
+                    b.Property<bool>("IsRequired")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("OrderIndex")
                         .HasColumnType("int");
+
+                    b.Property<decimal>("Points")
+                        .HasColumnType("decimal(5,2)");
 
                     b.Property<int>("QuestionType")
                         .HasColumnType("int");
@@ -224,8 +440,7 @@ namespace Quizzly.DataAccess.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Description")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
+                        .HasColumnType("nvarchar(1000)");
 
                     b.Property<int>("DurationMintes")
                         .HasColumnType("int");
@@ -234,9 +449,6 @@ namespace Quizzly.DataAccess.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<int>("InstructorId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("InstructorId1")
                         .HasColumnType("int");
 
                     b.Property<bool>("IsAutoGraded")
@@ -251,14 +463,10 @@ namespace Quizzly.DataAccess.Migrations
                     b.Property<int?>("MaxAttempts")
                         .HasColumnType("int");
 
-                    b.Property<string>("PassingScore")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                    b.Property<decimal?>("PassingScore")
+                        .HasColumnType("decimal(5,2)");
 
                     b.Property<int>("QuizCategoryId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("QuizCategoryId1")
                         .HasColumnType("int");
 
                     b.Property<bool>("ShowCorrectAnswers")
@@ -278,8 +486,7 @@ namespace Quizzly.DataAccess.Migrations
 
                     b.Property<string>("Title")
                         .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("datetime2");
@@ -291,11 +498,7 @@ namespace Quizzly.DataAccess.Migrations
 
                     b.HasIndex("InstructorId");
 
-                    b.HasIndex("InstructorId1");
-
                     b.HasIndex("QuizCategoryId");
-
-                    b.HasIndex("QuizCategoryId1");
 
                     b.ToTable("Quizzes");
                 });
@@ -335,19 +538,25 @@ namespace Quizzly.DataAccess.Migrations
                         .HasColumnType("bit");
 
                     b.Property<decimal>("MaxScore")
-                        .HasColumnType("decimal(18,2)");
+                        .HasPrecision(10, 2)
+                        .HasColumnType("decimal(10,2)");
 
                     b.Property<decimal?>("Percentage")
-                        .HasColumnType("decimal(18,2)");
+                        .HasPrecision(5, 2)
+                        .HasColumnType("decimal(5,2)");
 
                     b.Property<int>("QuizId")
                         .HasColumnType("int");
 
                     b.Property<decimal?>("Score")
-                        .HasColumnType("decimal(18,2)");
+                        .HasPrecision(10, 2)
+                        .HasColumnType("decimal(10,2)");
 
                     b.Property<DateTime>("StartedAt")
                         .HasColumnType("datetime2");
+
+                    b.Property<int>("StudentId")
+                        .HasColumnType("int");
 
                     b.Property<string>("StudentIdentifier")
                         .IsRequired()
@@ -357,13 +566,11 @@ namespace Quizzly.DataAccess.Migrations
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("UserAgent")
-                        .HasMaxLength(600)
-                        .HasColumnType("nvarchar(600)");
-
                     b.HasKey("Id");
 
                     b.HasIndex("QuizId");
+
+                    b.HasIndex("StudentId");
 
                     b.ToTable("QuizAttempts");
                 });
@@ -402,6 +609,38 @@ namespace Quizzly.DataAccess.Migrations
                     b.HasIndex("InstructorId");
 
                     b.ToTable("QuizCategories");
+                });
+
+            modelBuilder.Entity("Quizzly.DataAccess.Entities.Student", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("StudentNumber")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Students");
                 });
 
             modelBuilder.Entity("Quizzly.DataAccess.Entities.StudentInfoField", b =>
@@ -479,6 +718,9 @@ namespace Quizzly.DataAccess.Migrations
                     b.Property<int>("StudentInfoFieldId")
                         .HasColumnType("int");
 
+                    b.Property<int?>("StudentInfoFieldId1")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("datetime2");
 
@@ -488,7 +730,60 @@ namespace Quizzly.DataAccess.Migrations
 
                     b.HasIndex("StudentInfoFieldId");
 
+                    b.HasIndex("StudentInfoFieldId1");
+
                     b.ToTable("StudentInfoResponses");
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
+                {
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
+                        .WithMany()
+                        .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
+                {
+                    b.HasOne("Quizzly.DataAccess.Entities.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
+                {
+                    b.HasOne("Quizzly.DataAccess.Entities.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<string>", b =>
+                {
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
+                        .WithMany()
+                        .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Quizzly.DataAccess.Entities.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
+                {
+                    b.HasOne("Quizzly.DataAccess.Entities.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Quizzly.DataAccess.Entities.Answer", b =>
@@ -527,6 +822,17 @@ namespace Quizzly.DataAccess.Migrations
                     b.Navigation("Question");
                 });
 
+            modelBuilder.Entity("Quizzly.DataAccess.Entities.Instructor", b =>
+                {
+                    b.HasOne("Quizzly.DataAccess.Entities.ApplicationUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("Quizzly.DataAccess.Entities.Question", b =>
                 {
                     b.HasOne("Quizzly.DataAccess.Entities.Quiz", "Quiz")
@@ -540,28 +846,16 @@ namespace Quizzly.DataAccess.Migrations
 
             modelBuilder.Entity("Quizzly.DataAccess.Entities.Quiz", b =>
                 {
-                    b.HasOne("Quizzly.DataAccess.Entities.Instructor", null)
+                    b.HasOne("Quizzly.DataAccess.Entities.Instructor", "Instructor")
                         .WithMany("Quizzes")
                         .HasForeignKey("InstructorId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Quizzly.DataAccess.Entities.Instructor", "Instructor")
-                        .WithMany()
-                        .HasForeignKey("InstructorId1")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Quizzly.DataAccess.Entities.QuizCategory", null)
+                    b.HasOne("Quizzly.DataAccess.Entities.QuizCategory", "QuizCategory")
                         .WithMany("Quizzes")
                         .HasForeignKey("QuizCategoryId")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("Quizzly.DataAccess.Entities.QuizCategory", "QuizCategory")
-                        .WithMany()
-                        .HasForeignKey("QuizCategoryId1")
-                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Instructor");
@@ -577,7 +871,15 @@ namespace Quizzly.DataAccess.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("Quizzly.DataAccess.Entities.Student", "Student")
+                        .WithMany("QuizAttempts")
+                        .HasForeignKey("StudentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.Navigation("Quiz");
+
+                    b.Navigation("Student");
                 });
 
             modelBuilder.Entity("Quizzly.DataAccess.Entities.QuizCategory", b =>
@@ -591,10 +893,21 @@ namespace Quizzly.DataAccess.Migrations
                     b.Navigation("Instructor");
                 });
 
+            modelBuilder.Entity("Quizzly.DataAccess.Entities.Student", b =>
+                {
+                    b.HasOne("Quizzly.DataAccess.Entities.ApplicationUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("Quizzly.DataAccess.Entities.StudentInfoField", b =>
                 {
                     b.HasOne("Quizzly.DataAccess.Entities.Quiz", "Quiz")
-                        .WithMany("Students")
+                        .WithMany("StudentInfoFields")
                         .HasForeignKey("QuizId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -615,6 +928,10 @@ namespace Quizzly.DataAccess.Migrations
                         .HasForeignKey("StudentInfoFieldId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.HasOne("Quizzly.DataAccess.Entities.StudentInfoField", null)
+                        .WithMany("StudentInfoAnswers")
+                        .HasForeignKey("StudentInfoFieldId1");
 
                     b.Navigation("QuizAttempt");
 
@@ -641,7 +958,7 @@ namespace Quizzly.DataAccess.Migrations
 
                     b.Navigation("QuizAttempts");
 
-                    b.Navigation("Students");
+                    b.Navigation("StudentInfoFields");
                 });
 
             modelBuilder.Entity("Quizzly.DataAccess.Entities.QuizAttempt", b =>
@@ -654,6 +971,16 @@ namespace Quizzly.DataAccess.Migrations
             modelBuilder.Entity("Quizzly.DataAccess.Entities.QuizCategory", b =>
                 {
                     b.Navigation("Quizzes");
+                });
+
+            modelBuilder.Entity("Quizzly.DataAccess.Entities.Student", b =>
+                {
+                    b.Navigation("QuizAttempts");
+                });
+
+            modelBuilder.Entity("Quizzly.DataAccess.Entities.StudentInfoField", b =>
+                {
+                    b.Navigation("StudentInfoAnswers");
                 });
 #pragma warning restore 612, 618
         }

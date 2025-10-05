@@ -33,7 +33,7 @@ namespace Quizzly.DataAccess.Data.Config
               
               // Relationship: StudentInfoField belongs to one Quiz
               builder.HasOne(s => s.Quiz)
-                  .WithMany(q => q.Students)
+                  .WithMany(q => q.StudentInfoFields)
                   .HasForeignKey(s => s.QuizId)
                   .OnDelete(DeleteBehavior.Cascade);
 
