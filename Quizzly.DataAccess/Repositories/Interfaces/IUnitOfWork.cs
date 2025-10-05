@@ -3,18 +3,16 @@
     public interface IUnitOfWork : IDisposable
     {
 
-        IAnswerRepository AnswerRepository { get; }
-        IChoiceRepository ChoiceRepository { get; }
-        IQuestionRepository QuestionRepository { get; }
-        IInstructorRepository InstructorRepository { get; }
-        IQuizAttemptRepository QuizAttemptRepository { get; }
-        IQuizRepository QuizRepository { get; }
-        IQuizCategoryRepository QuizCategoryRepository { get; }
-        IStudentInfoFieldRepository StudentInfoFieldRepository { get; }
-        IStudentInfoResponseRepository StudentInfoResponseRepository { get; }
+        IAnswerRepository Answers { get; }
+        IChoiceRepository Choices { get; }
+        IQuestionRepository Questions { get; }
+        IInstructorRepository Instructors { get; }
+        IQuizAttemptRepository QuizAttempts { get; }
+        IQuizRepository Quizzes { get; }
+        IQuizCategoryRepository QuizCategories { get; }
+        IStudentInfoFieldRepository StudentInfoFields { get; }
+        IStudentInfoResponseRepository StudentInfoResponses { get; }
 
         Task<int> SaveAsync();
-        //IRepository<TEntity> Repository<TEntity>() where TEntity : class;
-
     }
 }
