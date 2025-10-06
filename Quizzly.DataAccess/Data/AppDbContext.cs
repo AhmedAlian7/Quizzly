@@ -1,10 +1,11 @@
-﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Quizzly.DataAccess.Entities;
 namespace Quizzly.DataAccess.Data
 {
-    public class AppDbContext : IdentityDbContext<ApplicationUser>
+    public class AppDbContext : IdentityDbContext<ApplicationUser, IdentityRole, string>
     {
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) {}
 
@@ -26,16 +27,16 @@ namespace Quizzly.DataAccess.Data
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
         }
 
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        {
-            base.OnConfiguring(optionsBuilder);
+        //protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        //{
+        //    base.OnConfiguring(optionsBuilder);
 
-            var connectionstring = new ConfigurationBuilder()
-                .AddJsonFile("appsettings.json")
-                .Build()
-                .GetSection("ConnectionStrings:HostingConnection").Value;
+        //    var connectionstring = new ConfigurationBuilder()
+        //        .AddJsonFile("appsettings.json")
+        //        .Build()
+        //        .GetSection("ConnectionStrings:HostingConnection").Value;
 
-            optionsBuilder.UseSqlServer(connectionstring);
-        }
+        //    optionsBuilder.UseSqlServer(connectionstring);
+        //}
     }
 }

@@ -10,6 +10,7 @@
         IQuizAttemptRepository QuizAttempts { get; }
         IQuizRepository Quizzes { get; }
         IQuizCategoryRepository QuizCategories { get; }
+        IStudentRepository Students { get; }
         IStudentInfoFieldRepository StudentInfoFields { get; }
         IStudentInfoResponseRepository StudentInfoResponses { get; }
 

@@ -14,6 +14,7 @@ namespace Quizzly.DataAccess.Repositories.Implementions
             Choices = new ChoiceRepository(_context);
             Questions = new QuestionRepository(_context);
             Instructors = new InstructorRepository(_context);
+            Students = new StudentRepository(_context);
             QuizAttempts = new QuizAttemptRepository(_context);
             Quizzes = new QuizRepository(_context);
             QuizCategories = new QuizCategoryRepository(_context);
@@ -25,6 +26,7 @@ namespace Quizzly.DataAccess.Repositories.Implementions
        public IChoiceRepository Choices { get; private set; }
        public IQuestionRepository Questions { get; private set; }
        public IInstructorRepository Instructors { get; private set; }
+       public IStudentRepository Students { get; private set; }
        public IQuizAttemptRepository QuizAttempts { get; private set; }
        public IQuizRepository Quizzes { get; private set; }
        public IQuizCategoryRepository QuizCategories { get; private set; }
