@@ -1,0 +1,159 @@
+﻿@using Quizzly.Business.ViewModels.Quiz
+@model AddQuizDto
+@{
+    ViewData["Title"] = "Create New Quiz";
+}
+
+<div class="min-h-screen bg-gray-50 py-10 px-6">
+    <div class="max-w-5xl mx-auto bg-white shadow-md rounded-2xl p-8">
+        <div class="flex items-center justify-between mb-8">
+            <div>
+                <h1 class="text-2xl font-semibold text-gray-800">Create New Quiz</h1>
+                <p class="text-gray-500">Fill out the details below to create your quiz.</p>
+            </div>
+            <a asp-action="Index" class="text-blue-600 hover:underline">← Back to Quizzes</a>
+        </div>
+
+        <form asp-action="Create" method="post" class="space-y-8">
+            <!-- Quiz Information -->
+            <div class="border-b pb-6">
+                <h2 class="text-lg font-medium text-gray-800 mb-4">Quiz Information</h2>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label asp-for="Title" class="block text-sm font-medium text-gray-700 mb-1">Title</label>
+                        <input asp-for="Title" class="w-full border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" placeholder="Enter quiz title" />
+                        <span asp-validation-for="Title" class="text-red-500 text-sm"></span>
+                    </div>
+
+                    <div>
+                        <label asp-for="TimeLimit" class="block text-sm font-medium text-gray-700 mb-1">Time Limit (minutes)</label>
+                        <input asp-for="TimeLimit" type="number" class="w-full border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" placeholder="e.g. 30" />
+                    </div>
+                </div>
+
+                <div class="mt-6">
+                    <label asp-for="Description" class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                    <textarea asp-for="Description" rows="3" class="w-full border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" placeholder="Short description about the quiz..."></textarea>
+                </div>
+
+                <div class="flex items-center gap-8 mt-6">
+                    <div class="flex items-center">
+                        <input asp-for="ShuffleQuestions" type="checkbox" class="h-4 w-4 text-blue-600 border-gray-300 rounded" />
+                        <label class="ml-2 text-gray-700">Shuffle Questions</label>
+                    </div>
+                    <div class="flex items-center">
+                        <input asp-for="ShuffleChoices" type="checkbox" class="h-4 w-4 text-blue-600 border-gray-300 rounded" />
+                        <label class="ml-2 text-gray-700">Shuffle Choices</label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Questions Section -->
+            <div>
+                <h2 class="text-lg font-medium text-gray-800 mb-4">Questions</h2>
+
+                <div id="questionsContainer" class="space-y-6">
+                    <!-- Questions dynamically added here -->
+                </div>
+
+                <button type="button" id="addQuestionBtn" class="mt-4 inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition">
+                    + Add Question
+                </button>
+            </div>
+
+            <!-- Submit -->
+            <div class="flex justify-end pt-6 border-t">
+                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-2 rounded-lg shadow-sm transition">
+                    Save Quiz
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        let questionIndex = 0;
+
+        document.getElementById('addQuestionBtn').addEventListener('click', function () {
+            const container = document.getElementById('questionsContainer');
+
+            const questionHtml = `
+                <div class="p-5 border border-gray-200 rounded-xl bg-gray-50" data-question-index="${questionIndex}">
+                    <div class="flex justify-between items-center mb-3">
+                        <h3 class="font-semibold text-gray-800">Question ${questionIndex + 1}</h3>
+                        <button type="button" class="text-red-500 text-sm remove-question hover:underline">Remove</button>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="text-sm text-gray-700">Question Text</label>
+                            <input name="addQuestionDtos[${questionIndex}].Text" class="w-full border-gray-300 rounded-lg mt-1" placeholder="Enter question text" />
+                        </div>
+                        <div>
+                            <label class="text-sm text-gray-700">Points</label>
+                            <input name="addQuestionDtos[${questionIndex}].Points" type="number" class="w-full border-gray-300 rounded-lg mt-1" value="1" />
+                        </div>
+                    </div>
+
+                    <div class="mt-4">
+                        <label class="text-sm text-gray-700">Question Type</label>
+                        <select name="addQuestionDtos[${questionIndex}].QuestionType" class="w-full border-gray-300 rounded-lg mt-1">
+                            <option value="0">Multiple Choice</option>
+                            <option value="1">True / False</option>
+                            <option value="2">Short Answer</option>
+                        </select>
+                    </div>
+
+                    <div class="mt-5 space-y-3" id="choices-${questionIndex}">
+                        <!-- Choices go here -->
+                    </div>
+
+                    <button type="button" class="mt-3 text-blue-600 text-sm font-medium add-choice hover:underline" data-question="${questionIndex}">
+                        + Add Choice
+                    </button>
+                </div>
+            `;
+
+            container.insertAdjacentHTML('beforeend', questionHtml);
+            questionIndex++;
+        });
+
+        // Remove Question
+        document.addEventListener('click', function (e) {
+            if (e.target.classList.contains('remove-question')) {
+                e.target.closest('[data-question-index]').remove();
+            }
+        });
+
+        // Add Choice
+        document.addEventListener('click', function (e) {
+            if (e.target.classList.contains('add-choice')) {
+                const qIndex = e.target.getAttribute('data-question');
+                const choicesContainer = document.getElementById(`choices-${qIndex}`);
+                const choiceCount = choicesContainer.children.length;
+
+                const choiceHtml = `
+                    <div class="flex items-center gap-3">
+                        <input name="addQuestionDtos[${qIndex}].Choices[${choiceCount}].Text" class="flex-1 border-gray-300 rounded-lg" placeholder="Choice text" />
+                        <label class="flex items-center gap-1 text-sm text-gray-700">
+                            <input type="checkbox" name="addQuestionDtos[${qIndex}].Choices[${choiceCount}].IsCorrect" />
+                            Correct
+                        </label>
+                        <button type="button" class="text-red-500 text-xs remove-choice hover:underline">Remove</button>
+                    </div>
+                `;
+
+                choicesContainer.insertAdjacentHTML('beforeend', choiceHtml);
+            }
+
+            // Remove choice
+            if (e.target.classList.contains('remove-choice')) {
+                e.target.closest('div.flex').remove();
+            }
+        });
+    </script>
+}

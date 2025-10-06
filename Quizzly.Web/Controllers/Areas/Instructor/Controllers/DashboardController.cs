@@ -9,15 +9,16 @@ namespace Quizzly.Web.Controllers.Areas.Instructor.Controllers
     [Area("Instructor")]
     public class DashboardController : Controller
     {
-        private readonly IInstructorDashboardService _instructorDashboardService;
+        private readonly IInstructorManagementService _instructorDashboardService;
 
-        public DashboardController(IInstructorDashboardService instructorDashboardService)
+        public DashboardController(IInstructorManagementService instructorDashboardService)
         {
             _instructorDashboardService = instructorDashboardService;
         }
         public async Task<IActionResult> Index(int InstructorId)
         {
-            var models = await _instructorDashboardService.GetInstructorDashboard(InstructorId);
+            var models = await _instructorDashboardService
+                .GetInstructorDashboardAsync(InstructorId);
             return View(models);
         }
     }
