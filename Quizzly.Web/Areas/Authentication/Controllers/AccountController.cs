@@ -4,19 +4,21 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Quizzly.Business.ViewModels.Authentication;
 using Quizzly.DataAccess.Constants;
 using Quizzly.DataAccess.Entities;
+
 using System.Security.Claims;
 using System.Text.RegularExpressions;
 
-namespace Quizzly.Web.Controllers
+namespace Quizzly.Web.Areas.Authentication.Controllers
 {
+    [Area("Authentication")]
     public class AccountController : Controller
     {
 
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
-        private readonly Quizzly.DataAccess.Repositories.Interfaces.IUnitOfWork _unitOfWork;
+        private readonly DataAccess.Repositories.Interfaces.IUnitOfWork _unitOfWork;
 
-        public AccountController(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, Quizzly.DataAccess.Repositories.Interfaces.IUnitOfWork unitOfWork)
+        public AccountController(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, DataAccess.Repositories.Interfaces.IUnitOfWork unitOfWork)
         {
             _userManager = userManager;
             _signInManager = signInManager;
@@ -78,13 +80,14 @@ namespace Quizzly.Web.Controllers
                 // Create domain entity based on selected role
                 if (register.Role == AppRoles.Instructor)
                 {
-                    var instructor = new Instructor
+                    var instructor = new DataAccess.Entities.Instructor
                     {
                         UserId = user.Id,
                         Title = register.InstructorTitle
                     };
                     await _unitOfWork.Instructors.AddAsync(instructor);
                     await _unitOfWork.SaveAsync();
+                    return RedirectToAction("Index", "Dashboard", new { area = "Instructor", InstructorId = instructor.Id });
                 }
                 else if (register.Role == AppRoles.Student)
                 {

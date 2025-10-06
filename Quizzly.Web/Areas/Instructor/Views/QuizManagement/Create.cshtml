@@ -1,159 +1,258 @@
 ﻿@using Quizzly.Business.ViewModels.Quiz
 @model AddQuizDto
+
 @{
-    ViewData["Title"] = "Create New Quiz";
+    ViewData["Title"] = "Create Quiz";
+	Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<div class="min-h-screen bg-gray-50 py-10 px-6">
-    <div class="max-w-5xl mx-auto bg-white shadow-md rounded-2xl p-8">
-        <div class="flex items-center justify-between mb-8">
-            <div>
-                <h1 class="text-2xl font-semibold text-gray-800">Create New Quiz</h1>
-                <p class="text-gray-500">Fill out the details below to create your quiz.</p>
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">Create New Quiz</h3>
+                </div>
+                <div class="card-body">
+                    <form asp-action="Create" method="post" id="quizForm">
+                        <!-- Quiz Basic Information -->
+                        <div class="row mb-4">
+                            <div class="col-md-12">
+                                <h5 class="text-primary mb-3">Quiz Information</h5>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Title" class="form-label fw-bold">Quiz Title *</label>
+                                <input asp-for="Title" class="form-control" placeholder="Enter quiz title" required />
+                                <span asp-validation-for="Title" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="TimeLimit" class="form-label fw-bold">Time Limit (minutes) *</label>
+                                <input asp-for="TimeLimit" type="number" class="form-control" placeholder="Enter time limit" min="1" required />
+                                <span asp-validation-for="TimeLimit" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-12 mb-3">
+                                <label asp-for="Description" class="form-label fw-bold">Description</label>
+                                <textarea asp-for="Description" class="form-control" rows="3" placeholder="Enter quiz description"></textarea>
+                                <span asp-validation-for="Description" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <div class="form-check">
+                                    <input asp-for="ShuffleQuestions" class="form-check-input" type="checkbox" />
+                                    <label asp-for="ShuffleQuestions" class="form-check-label">
+                                        Shuffle Questions
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <div class="form-check">
+                                    <input asp-for="ShuffleChoices" class="form-check-input" type="checkbox" />
+                                    <label asp-for="ShuffleChoices" class="form-check-label">
+                                        Shuffle Choices
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr class="my-4" />
+
+                        <!-- Questions Section -->
+                        <div class="row mb-4">
+                            <div class="col-md-12 d-flex justify-content-between align-items-center mb-3">
+                                <h5 class="text-primary mb-0">Questions</h5>
+                                <button type="button" class="btn btn-success btn-sm" onclick="addQuestion()">
+                                    <i class="bi bi-plus-circle"></i> Add Question
+                                </button>
+                            </div>
+                        </div>
+
+                        <div id="questionsContainer">
+                            <!-- Questions will be added here dynamically -->
+                        </div>
+
+                        <!-- Submit Buttons -->
+                        <div class="row mt-4">
+                            <div class="col-12 d-flex justify-content-end gap-2">
+                                <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+                                <button type="submit" class="btn btn-primary">Create Quiz</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
             </div>
-            <a asp-action="Index" class="text-blue-600 hover:underline">← Back to Quizzes</a>
         </div>
-
-        <form asp-action="Create" method="post" class="space-y-8">
-            <!-- Quiz Information -->
-            <div class="border-b pb-6">
-                <h2 class="text-lg font-medium text-gray-800 mb-4">Quiz Information</h2>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <label asp-for="Title" class="block text-sm font-medium text-gray-700 mb-1">Title</label>
-                        <input asp-for="Title" class="w-full border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" placeholder="Enter quiz title" />
-                        <span asp-validation-for="Title" class="text-red-500 text-sm"></span>
-                    </div>
-
-                    <div>
-                        <label asp-for="TimeLimit" class="block text-sm font-medium text-gray-700 mb-1">Time Limit (minutes)</label>
-                        <input asp-for="TimeLimit" type="number" class="w-full border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" placeholder="e.g. 30" />
-                    </div>
-                </div>
-
-                <div class="mt-6">
-                    <label asp-for="Description" class="block text-sm font-medium text-gray-700 mb-1">Description</label>
-                    <textarea asp-for="Description" rows="3" class="w-full border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" placeholder="Short description about the quiz..."></textarea>
-                </div>
-
-                <div class="flex items-center gap-8 mt-6">
-                    <div class="flex items-center">
-                        <input asp-for="ShuffleQuestions" type="checkbox" class="h-4 w-4 text-blue-600 border-gray-300 rounded" />
-                        <label class="ml-2 text-gray-700">Shuffle Questions</label>
-                    </div>
-                    <div class="flex items-center">
-                        <input asp-for="ShuffleChoices" type="checkbox" class="h-4 w-4 text-blue-600 border-gray-300 rounded" />
-                        <label class="ml-2 text-gray-700">Shuffle Choices</label>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Questions Section -->
-            <div>
-                <h2 class="text-lg font-medium text-gray-800 mb-4">Questions</h2>
-
-                <div id="questionsContainer" class="space-y-6">
-                    <!-- Questions dynamically added here -->
-                </div>
-
-                <button type="button" id="addQuestionBtn" class="mt-4 inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition">
-                    + Add Question
-                </button>
-            </div>
-
-            <!-- Submit -->
-            <div class="flex justify-end pt-6 border-t">
-                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-2 rounded-lg shadow-sm transition">
-                    Save Quiz
-                </button>
-            </div>
-        </form>
     </div>
 </div>
 
 @section Scripts {
-    <partial name="_ValidationScriptsPartial" />
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
 
     <script>
         let questionIndex = 0;
 
-        document.getElementById('addQuestionBtn').addEventListener('click', function () {
+        function addQuestion() {
             const container = document.getElementById('questionsContainer');
+            const questionCard = document.createElement('div');
+            questionCard.className = 'card mb-3 border-primary';
+            questionCard.id = `question-${questionIndex}`;
 
-            const questionHtml = `
-                <div class="p-5 border border-gray-200 rounded-xl bg-gray-50" data-question-index="${questionIndex}">
-                    <div class="flex justify-between items-center mb-3">
-                        <h3 class="font-semibold text-gray-800">Question ${questionIndex + 1}</h3>
-                        <button type="button" class="text-red-500 text-sm remove-question hover:underline">Remove</button>
-                    </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label class="text-sm text-gray-700">Question Text</label>
-                            <input name="addQuestionDtos[${questionIndex}].Text" class="w-full border-gray-300 rounded-lg mt-1" placeholder="Enter question text" />
-                        </div>
-                        <div>
-                            <label class="text-sm text-gray-700">Points</label>
-                            <input name="addQuestionDtos[${questionIndex}].Points" type="number" class="w-full border-gray-300 rounded-lg mt-1" value="1" />
-                        </div>
-                    </div>
-
-                    <div class="mt-4">
-                        <label class="text-sm text-gray-700">Question Type</label>
-                        <select name="addQuestionDtos[${questionIndex}].QuestionType" class="w-full border-gray-300 rounded-lg mt-1">
-                            <option value="0">Multiple Choice</option>
-                            <option value="1">True / False</option>
-                            <option value="2">Short Answer</option>
-                        </select>
-                    </div>
-
-                    <div class="mt-5 space-y-3" id="choices-${questionIndex}">
-                        <!-- Choices go here -->
-                    </div>
-
-                    <button type="button" class="mt-3 text-blue-600 text-sm font-medium add-choice hover:underline" data-question="${questionIndex}">
-                        + Add Choice
+            questionCard.innerHTML = `
+                <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0 text-primary">Question ${questionIndex + 1}</h6>
+                    <button type="button" class="btn btn-danger btn-sm" onclick="removeQuestion(${questionIndex})">
+                        <i class="bi bi-trash"></i> Remove
                     </button>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-12 mb-3">
+                            <label class="form-label fw-bold">Question Text *</label>
+                            <textarea name="addQuestionDtos[${questionIndex}].Text" class="form-control" rows="2" placeholder="Enter question text" required></textarea>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Points *</label>
+                            <input type="number" name="addQuestionDtos[${questionIndex}].Points" class="form-control" placeholder="Enter points" min="1" value="1" required />
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Question Type *</label>
+                            <select name="addQuestionDtos[${questionIndex}].QuestionType" class="form-select" required>
+                                <option value="0">Multiple Choice</option>
+                                <option value="1">True/False</option>
+                                <option value="2">Short Answer</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <hr />
+
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <label class="form-label fw-bold mb-0">Choices</label>
+                        <button type="button" class="btn btn-sm btn-outline-success" onclick="addChoice(${questionIndex})">
+                            <i class="bi bi-plus"></i> Add Choice
+                        </button>
+                    </div>
+
+                    <div id="choices-${questionIndex}" class="choices-container">
+                        <!-- Choices will be added here -->
+                    </div>
                 </div>
             `;
 
-            container.insertAdjacentHTML('beforeend', questionHtml);
+            container.appendChild(questionCard);
+
+            // Add 4 default choices
+            for (let i = 0; i < 4; i++) {
+                addChoice(questionIndex);
+            }
+
             questionIndex++;
-        });
+        }
 
-        // Remove Question
-        document.addEventListener('click', function (e) {
-            if (e.target.classList.contains('remove-question')) {
-                e.target.closest('[data-question-index]').remove();
+        function removeQuestion(index) {
+            const question = document.getElementById(`question-${index}`);
+            if (question) {
+                question.remove();
             }
-        });
+            updateQuestionNumbers();
+        }
 
-        // Add Choice
-        document.addEventListener('click', function (e) {
-            if (e.target.classList.contains('add-choice')) {
-                const qIndex = e.target.getAttribute('data-question');
-                const choicesContainer = document.getElementById(`choices-${qIndex}`);
-                const choiceCount = choicesContainer.children.length;
+        function updateQuestionNumbers() {
+            const questions = document.querySelectorAll('[id^="question-"]');
+            questions.forEach((q, idx) => {
+                const header = q.querySelector('.card-header h6');
+                if (header) {
+                    header.textContent = `Question ${idx + 1}`;
+                }
+            });
+        }
 
-                const choiceHtml = `
-                    <div class="flex items-center gap-3">
-                        <input name="addQuestionDtos[${qIndex}].Choices[${choiceCount}].Text" class="flex-1 border-gray-300 rounded-lg" placeholder="Choice text" />
-                        <label class="flex items-center gap-1 text-sm text-gray-700">
-                            <input type="checkbox" name="addQuestionDtos[${qIndex}].Choices[${choiceCount}].IsCorrect" />
-                            Correct
-                        </label>
-                        <button type="button" class="text-red-500 text-xs remove-choice hover:underline">Remove</button>
-                    </div>
-                `;
+        function addChoice(questionIdx) {
+            const choicesContainer = document.getElementById(`choices-${questionIdx}`);
+            const choiceIndex = choicesContainer.children.length;
 
-                choicesContainer.insertAdjacentHTML('beforeend', choiceHtml);
+            const choiceDiv = document.createElement('div');
+            choiceDiv.className = 'input-group mb-2';
+            choiceDiv.id = `question-${questionIdx}-choice-${choiceIndex}`;
+
+            choiceDiv.innerHTML = `
+                <div class="input-group-text">
+                    <input type="checkbox"
+                           name="addQuestionDtos[${questionIdx}].Choices[${choiceIndex}].IsCorrect"
+                           value="true"
+                           class="form-check-input mt-0"
+                           title="Mark as correct answer">
+                    <input type="hidden"
+                           name="addQuestionDtos[${questionIdx}].Choices[${choiceIndex}].IsCorrect"
+                           value="false">
+                </div>
+                <input type="text"
+                       name="addQuestionDtos[${questionIdx}].Choices[${choiceIndex}].Text"
+                       class="form-control"
+                       placeholder="Enter choice text"
+                       required />
+                <button type="button" class="btn btn-outline-danger" onclick="removeChoice(${questionIdx}, ${choiceIndex})">
+                    <i class="bi bi-x"></i>
+                </button>
+            `;
+
+            choicesContainer.appendChild(choiceDiv);
+        }
+
+        function removeChoice(questionIdx, choiceIdx) {
+            const choice = document.getElementById(`question-${questionIdx}-choice-${choiceIdx}`);
+            if (choice) {
+                choice.remove();
             }
+        }
 
-            // Remove choice
-            if (e.target.classList.contains('remove-choice')) {
-                e.target.closest('div.flex').remove();
-            }
+        // Add first question on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            addQuestion();
         });
     </script>
+
+    <style>
+        .card {
+            border-radius: 8px;
+        }
+
+        .card-header {
+            border-radius: 8px 8px 0 0 !important;
+        }
+
+        .form-label.fw-bold {
+            color: #2c3e50;
+        }
+
+        .border-primary {
+            border-color: #0d6efd !important;
+            border-width: 2px !important;
+        }
+
+        .choices-container {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .input-group-text {
+            background-color: #f8f9fa;
+        }
+
+        .btn-sm {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        .gap-2 {
+            gap: 0.5rem !important;
+        }
+    </style>
 }
