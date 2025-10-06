@@ -1,0 +1,134 @@
+﻿@using System.Text.Json
+@using Quizzly.Business.ViewModels.Instructor
+@model InstructorDashboardDto
+@{
+    ViewData["Title"] = "Teacher Dashboard";
+}
+
+<div class="container py-4">
+    <h2 class="fw-bold mb-2">Teacher Dashboard</h2>
+    <p class="text-muted mb-4">Overview of your quizzes and student performance</p>
+
+    <div class="row g-3 mb-4">
+        <!-- Total Quizzes -->
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 rounded-3">
+                <div class="card-body">
+                    <h6 class="text-muted">Total Quizzes</h6>
+                    <h3>@Model.TotalQuizzes</h3>
+                    <small class="text-success">+3 this week</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Average Score -->
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 rounded-3">
+                <div class="card-body">
+                    <h6 class="text-muted">Average Score</h6>
+                    <h3>@(Model.AvgScore.HasValue ? $"{Model.AvgScore.Value:F1}%" : "N/A")</h3>
+                    <small class="text-success">+2.3% this month</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pending Grading (Static Example) -->
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 rounded-3">
+                <div class="card-body">
+                    <h6 class="text-muted">Pending Grading</h6>
+                    <h3>12</h3>
+                    <small class="text-secondary">3 essays</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Active Students -->
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 rounded-3">
+                <div class="card-body">
+                    <h6 class="text-muted">Active Students</h6>
+                    <h3>@Model.TotalStudents</h3>
+                    <small class="text-success">+8 this week</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Quiz Performance -->
+        <div class="col-md-8">
+            <div class="card shadow-sm border-0 rounded-3">
+                <div class="card-body">
+                    <h5 class="mb-3">Quiz Performance</h5>
+                    <canvas id="quizPerformanceChart" height="180"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Quizzes -->
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 rounded-3">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="mb-0">Recent Quizzes</h5>
+                        <a href="#" class="btn btn-sm btn-outline-secondary">View All</a>
+                    </div>
+
+                    @foreach (var quiz in Model.instructorRecentQuizDtos)
+                    {
+                        <div class="border-bottom pb-2 mb-2">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>@quiz.Title</strong>
+                                    <div>
+                                        @if (quiz.IsPublished)
+                                        {
+                                            <span class="badge bg-primary">published</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">draft</span>
+                                        }
+                                        <span class="text-muted ms-2">@quiz.Attempts attempts</span>
+                                        @if (quiz.AvgScore.HasValue)
+                                        {
+                                            <span class="text-muted ms-1">@quiz.AvgScore.Value.ToString("F0")% avg</span>
+                                        }
+                                    </div>
+                                </div>
+                                <small class="text-muted">@quiz.CreatedAt.ToString("yyyy-MM-dd")</small>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        const ctx = document.getElementById('quizPerformanceChart').getContext('2d');
+        const quizPerformanceChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: @Html.Raw(JsonSerializer.Serialize(Model.instructorRecentQuizDtos.Select(q => q.Title).ToList())),
+                datasets: [{
+                    label: 'Average scores by quiz',
+                    data: @Html.Raw(JsonSerializer.Serialize(Model.instructorRecentQuizDtos.Select(q => q.AvgScore ?? 0).ToList())),
+                    backgroundColor: 'rgba(54, 162, 235, 1)',
+                }]
+            },
+            options: {
+                scales: {
+                    y: { beginAtZero: true, max: 100 }
+                },
+                plugins: {
+                    legend: { display: false }
+                }
+            }
+        });
+    </script>
+}

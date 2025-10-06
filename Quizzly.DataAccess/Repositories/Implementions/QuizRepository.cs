@@ -10,11 +10,50 @@ namespace Quizzly.DataAccess.Repositories.Implementions
         public QuizRepository(AppDbContext context) : base(context) { }
 
 
-        public async Task<int> GetTotalQuizzes(int InstructorId)
+        public async Task<int> GetTotalQuizzesPerInstructor(int InstructorId)
         {
             return await _context.Quizzes
                 .Where(q => q.InstructorId == InstructorId)
                 .CountAsync();
+        }
+
+        public async Task<decimal?> GetAvgScorePerInstructor(int InstructorId)
+        {
+            return await _context.Quizzes
+                 .Where(q => q.InstructorId == InstructorId)
+                 .SelectMany(q => q.QuizAttempts)
+                 .AverageAsync(qa => qa.Score);
+        }
+        public async Task<decimal?> GetAvgScore(int QuizId)
+        {
+            return await _context.Quizzes
+                .Where(q => q.Id == QuizId)
+                .SelectMany(q => q.QuizAttempts)
+                .AverageAsync(qa => qa.Score);
+        }
+        public async Task<int> GetTotalStudentsCountPerInstructor(int InstructorId)
+        {
+            return await _context.Quizzes
+                .Where(q => q.InstructorId == InstructorId)
+                .SelectMany(q => q.QuizAttempts)
+                .CountAsync();
+        }
+        public async Task<IEnumerable<Quiz>> GetAllByInstructorId(int InstructorId)
+        {
+            return await _context.Quizzes
+                .Where(q => q.InstructorId ==InstructorId)
+                .ToListAsync();
+                
+        }
+        public async Task<IEnumerable<Quiz>> GetRecentQuizzezPerInstructor(int InstructorId)
+        {
+            return await _context.Quizzes
+                 .Include(q => q.QuizAttempts)
+                 .Where(q => q.InstructorId == InstructorId)
+                 .OrderByDescending(q => q.CreatedAt)
+                 .Take(5)
+                 .ToListAsync();
+
         }
     }
 }
