@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Quizzly.Business.Services.Interfaces;
 using System.Threading.Tasks;
 
-namespace Quizzly.Web.Controllers.Areas.Instructor.Controllers
+namespace Quizzly.Web.Areas.Instructor.Controllers
 {
     
     [Area("Instructor")]

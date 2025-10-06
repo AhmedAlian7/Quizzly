@@ -2,8 +2,11 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Quizzly.DataAccess.Data;
 using Quizzly.DataAccess.Entities;
+using Quizzly.DataAccess.Constants;
 using Quizzly.DataAccess.Repositories.Implementions;
 using Quizzly.DataAccess.Repositories.Interfaces;
+using Quizzly.Business.Services.Interfaces;
+using Quizzly.Business.Services.Implementions;
 
 namespace Quizzly.Web
 {
@@ -18,19 +21,20 @@ namespace Quizzly.Web
            
 
             builder.Services.AddDbContext<AppDbContext>(options =>
-                options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+                options.UseSqlServer(builder.Configuration.GetConnectionString("HostingConnection")));
 
             builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+            builder.Services.AddScoped<IInstructorManagementService, InstructorManagementService>();
 
             // Add Identity
-            builder.Services.AddIdentity<ApplicationUser, IdentityRole<string>>(options =>
+            builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
             {
                 options.SignIn.RequireConfirmedAccount = false;
-                options.Password.RequireDigit = true;
-                options.Password.RequireLowercase = true;
-                options.Password.RequireUppercase = true;
+                options.Password.RequireDigit = false;
+                options.Password.RequireLowercase = false;
+                options.Password.RequireUppercase = false;
                 options.Password.RequireNonAlphanumeric = false;
-                options.Password.RequiredLength = 6;
+                options.Password.RequiredLength = 3;
 
                 // Lockout settings
                 options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
@@ -40,6 +44,9 @@ namespace Quizzly.Web
             .AddDefaultTokenProviders();
 
             var app = builder.Build();
+
+            // Seed roles at startup
+            SeedRolesAsync(app.Services).GetAwaiter().GetResult();
 
             // Configure the HTTP request pipeline.
             if (!app.Environment.IsDevelopment())
@@ -52,15 +59,30 @@ namespace Quizzly.Web
             app.UseHttpsRedirection();
             app.UseRouting();
 
+            app.UseAuthentication();
             app.UseAuthorization();
 
             app.MapStaticAssets();
             app.MapControllerRoute(
                 name: "default",
-                pattern: "{controller=Home}/{action=Index}/{id?}")
+                pattern: "{area=Instructor}/{controller=Home}/{action=Index}/{id?}")
                 .WithStaticAssets();
 
             app.Run();
+        }
+
+        private static async Task SeedRolesAsync(IServiceProvider services)
+        {
+            using var scope = services.CreateScope();
+            var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+
+            foreach (var role in AppRoles.All)
+            {
+                if (!await roleManager.RoleExistsAsync(role))
+                {
+                    await roleManager.CreateAsync(new IdentityRole(role));
+                }
+            }
         }
     }
 }
