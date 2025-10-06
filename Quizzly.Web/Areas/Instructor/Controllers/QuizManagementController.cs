@@ -2,8 +2,9 @@
 using Quizzly.Business.Services.Interfaces;
 using Quizzly.Business.ViewModels.Quiz;
 
-namespace Quizzly.Web.Controllers.Areas.Instructor.Controllers
+namespace Quizzly.Web.Areas.Instructor.Controllers
 {
+    [Area("Instructor")]
     public class QuizManagementController : Controller
     {
         private readonly IInstructorManagementService _instructorManagementService;

@@ -5,6 +5,8 @@ using Quizzly.DataAccess.Entities;
 using Quizzly.DataAccess.Constants;
 using Quizzly.DataAccess.Repositories.Implementions;
 using Quizzly.DataAccess.Repositories.Interfaces;
+using Quizzly.Business.Services.Interfaces;
+using Quizzly.Business.Services.Implementions;
 
 namespace Quizzly.Web
 {
@@ -22,6 +24,7 @@ namespace Quizzly.Web
                 options.UseSqlServer(builder.Configuration.GetConnectionString("HostingConnection")));
 
             builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+            builder.Services.AddScoped<IInstructorManagementService, InstructorManagementService>();
 
             // Add Identity
             builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
@@ -62,7 +65,7 @@ namespace Quizzly.Web
             app.MapStaticAssets();
             app.MapControllerRoute(
                 name: "default",
-                pattern: "{controller=Home}/{action=Index}/{id?}")
+                pattern: "{area=Instructor}/{controller=Home}/{action=Index}/{id?}")
                 .WithStaticAssets();
 
             app.Run();
