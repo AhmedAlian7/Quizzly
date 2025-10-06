@@ -15,6 +15,8 @@ namespace Quizzly.DataAccess.Entities
         public bool IsAutoGraded { get; set; }
         public bool IsPublished { get; set; }
         public string IpAddress { get; set; }
+        
+        
         public int QuizId { get; set; }
         public Quiz Quiz { get; set; }
         public int StudentId { get; set; } // FK to Student

@@ -1,4 +1,4 @@
 # Quizzly
 
 ## Initial Database Diagram
-![database diagram](docs/Quizzly-diagram.png)
+![database diagram](docs/database-diagram-v02.png)

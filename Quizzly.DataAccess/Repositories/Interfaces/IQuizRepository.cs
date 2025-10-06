@@ -4,5 +4,11 @@ namespace Quizzly.DataAccess.Repositories.Interfaces
 {
     public interface IQuizRepository : IRepository<Quiz>
     {
+        Task<int> GetTotalQuizzesPerInstructor(int InstructorId);
+        Task<IEnumerable<Quiz>> GetAllByInstructorId(int InstructorId);
+        Task<IEnumerable<Quiz>> GetRecentQuizzezPerInstructor(int InstructorId);
+        Task<decimal?> GetAvgScore(int QuizId);
+        Task<decimal?> GetAvgScorePerInstructor(int InstructorId);
+        Task<int> GetTotalStudentsCountPerInstructor(int InstructorId);
     }
 }
