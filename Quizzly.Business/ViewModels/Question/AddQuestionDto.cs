@@ -1,6 +1,8 @@
-﻿using Quizzly.Business.ViewModels.Choice;
+﻿using Microsoft.AspNetCore.Http;
+using Quizzly.Business.ViewModels.Choice;
 using Quizzly.DataAccess.Enums;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Quizzly.Business.ViewModels.Question
 {
@@ -16,7 +18,9 @@ namespace Quizzly.Business.ViewModels.Question
         public int Points { get; set; }
 
         [Url]
+        [NotMapped]
         public string? ImageUrl { get; set; }
+        public IFormFile? ImageFile { get; set; }
 
         [Required]
         public QuestionType QuestionType { get; set; }

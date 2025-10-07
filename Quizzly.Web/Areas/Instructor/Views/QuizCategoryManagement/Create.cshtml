@@ -249,8 +249,8 @@
     @await Html.PartialAsync("_ValidationScriptsPartial")
 
     <script>
-        let questionIndexCounter = 0; // For unique IDs
-        let questions = []; // Track all questions
+        let questionIndex = 0;
+        let questionCount = 0;
 
         // Show/hide max attempts field based on checkbox
         document.addEventListener('DOMContentLoaded', () => {
@@ -296,24 +296,17 @@
         });
 
         function addQuestion() {
-            const questionId = questionIndexCounter++;
-            questions.push(questionId);
-
             const container = document.getElementById('questionsContainer');
             const questionCard = document.createElement('div');
             questionCard.className = 'card mb-4 border-0 shadow-sm rounded-4';
-            questionCard.id = `question-${questionId}`;
-            questionCard.dataset.questionId = questionId;
-
-            const displayNumber = questions.length;
-            const arrayIndex = questions.length - 1;
+            questionCard.id = `question-${questionIndex}`;
 
             questionCard.innerHTML = `
                 <div class="card-header bg-gradient-success text-white d-flex justify-content-between align-items-center py-3 rounded-top-4">
-                    <h6 class="mb-0 fw-bold question-title">
-                        <i class="bi bi-patch-question me-2"></i> Question ${displayNumber}
+                    <h6 class="mb-0 fw-bold">
+                        <i class="bi bi-patch-question me-2"></i> Question ${questionIndex + 1}
                     </h6>
-                    <button type="button" class="btn btn-light btn-sm rounded-pill shadow-sm" onclick="removeQuestion(${questionId})">
+                    <button type="button" class="btn btn-light btn-sm rounded-pill shadow-sm" onclick="removeQuestion(${questionIndex})">
                         <i class="bi bi-trash text-danger"></i> Remove
                     </button>
                 </div>
@@ -323,25 +316,25 @@
                             <label class="form-label fw-semibold">
                                 <i class="bi bi-chat-left-text text-success me-1"></i> Question Text *
                             </label>
-                            <textarea name="addQuestionDtos[${arrayIndex}].Text" class="form-control rounded-3 question-text-field" rows="3" placeholder="Enter your question here..." required></textarea>
+                            <textarea name="addQuestionDtos[${questionIndex}].Text" class="form-control rounded-3" rows="3" placeholder="Enter your question here..." required></textarea>
                         </div>
                         <div class="col-md-4 mb-4">
                             <label class="form-label fw-semibold">
                                 <i class="bi bi-star text-warning me-1"></i> Points *
                             </label>
-                            <input type="number" name="addQuestionDtos[${arrayIndex}].Points" class="form-control form-control-lg rounded-3 question-points-field" placeholder="Points" min="1" value="1" required />
+                            <input type="number" name="addQuestionDtos[${questionIndex}].Points" class="form-control form-control-lg rounded-3" placeholder="Points" min="1" value="1" required />
                         </div>
                         <div class="col-md-4 mb-4">
                             <label class="form-label fw-semibold">
                                 <i class="bi bi-image text-info me-1"></i> Upload Image
                             </label>
-                            <input type="file" name="addQuestionDtos[${arrayIndex}].ImageFile" class="form-control rounded-3 question-image-field" accept="image/*" />
+                            <input type="file" name="addQuestionDtos[${questionIndex}].ImageFile" class="form-control rounded-3" accept="image/*" />
                         </div>
                         <div class="col-md-4 mb-4">
                             <label class="form-label fw-semibold">
                                 <i class="bi bi-list-check text-primary me-1"></i> Question Type *
                             </label>
-                            <select name="addQuestionDtos[${arrayIndex}].QuestionType" class="form-select form-select-lg rounded-3 question-type-field" onchange="handleQuestionTypeChange(${questionId})" required>
+                            <select name="addQuestionDtos[${questionIndex}].QuestionType" class="form-select form-select-lg rounded-3" onchange="handleQuestionTypeChange(${questionIndex})" required>
                                 <option value="0">Multiple Choice</option>
                                 <option value="1">True/False</option>
                                 <option value="2">Short Answer</option>
@@ -349,19 +342,19 @@
                         </div>
                     </div>
 
-                    <div id="choices-section-${questionId}">
+                    <div id="choices-section-${questionIndex}">
                         <div class="d-flex justify-content-between align-items-center mb-3 mt-2">
                             <label class="form-label fw-semibold mb-0">
                                 <i class="bi bi-ui-checks text-success me-1"></i> Answer Choices
                             </label>
-                            <button type="button" class="btn btn-sm btn-outline-success rounded-pill" onclick="addChoice(${questionId})">
+                            <button type="button" class="btn btn-sm btn-outline-success rounded-pill" onclick="addChoice(${questionIndex})">
                                 <i class="bi bi-plus-lg"></i> Add Choice
                             </button>
                         </div>
-                        <div id="choices-${questionId}" class="choices-container"></div>
+                        <div id="choices-${questionIndex}" class="choices-container"></div>
                     </div>
 
-                    <div id="short-answer-section-${questionId}" style="display: none;">
+                    <div id="short-answer-section-${questionIndex}" style="display: none;">
                         <div class="alert alert-info border-0 rounded-3 d-flex align-items-center shadow-sm">
                             <i class="bi bi-info-circle-fill fs-4 me-3"></i>
                             <div>
@@ -375,16 +368,16 @@
 
             container.appendChild(questionCard);
 
-            for (let i = 0; i < 4; i++) addChoice(questionId);
+            for (let i = 0; i < 4; i++) addChoice(questionIndex);
+            questionIndex++;
         }
 
-        function handleQuestionTypeChange(questionId) {
-            const arrayIndex = questions.indexOf(questionId);
-            const typeSelect = document.querySelector(`#question-${questionId} .question-type-field`);
+        function handleQuestionTypeChange(qIdx) {
+            const typeSelect = document.querySelector(`select[name="addQuestionDtos[${qIdx}].QuestionType"]`);
             const type = parseInt(typeSelect.value);
-            const choicesSection = document.getElementById(`choices-section-${questionId}`);
-            const shortAnswerSection = document.getElementById(`short-answer-section-${questionId}`);
-            const choicesContainer = document.getElementById(`choices-${questionId}`);
+            const choicesSection = document.getElementById(`choices-section-${qIdx}`);
+            const shortAnswerSection = document.getElementById(`short-answer-section-${qIdx}`);
+            const choicesContainer = document.getElementById(`choices-${qIdx}`);
             const addBtn = choicesSection.querySelector('button');
 
             choicesContainer.innerHTML = '';
@@ -393,128 +386,79 @@
                 choicesSection.style.display = 'block';
                 shortAnswerSection.style.display = 'none';
                 addBtn.style.display = 'inline-block';
-                for (let i = 0; i < 4; i++) addChoice(questionId);
+                for (let i = 0; i < 4; i++) addChoice(qIdx);
             } else if (type === 1) { // True/False
                 choicesSection.style.display = 'block';
                 shortAnswerSection.style.display = 'none';
                 addBtn.style.display = 'none';
-                addTrueFalseChoices(questionId);
+                addTrueFalseChoices(qIdx);
             } else { // Short answer
                 choicesSection.style.display = 'none';
                 shortAnswerSection.style.display = 'block';
             }
         }
 
-        function addTrueFalseChoices(questionId) {
-            const arrayIndex = questions.indexOf(questionId);
-            const container = document.getElementById(`choices-${questionId}`);
+        function addTrueFalseChoices(qIdx) {
+            const container = document.getElementById(`choices-${qIdx}`);
             ['True', 'False'].forEach((text, i) => {
                 const div = document.createElement('div');
                 div.className = 'input-group mb-3 shadow-sm';
                 div.innerHTML = `
                     <div class="input-group-text bg-white border-end-0 rounded-start-3">
-                        <input type="radio" name="question-${questionId}-correct" onchange="setCorrectAnswer(${questionId}, ${i})" class="form-check-input mt-0" style="width: 1.2em; height: 1.2em;">
+                        <input type="radio" name="question-${qIdx}-correct" onchange="setCorrectAnswer(${qIdx}, ${i})" class="form-check-input mt-0" style="width: 1.2em; height: 1.2em;">
                     </div>
-                    <input type="text" name="addQuestionDtos[${arrayIndex}].Choices[${i}].Text" value="${text}" class="form-control form-control-lg border-start-0 rounded-end-3 bg-light" readonly>
-                    <input type="hidden" name="addQuestionDtos[${arrayIndex}].Choices[${i}].IsCorrect" id="choice-${questionId}-${i}-iscorrect" value="false">
+                    <input type="text" name="addQuestionDtos[${qIdx}].Choices[${i}].Text" value="${text}" class="form-control form-control-lg border-start-0 rounded-end-3 bg-light" readonly>
+                    <input type="hidden" name="addQuestionDtos[${qIdx}].Choices[${i}].IsCorrect" id="choice-${qIdx}-${i}-iscorrect" value="false">
                 `;
                 container.appendChild(div);
             });
         }
 
-        function setCorrectAnswer(questionId, correctIdx) {
-            const all = document.querySelectorAll(`#choices-${questionId} [id$="-iscorrect"]`);
+        function setCorrectAnswer(qIdx, correctIdx) {
+            const all = document.querySelectorAll(`#choices-${qIdx} [id$="-iscorrect"]`);
             all.forEach(x => x.value = "false");
-            document.getElementById(`choice-${questionId}-${correctIdx}-iscorrect`).value = "true";
+            document.getElementById(`choice-${qIdx}-${correctIdx}-iscorrect`).value = "true";
         }
 
-        function addChoice(questionId) {
-            const arrayIndex = questions.indexOf(questionId);
-            const container = document.getElementById(`choices-${questionId}`);
+        function addChoice(qIdx) {
+            const container = document.getElementById(`choices-${qIdx}`);
             const idx = container.children.length;
             const div = document.createElement('div');
             div.className = 'input-group mb-3 shadow-sm';
-            div.id = `question-${questionId}-choice-${idx}`;
+            div.id = `question-${qIdx}-choice-${idx}`;
             div.innerHTML = `
                 <div class="input-group-text bg-white border-end-0 rounded-start-3">
-                    <input type="checkbox" name="addQuestionDtos[${arrayIndex}].Choices[${idx}].IsCorrect" value="true" class="form-check-input mt-0" style="width: 1.2em; height: 1.2em;">
-                    <input type="hidden" name="addQuestionDtos[${arrayIndex}].Choices[${idx}].IsCorrect" value="false">
+                    <input type="checkbox" name="addQuestionDtos[${qIdx}].Choices[${idx}].IsCorrect" value="true" class="form-check-input mt-0" style="width: 1.2em; height: 1.2em;">
+                    <input type="hidden" name="addQuestionDtos[${qIdx}].Choices[${idx}].IsCorrect" value="false">
                 </div>
-                <input type="text" name="addQuestionDtos[${arrayIndex}].Choices[${idx}].Text" class="form-control form-control-lg border-start-0 border-end-0" placeholder="Enter choice text" required>
-                <button type="button" class="btn btn-outline-danger rounded-end-3" onclick="removeChoice(${questionId}, ${idx})">
+                <input type="text" name="addQuestionDtos[${qIdx}].Choices[${idx}].Text" class="form-control form-control-lg border-start-0 border-end-0" placeholder="Enter choice text" required>
+                <button type="button" class="btn btn-outline-danger rounded-end-3" onclick="removeChoice(${qIdx}, ${idx})">
                     <i class="bi bi-x-lg"></i>
                 </button>
             `;
             container.appendChild(div);
         }
 
-        function removeChoice(questionId, choiceIdx) {
-            const choice = document.getElementById(`question-${questionId}-choice-${choiceIdx}`);
+        function removeChoice(qIdx, cIdx) {
+            const choice = document.getElementById(`question-${qIdx}-choice-${cIdx}`);
             if (choice) choice.remove();
         }
 
-        function removeQuestion(questionId) {
-            const question = document.getElementById(`question-${questionId}`);
+        function removeQuestion(qIdx) {
+            const question = document.getElementById(`question-${qIdx}`);
             if (question) {
                 question.remove();
-                // Remove from questions array
-                const index = questions.indexOf(questionId);
-                if (index > -1) {
-                    questions.splice(index, 1);
-                }
                 renumberQuestions();
             }
         }
 
         function renumberQuestions() {
             const container = document.getElementById('questionsContainer');
-            const questionCards = container.querySelectorAll('[id^="question-"]');
-
-            questionCards.forEach((card, index) => {
-                // Update display number
-                const header = card.querySelector('.question-title');
+            const questions = container.querySelectorAll('[id^="question-"]');
+            questions.forEach((question, index) => {
+                const header = question.querySelector('.card-header h6');
                 if (header) {
                     header.innerHTML = `<i class="bi bi-patch-question me-2"></i> Question ${index + 1}`;
-                }
-
-                // Update all name attributes for form fields
-                const textField = card.querySelector('.question-text-field');
-                const pointsField = card.querySelector('.question-points-field');
-                const imageField = card.querySelector('.question-image-field');
-                const typeField = card.querySelector('.question-type-field');
-
-                if (textField) textField.name = `addQuestionDtos[${index}].Text`;
-                if (pointsField) pointsField.name = `addQuestionDtos[${index}].Points`;
-                if (imageField) imageField.name = `addQuestionDtos[${index}].ImageFile`;
-                if (typeField) typeField.name = `addQuestionDtos[${index}].QuestionType`;
-
-                // Update choices
-                const questionId = card.dataset.questionId;
-                const choicesContainer = document.getElementById(`choices-${questionId}`);
-                if (choicesContainer) {
-                    const choices = choicesContainer.querySelectorAll('.input-group');
-                    choices.forEach((choice, choiceIdx) => {
-                        const textInput = choice.querySelector('input[type="text"]');
-                        const checkboxInput = choice.querySelector('input[type="checkbox"]');
-                        const hiddenInput = choice.querySelectorAll('input[type="hidden"]')[0];
-                        const isCorrectHidden = choice.querySelector('[id$="-iscorrect"]');
-
-                        if (textInput && !textInput.readOnly) {
-                            textInput.name = `addQuestionDtos[${index}].Choices[${choiceIdx}].Text`;
-                        } else if (textInput) {
-                            textInput.name = `addQuestionDtos[${index}].Choices[${choiceIdx}].Text`;
-                        }
-
-                        if (checkboxInput) {
-                            checkboxInput.name = `addQuestionDtos[${index}].Choices[${choiceIdx}].IsCorrect`;
-                        }
-                        if (hiddenInput && !isCorrectHidden) {
-                            hiddenInput.name = `addQuestionDtos[${index}].Choices[${choiceIdx}].IsCorrect`;
-                        }
-                        if (isCorrectHidden) {
-                            isCorrectHidden.name = `addQuestionDtos[${index}].Choices[${choiceIdx}].IsCorrect`;
-                        }
-                    });
                 }
             });
         }
