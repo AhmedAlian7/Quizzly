@@ -27,6 +27,7 @@ namespace Quizzly.Web
             builder.Services.AddScoped<IInstructorManagementService, InstructorManagementService>();
             builder.Services.AddScoped<IFileUploadService, FileUploadService>();
             builder.Services.AddScoped<IQuizCategoriesService, QuizCategoriesService>();
+            builder.Services.AddScoped<IQuizService, QuizService>();
 
             // Add Identity
             builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>

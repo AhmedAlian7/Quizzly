@@ -71,6 +71,7 @@ namespace Quizzly.Business.Services.Implementions
 
             var QuizzesDto = Quizzes.Select(q => new InstructorAllQuizzesDto
             {
+                Id = q.Id,
                 Title = q.Title,
                 Attempts = q.QuizAttempts.Count(),
                 Questions = q.Questions.Count(),

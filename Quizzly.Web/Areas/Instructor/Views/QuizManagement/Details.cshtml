@@ -1,0 +1,153 @@
+﻿@using Quizzly.Business.ViewModels.Quiz
+@model QuizDetailsDto
+
+@{
+    ViewData["Title"] = "Quiz Details";
+	Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container mt-5">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold text-primary">
+            <i class="bi bi-journal-text me-2"></i> @Model.Title
+        </h2>
+        <a asp-action="Index" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left-circle me-1"></i> Back to Quizzes
+        </a>
+    </div>
+
+    <!-- Quiz Info Card -->
+    <div class="card shadow-sm border-0 mb-5">
+        <div class="card-body">
+            <h5 class="card-title text-secondary mb-3">
+                <i class="bi bi-info-circle me-1"></i> Quiz Information
+            </h5>
+            <hr />
+
+            <div class="row gy-3">
+                <div class="col-md-6">
+                    <p><strong>Description:</strong><br /> @Model.Description</p>
+                </div>
+                <div class="col-md-3">
+                    <p><strong>Time Limit:</strong><br /> @Model.TimeLimit min</p>
+                </div>
+                <div class="col-md-3">
+                    <p><strong>Passing Score:</strong><br /> @(Model.PassingScore.HasValue ? $"{Model.PassingScore}%" : "N/A")</p>
+                </div>
+
+                <div class="col-md-3">
+                    <p>
+                        <strong>Attempts:</strong><br />
+                        @(Model.AllowMultipleAttempts
+                                                ? (Model.MaxAttempts.HasValue ? $"{Model.MaxAttempts} attempts" : "Unlimited")
+                                                : "Single Attempt")
+                    </p>
+                </div>
+                <div class="col-md-3">
+                    <p>
+                        <strong>Auto Graded:</strong><br />
+                        <span class="badge bg-@(Model.IsAutoGraded ? "success" : "secondary")">
+                            @(Model.IsAutoGraded ? "Enabled" : "Disabled")
+                        </span>
+                    </p>
+                </div>
+                <div class="col-md-3">
+                    <p>
+                        <strong>Show Correct Answers:</strong><br />
+                        <span class="badge bg-@(Model.ShowCorrectAnswers ? "success" : "secondary")">
+                            @(Model.ShowCorrectAnswers ? "Yes" : "No")
+                        </span>
+                    </p>
+                </div>
+                <div class="col-md-3">
+                    <p>
+                        <strong>Show Score Immediately:</strong><br />
+                        <span class="badge bg-@(Model.ShowScoreImmediatlely ? "success" : "secondary")">
+                            @(Model.ShowScoreImmediatlely ? "Yes" : "No")
+                        </span>
+                    </p>
+                </div>
+
+                <div class="col-md-4">
+                    <p><strong>Start At:</strong><br /> @Model.StartAt?.ToString("yyyy-MM-dd HH:mm")</p>
+                </div>
+                <div class="col-md-4">
+                    <p><strong>End At:</strong><br /> @Model.EndAt?.ToString("yyyy-MM-dd HH:mm")</p>
+                </div>
+                <div class="col-md-4">
+                    <p><strong>Category ID:</strong><br /> @Model.CaregoryId</p>
+                </div>
+
+                <div class="col-md-3">
+                    <p>
+                        <strong>Status:</strong><br />
+                        <span class="badge bg-@(Model.IsPublished ? "success" : "warning text-dark")">
+                            @(Model.IsPublished ? "Published" : "Draft")
+                        </span>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Questions -->
+    <div class="mb-3">
+        <h4 class="fw-semibold text-dark mb-3">
+            <i class="bi bi-question-circle me-1"></i> Questions
+        </h4>
+
+        @if (Model.Questions != null && Model.Questions.Any())
+        {
+            int index = 1;
+            foreach (var question in Model.Questions)
+            {
+                <div class="card mb-4 border-0 shadow-sm">
+                    <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="fw-bold text-primary">Question @index:</span> @question.Text
+                        </div>
+                        <span class="badge bg-info text-dark">@question.QuestionType</span>
+                    </div>
+                    <div class="card-body">
+                        <p class="mb-1"><strong>Points:</strong> @question.Points</p>
+
+                        @if (!string.IsNullOrEmpty(question.ImageUrl))
+                        {
+                            <div class="mb-3">
+                                <img src="@question.ImageUrl" class="img-thumbnail shadow-sm" style="max-width: 300px;" />
+                            </div>
+                        }
+
+                        <h6 class="fw-semibold mt-3">Choices:</h6>
+                        <ul class="list-group list-group-flush">
+                            @foreach (var choice in question.Choices)
+                            {
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <span>@choice.Text</span>
+                                    @if (choice.IsCorrect)
+                                    {
+                                        <span class="badge bg-success rounded-pill">Correct</span>
+                                    }
+                                </li>
+                            }
+                        </ul>
+                    </div>
+                </div>
+                index++;
+            }
+        }
+        else
+        {
+            <div class="alert alert-info">
+                <i class="bi bi-exclamation-circle me-1"></i> No questions available for this quiz.
+            </div>
+        }
+    </div>
+
+    <div class="text-center mt-4">
+        <a asp-action="Index" class="btn btn-lg btn-outline-primary px-4">
+            <i class="bi bi-arrow-left-circle me-1"></i> Back to Quizzes
+        </a>
+    </div>
+</div>

@@ -1,0 +1,228 @@
+﻿@using Quizzly.Business.ViewModels.Quiz
+@model QuizDetailsDto
+@{
+    ViewData["Title"] = "Update Quiz";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container mt-4 mb-5">
+    <h2 class="mb-4 fw-bold text-primary">Update Quiz</h2>
+
+    <form asp-action="Update" method="post" enctype="multipart/form-data" class="bg-white p-4 rounded shadow-sm border">
+        <input type="hidden" asp-for="Id" />
+
+        <div class="row g-3">
+            <div class="col-md-6">
+                <label asp-for="Title" class="form-label fw-semibold"></label>
+                <input asp-for="Title" class="form-control" placeholder="Enter quiz title..." />
+                <span asp-validation-for="Title" class="text-danger small"></span>
+            </div>
+
+            <div class="col-md-6">
+                <label asp-for="TimeLimit" class="form-label fw-semibold"></label>
+                <input asp-for="TimeLimit" type="number" class="form-control" min="1" max="180" placeholder="Time in minutes" />
+                <span asp-validation-for="TimeLimit" class="text-danger small"></span>
+            </div>
+
+            <div class="col-md-12">
+                <label asp-for="Description" class="form-label fw-semibold"></label>
+                <textarea asp-for="Description" class="form-control" rows="3" placeholder="Write a short description..."></textarea>
+                <span asp-validation-for="Description" class="text-danger small"></span>
+            </div>
+
+            <div class="col-md-6">
+                <label asp-for="CaregoryId" class="form-label fw-semibold"></label>
+                <select asp-for="CaregoryId" asp-items="Model.Categories" class="form-select">
+                    <option value="">-- Select Category --</option>
+                </select>
+                <span asp-validation-for="CaregoryId" class="text-danger small"></span>
+            </div>
+
+            <div class="col-md-6">
+                <label asp-for="PassingScore" class="form-label fw-semibold"></label>
+                <input asp-for="PassingScore" type="number" step="0.1" class="form-control" placeholder="Enter passing score %" />
+                <span asp-validation-for="PassingScore" class="text-danger small"></span>
+            </div>
+
+            <div class="col-md-6">
+                <label asp-for="StartAt" class="form-label fw-semibold"></label>
+                <input asp-for="StartAt" type="datetime-local" class="form-control" />
+                <span asp-validation-for="StartAt" class="text-danger small"></span>
+            </div>
+
+            <div class="col-md-6">
+                <label asp-for="EndAt" class="form-label fw-semibold"></label>
+                <input asp-for="EndAt" type="datetime-local" class="form-control" />
+                <span asp-validation-for="EndAt" class="text-danger small"></span>
+            </div>
+        </div>
+
+        <hr class="my-4" />
+
+        <h4 class="mb-3 fw-bold text-secondary">Quiz Settings</h4>
+
+        <div class="row gy-2">
+            <div class="col-md-4 form-check form-switch">
+                <input asp-for="ShuffleQuestions" class="form-check-input" type="checkbox" />
+                <label asp-for="ShuffleQuestions" class="form-check-label fw-semibold"></label>
+            </div>
+
+            <div class="col-md-4 form-check form-switch">
+                <input asp-for="ShuffleChoices" class="form-check-input" type="checkbox" />
+                <label asp-for="ShuffleChoices" class="form-check-label fw-semibold"></label>
+            </div>
+
+            <div class="col-md-4 form-check form-switch">
+                <input asp-for="AllowMultipleAttempts" class="form-check-input" type="checkbox" />
+                <label asp-for="AllowMultipleAttempts" class="form-check-label fw-semibold"></label>
+            </div>
+
+            <div class="col-md-4 form-check form-switch">
+                <input asp-for="IsAutoGraded" class="form-check-input" type="checkbox" />
+                <label asp-for="IsAutoGraded" class="form-check-label fw-semibold"></label>
+            </div>
+
+            <div class="col-md-4 form-check form-switch">
+                <input asp-for="ShowCorrectAnswers" class="form-check-input" type="checkbox" />
+                <label asp-for="ShowCorrectAnswers" class="form-check-label fw-semibold"></label>
+            </div>
+
+            <div class="col-md-4 form-check form-switch">
+                <input asp-for="ShowScoreImmediatlely" class="form-check-input" type="checkbox" />
+                <label asp-for="ShowScoreImmediatlely" class="form-check-label fw-semibold"></label>
+            </div>
+        </div>
+
+        <hr class="my-4" />
+
+        <h4 class="fw-bold text-secondary mb-3">Questions</h4>
+
+        <div id="questions-section">
+            @for (int i = 0; i < Model.Questions.Count; i++)
+            {
+                <div class="card mb-4 shadow-sm question-card">
+                    <div class="card-body">
+                        <h5 class="card-title fw-semibold text-primary">Question @(i + 1)</h5>
+
+                        <div class="mb-3">
+                            <label asp-for="@Model.Questions[i].Text" class="form-label fw-semibold">Question Text</label>
+                            <input asp-for="@Model.Questions[i].Text" class="form-control" />
+                            <span asp-validation-for="@Model.Questions[i].Text" class="text-danger small"></span>
+                        </div>
+
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label asp-for="@Model.Questions[i].QuestionType" class="form-label fw-semibold">Question Type</label>
+                                <select asp-for="@Model.Questions[i].QuestionType" class="form-select question-type-select">
+                                    <option value="0">Multiple Choice</option>
+                                    <option value="1">True/False</option>
+                                    <option value="2">Short Answer</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="@Model.Questions[i].Points" class="form-label fw-semibold">Points</label>
+                                <input asp-for="@Model.Questions[i].Points" type="number" class="form-control" />
+                            </div>
+                        </div>
+
+                        <div class="choices-section mt-3">
+                            <h6 class="fw-semibold text-muted">Choices</h6>
+                            <div class="choice-list row gy-2">
+                                @for (int j = 0; j < Model.Questions[i].Choices.Count; j++)
+                                {
+                                    <div class="col-md-6 choice-item d-flex align-items-center">
+                                        <input asp-for="@Model.Questions[i].Choices[j].Text" class="form-control me-2" placeholder="Choice text" />
+                                        <input asp-for="@Model.Questions[i].Choices[j].IsCorrect" class="form-check-input me-1" type="checkbox" />
+                                        <label class="small">Correct</label>
+                                    </div>
+                                }
+                            </div>
+                            <button type="button" class="btn btn-outline-primary btn-sm mt-2 add-choice-btn">
+                                <i class="bi bi-plus-circle"></i> Add Choice
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <div class="text-end">
+            <button type="submit" class="btn btn-primary px-4">Save Changes</button>
+            <a asp-action="Index" class="btn btn-outline-secondary ms-2">Cancel</a>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        // Handle dynamic question types and adding/removing choices
+        document.querySelectorAll('.question-card').forEach(card => {
+            const typeSelect = card.querySelector('.question-type-select');
+            const choicesSection = card.querySelector('.choices-section');
+            const choiceList = card.querySelector('.choice-list');
+            const addChoiceBtn = card.querySelector('.add-choice-btn');
+
+            const updateChoices = () => {
+                const type = parseInt(typeSelect.value);
+                choiceList.innerHTML = ''; // clear old choices
+
+                if (type === 2) { // Short Answer
+                    choicesSection.style.display = 'none';
+                    return;
+                }
+
+                choicesSection.style.display = 'block';
+
+                if (type === 1) { // True/False
+                    addChoice(['True', 'False']);
+                    addChoiceBtn.style.display = 'none';
+                } else {
+                    addChoiceBtn.style.display = 'inline-block';
+                    addChoice(); // at least one choice
+                }
+            };
+
+            const addChoice = (defaultTexts = ['']) => {
+                defaultTexts.forEach(text => {
+                    const div = document.createElement('div');
+                    div.classList.add('col-md-6', 'choice-item', 'd-flex', 'align-items-center', 'fade-in');
+                    div.innerHTML = `
+                        <input type="text" name="ChoiceText" value="${text}" class="form-control me-2" placeholder="Choice text" />
+                        <input type="checkbox" name="IsCorrect" class="form-check-input me-1" />
+                        <button type="button" class="btn btn-sm btn-outline-danger remove-choice-btn">&times;</button>
+                    `;
+                    choiceList.appendChild(div);
+
+                    div.querySelector('.remove-choice-btn').addEventListener('click', () => div.remove());
+                });
+            };
+
+            addChoiceBtn.addEventListener('click', () => addChoice());
+
+            typeSelect.addEventListener('change', updateChoices);
+            updateChoices();
+        });
+    </script>
+
+    <style>
+        .fade-in {
+            animation: fadeIn 0.3s ease-in;
+        }
+        @@keyframes fadeIn {
+            from
+
+        {
+            opacity: 0;
+            transform: translateY(-5px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        }
+    </style>
+}
