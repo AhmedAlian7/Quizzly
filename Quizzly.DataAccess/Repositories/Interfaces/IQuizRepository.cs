@@ -8,6 +8,7 @@ namespace Quizzly.DataAccess.Repositories.Interfaces
         Task<IEnumerable<Quiz>> GetAllByInstructorId(int InstructorId);
         Task<IEnumerable<Quiz>> GetRecentQuizzezPerInstructor(int InstructorId);
         Task<decimal?> GetAvgScore(int QuizId);
+        Task<TimeSpan> GetAvgTime(int QuizId);
         Task<decimal?> GetAvgScorePerInstructor(int InstructorId);
         Task<int> GetTotalStudentsCountPerInstructor(int InstructorId);
     }

@@ -9,14 +9,12 @@ namespace Quizzly.DataAccess.Repositories.Implementions
     {
         public QuizRepository(AppDbContext context) : base(context) { }
 
-
         public async Task<int> GetTotalQuizzesPerInstructor(int InstructorId)
         {
             return await _context.Quizzes
                 .Where(q => q.InstructorId == InstructorId)
                 .CountAsync();
         }
-
         public async Task<decimal?> GetAvgScorePerInstructor(int InstructorId)
         {
             return await _context.Quizzes
@@ -30,6 +28,17 @@ namespace Quizzly.DataAccess.Repositories.Implementions
                 .Where(q => q.Id == QuizId)
                 .SelectMany(q => q.QuizAttempts)
                 .AverageAsync(qa => qa.Score);
+        }
+        public async Task<TimeSpan> GetAvgTime(int quizId)
+        {
+            return TimeSpan.FromTicks(Convert.ToInt64(
+                 await _context.Quizzes
+                 .SelectMany(q => q.QuizAttempts)
+                 .Where(qa => qa.QuizId == quizId && qa.FinishedAt.HasValue)
+                 .Select(qa => (qa.FinishedAt.Value - qa.StartedAt).Ticks)
+                 .DefaultIfEmpty(0)
+                 .AverageAsync()
+            ));
         }
         public async Task<int> GetTotalStudentsCountPerInstructor(int InstructorId)
         {
@@ -53,7 +62,6 @@ namespace Quizzly.DataAccess.Repositories.Implementions
                  .OrderByDescending(q => q.CreatedAt)
                  .Take(5)
                  .ToListAsync();
-
         }
     }
 }

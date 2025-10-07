@@ -8,5 +8,10 @@ namespace Quizzly.DataAccess.Repositories.Implementions
     {
         public QuizAttemptRepository(AppDbContext context) : base(context) { }
 
+        public IQueryable<QuizAttempt> GetQueryable()
+        {
+            return _context.QuizAttempts;
+        }
+
     }
 }
