@@ -1,5 +1,6 @@
 ﻿using Quizzly.Business.ViewModels.Instructor;
 using Quizzly.Business.ViewModels.Quiz;
+using Quizzly.Business.ViewModels.QuizCategories;
 using Quizzly.DataAccess.Entities;
 using Quizzly.DataAccess.Repositories.Interfaces;
 
@@ -15,6 +16,7 @@ namespace Quizzly.Business.Services.Interfaces
         Task<List<InstructorAllQuizzesDto>> GetAllQuizzesAsync(int InstructorId);
         Task<InstructorDashboardDto> GetInstructorDashboardAsync(int InstructorId);
         Task AddQuizAsync(int instructorId, AddQuizDto dto);
+        Task AddQuizCategoryAsync(int instructorId, AddQuizCategoryDto dto);
         Task<Instructor?> GetInstructorByUserIdAsync(string userId);
 
 

@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Quizzly.Business.Services.Interfaces;
 using Quizzly.Business.ViewModels.Quiz;
 using Quizzly.DataAccess.Entities;
@@ -12,12 +13,14 @@ namespace Quizzly.Web.Areas.Instructor.Controllers
     public class QuizManagementController : Controller
     {
         private readonly IInstructorManagementService _instructorManagementService;
+        private readonly IQuizCategoriesService _quizCategoriesService;
         private readonly UserManager<ApplicationUser> _userManager;
 
-        public QuizManagementController( IInstructorManagementService instructorManagementService , UserManager<ApplicationUser> userManager)
+        public QuizManagementController( IInstructorManagementService instructorManagementService , UserManager<ApplicationUser> userManager , IQuizCategoriesService quizCategoriesService)
         {
             _instructorManagementService = instructorManagementService;
             _userManager = userManager;
+            _quizCategoriesService = quizCategoriesService;
         }
 
         public async Task<IActionResult> Index()
@@ -35,9 +38,27 @@ namespace Quizzly.Web.Areas.Instructor.Controllers
         }
 
         [HttpGet]
-        public IActionResult Create()
+        public async Task<IActionResult> Create()
         {
-            return View(new AddQuizDto());
+            var categories = await _quizCategoriesService.GetAllAsync();
+
+            if (!categories.Any())
+            {
+                TempData["NoCategories"] = "You must create at least one quiz category before creating a quiz.";
+                return RedirectToAction("Create", "QuizCategoryManagement", new { area = "Instructor" });
+            }
+
+            var model = new AddQuizDto
+            {
+                Categories = categories.Select(c => new SelectListItem
+                {
+                    Value = c.Id.ToString(),
+                    Text = c.Name
+                })
+            };
+
+            return View(model);
+
         }
 
         [HttpPost]
@@ -57,5 +78,7 @@ namespace Quizzly.Web.Areas.Instructor.Controllers
             await _instructorManagementService.AddQuizAsync(instructor.Id, addQuizDto);
             return RedirectToAction("Index");
         }
+
+
     }
 }

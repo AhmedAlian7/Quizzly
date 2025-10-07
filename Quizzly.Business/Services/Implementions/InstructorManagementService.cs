@@ -1,6 +1,7 @@
 ﻿using Quizzly.Business.Services.Interfaces;
 using Quizzly.Business.ViewModels.Instructor;
 using Quizzly.Business.ViewModels.Quiz;
+using Quizzly.Business.ViewModels.QuizCategories;
 using Quizzly.DataAccess.Entities;
 using Quizzly.DataAccess.Repositories.Interfaces;
 
@@ -9,10 +10,12 @@ namespace Quizzly.Business.Services.Implementions
     public class InstructorManagementService : IInstructorManagementService
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IFileUploadService _fileUploadService;
 
-        public InstructorManagementService(IUnitOfWork unitOfWork)
+        public InstructorManagementService(IUnitOfWork unitOfWork, IFileUploadService fileUploadService)
         {
             _unitOfWork = unitOfWork;
+            _fileUploadService = fileUploadService;
         }
 
         public async Task<int> GetTotalQuizzesAsync(int InstructorId)
@@ -93,12 +96,29 @@ namespace Quizzly.Business.Services.Implementions
                 InstructorId = instructorId,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow,
-                IsPublished = false 
+                IsPublished = false,
+                QuizCategoryId = dto.CaregoryId,
+                AllowMultipleAttempts = dto.AllowMultipleAttempts,
+                IsAutoGraded = dto.IsAutoGraded,
+                PassingScore = dto.PassingScore,
+                MaxAttempts = dto.MaxAttempts,
+                StartAt = dto.StartAt,
+                EndAt = dto.EndAt,
+                AccessToken = Guid.NewGuid().ToString("N") // N produces a 32-digit hexadecimal string without hyphens
             };
 
-            
+
             foreach (var q in dto.addQuestionDtos)
             {
+                try
+                {
+                    q.ImageUrl = await _fileUploadService.UploadAsync(q.ImageFile, "Questions");
+                }
+                catch (Exception ex)
+                {
+                    throw new InvalidOperationException("Error uploading main image: " + ex.Message);
+                }
+
                 var question = new Question
                 {
                     Text = q.Text,
@@ -108,7 +128,7 @@ namespace Quizzly.Business.Services.Implementions
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow
                 };
-                
+
                 foreach (var c in q.Choices)
                 {
                     var choice = new Choice
@@ -124,14 +144,29 @@ namespace Quizzly.Business.Services.Implementions
                 quiz.Questions.Add(question);
             }
 
+
             await _unitOfWork.Quizzes.AddAsync(quiz);
             await _unitOfWork.SaveAsync();
         }
 
+        public async Task AddQuizCategoryAsync(int instructorId, AddQuizCategoryDto dto)
+        {
+            var category = new QuizCategory
+            {
+                Name = dto.Name,
+                Description = dto.Description,
+                InstructorId = instructorId,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
+
+            await _unitOfWork.QuizCategories.AddAsync(category);
+            await _unitOfWork.SaveAsync();
+        }
         public async Task<Instructor?> GetInstructorByUserIdAsync(string userId)
         {
             return await _unitOfWork.Instructors
                 .GetByUserIdAsync(userId);
         }
-    }   
+    }
 }
