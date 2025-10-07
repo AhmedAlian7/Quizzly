@@ -487,13 +487,13 @@
         }
 
         // Initialize toasts
-        document.addEventListener('DOMContentLoaded', function() {
-            var toastElList = [].slice.call(document.querySelectorAll('.toast'));
-            var toastList = toastElList.map(function(toastEl) {
-                var toast = new bootstrap.Toast(toastEl, { delay: 3000 });
+        document.addEventListener("DOMContentLoaded", function () {
+            var toastEl = document.querySelector('.toast');
+            if (toastEl) {
+                var toast = new bootstrap.Toast(toastEl);
                 toast.show();
-                return toast;
-            });
+            }
+        });
 
             // Set active menu item based on current page
             const currentPath = window.location.pathname;
