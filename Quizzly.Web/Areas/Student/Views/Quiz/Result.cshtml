@@ -1,0 +1,73 @@
+@model Quizzly.Business.ViewModels.Student.QuizResultViewModel
+@{
+    ViewData["Title"] = "Quiz Result";
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-body p-4">
+                    <h3 class="mb-3">@Model.QuizTitle</h3>
+
+                    <div class="d-flex gap-3 flex-wrap mb-3">
+                        <div class="badge bg-primary">Score: @(Model.Score ?? 0)/@Model.MaxScore (@(Model.Percentage?.ToString("0.##") ?? "0")%)</div>
+                        <div class="badge bg-light text-dark">Time Taken: @Model.TimeTaken.ToString("hh'h 'mm'm 'ss's'")</div>
+                        @if (Model.Passed)
+                        {
+                            <div class="badge bg-success">Passed</div>
+                        }
+                        else
+                        {
+                            <div class="badge bg-danger">Failed</div>
+                        }
+                    </div>
+
+                    @if (Model.AwaitingManualGrading)
+                    {
+                        <div class="alert alert-info">Your quiz has been submitted for grading. Some answers require manual review.</div>
+                    }
+
+                    @if (Model.ShowCorrectAnswers)
+                    {
+                        <h5 class="mt-4">Feedback</h5>
+                        <hr />
+                        @foreach (var q in Model.Questions)
+                        {
+                            var isCorrect = q.IsCorrect == true;
+                            <div class="mb-4">
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="fw-semibold">@q.Text</span>
+                                    <span class="badge @(isCorrect?"bg-success":"bg-danger")">@(isCorrect?"Correct":"Incorrect")</span>
+                                </div>
+                                <div class="small text-muted">Points: @q.PointsAwarded/@q.Points</div>
+                                @if (!string.IsNullOrWhiteSpace(q.Explanation)) { <div class="mt-2"><em>@q.Explanation</em></div> }
+                                <ul class="mt-2">
+                                    @foreach (var c in q.Choices)
+                                    {
+                                        var chosen = q.SelectedChoiceIds.Contains(c.ChoiceId);
+                                        <li>
+                                            @if (c.IsCorrect)
+                                            {<span class="text-success">✅</span>} else {<span class="text-danger">❌</span>}
+                                            <span class="@(chosen?"fw-semibold":"")">@c.Text</span>
+                                        </li>
+                                    }
+                                </ul>
+                                @if (!string.IsNullOrWhiteSpace(q.TextAnswer))
+                                {
+                                    <div><strong>Your answer:</strong> @q.TextAnswer</div>
+                                }
+                            </div>
+                        }
+                    }
+
+                    <div class="d-flex gap-2 mt-3">
+                        <a class="btn btn-primary" href="@Url.Action("Link","Access", new { area = "Student" })">Back to Access</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+

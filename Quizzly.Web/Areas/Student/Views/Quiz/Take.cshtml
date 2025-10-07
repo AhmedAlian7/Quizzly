@@ -1,0 +1,110 @@
+@model Quizzly.Business.ViewModels.Student.QuizTakingViewModel
+@{
+    ViewData["Title"] = Model.QuizTitle;
+}
+
+<div class="border-bottom bg-white position-sticky top-0" style="z-index: 1000;">
+    <div class="container py-3 d-flex align-items-center justify-content-between">
+        <div class="fw-semibold">@Model.QuizTitle</div>
+        <div class="text-center">
+            <span class="small text-muted">Remaining Time</span>
+            <div id="timer" class="fw-bold"></div>
+        </div>
+        <form method="post" asp-action="Submit" asp-route-attemptId="@Model.AttemptId">
+            <button class="btn btn-danger">Submit Quiz</button>
+        </form>
+    </div>
+</div>
+
+<div class="container py-4">
+    <div class="mb-3 text-muted">Question @(Model.CurrentIndex + 1) of @Model.TotalQuestions</div>
+
+    @{
+        var q = Model.Questions[Model.CurrentIndex];
+    }
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <div class="d-flex align-items-start justify-content-between">
+                <h5 class="mb-3">@q.Text</h5>
+                @if (q.IsRequired)
+                {<span class="badge bg-primary">Required</span>}
+            </div>
+
+            <form method="post" asp-action="SaveAnswer">
+                <input type="hidden" name="attemptId" value="@Model.AttemptId" />
+                <input type="hidden" name="questionId" value="@q.QuestionId" />
+
+                @switch (q.QuestionType)
+                {
+                    case Quizzly.DataAccess.Enums.QuestionType.MCQ:
+                    case Quizzly.DataAccess.Enums.QuestionType.TrueFalse:
+                        {
+                            foreach (var c in q.Choices)
+                            {
+                                var isChecked = q.ExistingChoiceIds.Contains(c.ChoiceId);
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="radio" name="choiceIds" value="@c.ChoiceId" @(isChecked?"checked":null) />
+                                    <label class="form-check-label">@c.Text</label>
+                                </div>
+                            }
+                            break;
+                        }
+                    case Quizzly.DataAccess.Enums.QuestionType.ShortAnswer:
+                        {
+                            <input class="form-control" name="textAnswer" maxlength="250" value="@q.ExistingTextAnswer" />
+                            break;
+                        }
+                    case Quizzly.DataAccess.Enums.QuestionType.Essay:
+                        {
+                            <textarea class="form-control" name="textAnswer" rows="6">@q.ExistingTextAnswer</textarea>
+                            break;
+                        }
+                }
+
+                <div class="d-flex justify-content-between mt-4">
+                    <button type="submit" class="btn btn-outline-secondary" name="next" value="false" @(Model.CurrentIndex==0?"disabled":null)>Previous</button>
+                    <button type="submit" class="btn btn-primary" name="next" value="true">@(Model.CurrentIndex==Model.TotalQuestions-1?"Save":"Next")</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    const endsAt = new Date('@Model.EndsAtUtc?.ToString("o")');
+    const timerEl = document.getElementById('timer');
+    const warnBeforeSec = 5 * 60;
+    const dangerBeforeSec = 60;
+
+    function pad(n) { return n.toString().padStart(2, '0'); }
+    function tick() {
+        const now = new Date();
+        const diffMs = endsAt - now;
+        if (diffMs <= 0) {
+            timerEl.innerText = '00:00';
+            document.removeEventListener('beforeunload', beforeUnloadHandler);
+            const form = document.createElement('form');
+            form.method = 'post';
+            form.action = '@Url.Action("Submit","Quiz", new { area = "Student", attemptId = Model.AttemptId })';
+            const token = document.querySelector('input[name="__RequestVerificationToken"]');
+            if (token) { const hidden = document.createElement('input'); hidden.type='hidden'; hidden.name='__RequestVerificationToken'; hidden.value=token.value; form.appendChild(hidden); }
+            document.body.appendChild(form); form.submit();
+            return;
+        }
+        const totalSec = Math.floor(diffMs / 1000);
+        const m = Math.floor(totalSec / 60), s = totalSec % 60;
+        timerEl.innerText = `${pad(m)}:${pad(s)}`;
+        timerEl.classList.remove('text-success','text-warning','text-danger');
+        if (totalSec <= dangerBeforeSec) timerEl.classList.add('text-danger');
+        else if (totalSec <= warnBeforeSec) timerEl.classList.add('text-warning');
+        else timerEl.classList.add('text-success');
+    }
+    setInterval(tick, 1000); tick();
+
+    function beforeUnloadHandler(e) {
+        e.preventDefault(); e.returnValue = '';
+    }
+    window.addEventListener('beforeunload', beforeUnloadHandler);
+</script>
+
+

@@ -1,0 +1,44 @@
+@model IEnumerable<Quizzly.DataAccess.Entities.QuizAttempt>
+@{
+    ViewData["Title"] = "Student Dashboard";
+}
+
+<div class="container py-5">
+    <h2 class="mb-4">Welcome</h2>
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <form class="row g-2" method="get" action="@Url.Action("Link","Access", new { area = "Student" })">
+                <div class="col-sm-9">
+                    <input type="text" name="token" class="form-control" placeholder="Enter quiz access token" />
+                </div>
+                <div class="col-sm-3 d-grid">
+                    <button class="btn btn-primary">Access Quiz</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <h5 class="mb-3">Recent Attempts</h5>
+    @if (!Model.Any())
+    {
+        <div class="alert alert-light">No attempts yet.</div>
+    }
+    else
+    {
+        <div class="list-group">
+            @foreach (var a in Model)
+            {
+                <a class="list-group-item list-group-item-action d-flex justify-content-between align-items-center" href="@Url.Action("Result","Quiz", new { area = "Student", attemptId = a.Id })">
+                    <div>
+                        <div class="fw-semibold">@a.Quiz.Title</div>
+                        <div class="small text-muted">@a.StartedAt.ToLocalTime().ToString("g")</div>
+                    </div>
+                    <div class="badge bg-light text-dark">@((a.Percentage ?? 0).ToString("0.##"))%</div>
+                </a>
+            }
+        </div>
+    }
+</div>
+
+

@@ -1,0 +1,29 @@
+﻿﻿@{
+ViewData["Title"] = "Access Denied";
+}
+
+<div class="container d-flex justify-content-center align-items-center vh-100">
+    <div class="card shadow-lg border-0 rounded-4 text-center p-4" style="max-width: 500px;">
+
+        <div class="mb-3">
+            <img src="~/images/access-denied.gif" alt="Access Denied" class="img-fluid shadow-sm">
+        </div>
+
+        <h2 class="text-danger">
+            <i class="fas fa-ban"></i> Access Denied
+        </h2>
+
+        <p class="lead mt-2">
+            Sorry, you don’t have permission to access this page.
+        </p>
+
+        <div class="d-grid gap-2 mt-4">
+            <a asp-action="Login" asp-controller="Account" asp-area="Authentication" class="btn btn-danger rounded-pill">
+                <i class="fas fa-sign-in-alt"></i> Back to Login
+            </a>
+            <a asp-action="Index" asp-controller="Home" asp-area="Instructor" class="btn btn-outline-secondary rounded-pill">
+                <i class="fas fa-home"></i> Go to Home
+            </a>
+        </div>
+    </div>
+</div>

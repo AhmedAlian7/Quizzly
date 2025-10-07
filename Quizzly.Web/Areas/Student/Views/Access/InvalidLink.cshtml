@@ -1,0 +1,18 @@
+@{
+    ViewData["Title"] = "Invalid Quiz Link";
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="alert alert-danger shadow-sm">
+                <h4 class="alert-heading">Invalid quiz link</h4>
+                <p>The quiz you are trying to access was not found.</p>
+                <hr />
+                <a class="btn btn-primary" href="@Url.Action("Login","Account", new { area = "Authentication" })">Go to Login</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+

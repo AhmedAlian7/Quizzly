@@ -91,7 +91,7 @@ namespace Quizzly.Web.Areas.Authentication.Controllers
                 }
                 else if (register.Role == AppRoles.Student)
                 {
-                    var student = new Student
+                    var student = new DataAccess.Entities.Student
                     {
                         UserId = user.Id,
                         StudentNumber = register.StudentNumber
@@ -101,7 +101,7 @@ namespace Quizzly.Web.Areas.Authentication.Controllers
                 }
                 await _signInManager.SignInAsync(user, isPersistent: true);
                 TempData["SuccessMessage"] = "Account Created successfully!";
-                return RedirectToAction("Index", "Home", new { area = "Customer" });
+                return RedirectToAction("Index", "Dashboard", new { area = "Student" });
             }
             else
             {
@@ -162,8 +162,21 @@ namespace Quizzly.Web.Areas.Authentication.Controllers
                 if (await _userManager.IsInRoleAsync(user, AppRoles.Admin))
                     return RedirectToAction("Index", "Product", new { area = "Admin" });
 
-                TempData["SuccessMessage"] = "Login Successfully, Wellcome Back!";
-                return RedirectToAction("Index", "Home", new { area = "Customer" });
+                if (await _userManager.IsInRoleAsync(user, AppRoles.Instructor))
+                {
+                    TempData["SuccessMessage"] = "Login Successfully, Wellcome Back!";
+                    var instructor = (await _unitOfWork.Instructors.GetAllAsync("")).FirstOrDefault(i => i.UserId == user.Id);
+                    if (instructor != null)
+                        return RedirectToAction("Index", "Dashboard", new { area = "Instructor", InstructorId = instructor.Id });
+                }
+                if (await _userManager.IsInRoleAsync(user, AppRoles.Student))
+                {
+                    TempData["SuccessMessage"] = "Login Successfully, Wellcome Back!";
+                    var student = (await _unitOfWork.Students.GetAllAsync("")).FirstOrDefault(s => s.UserId == user.Id);
+                    if (student != null)
+                        return RedirectToAction("Index", "Dashboard", new { area = "Student" });
+                }
+
             }
 
             if (result.IsLockedOut)
@@ -180,9 +193,8 @@ namespace Quizzly.Web.Areas.Authentication.Controllers
         {
 
             await _signInManager.SignOutAsync();
-            //HttpContext.Session.SetInt32("CardNumber", 0);
-            TempData["success"] = "Logout Successfully";
-            return RedirectToAction("Index", "Home", new { area = "Customer" });
+            TempData["SuccessMessage"] = "Logout Successfully";
+            return RedirectToAction("Login", "Account", new { area = "Authentication" });
         }
 
         public IActionResult ExternalLogin(string provider, string? returnUrl = "")
@@ -297,6 +309,12 @@ namespace Quizzly.Web.Areas.Authentication.Controllers
             return Json(true);
 
 
+        }
+
+        [HttpGet]
+        public IActionResult AccessDenied(string returnUrl = "")
+        {
+            return View();
         }
         public IActionResult PrivacyPolicy()
         {
