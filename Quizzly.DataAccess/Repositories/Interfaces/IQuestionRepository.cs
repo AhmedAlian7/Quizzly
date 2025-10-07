@@ -4,5 +4,8 @@ namespace Quizzly.DataAccess.Repositories.Interfaces
 {
     public interface IQuestionRepository : IRepository<Question>
     {
+        IQueryable<Question> GetQueryable();
+
+
     }
 }
