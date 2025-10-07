@@ -3,7 +3,7 @@
 
 @{
     ViewData["Title"] = "Create Quiz";
-	Layout = "~/Views/Shared/_Layout.cshtml";
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
 <div class="container-fluid py-4">
@@ -39,22 +39,14 @@
                                 <span asp-validation-for="Description" class="text-danger"></span>
                             </div>
 
-                            <div class="col-md-6 mb-3">
-                                <div class="form-check">
-                                    <input asp-for="ShuffleQuestions" class="form-check-input" type="checkbox" />
-                                    <label asp-for="ShuffleQuestions" class="form-check-label">
-                                        Shuffle Questions
-                                    </label>
-                                </div>
+                            <div class="col-md-6 mb-3 form-check">
+                                <input asp-for="ShuffleQuestions" class="form-check-input" type="checkbox" />
+                                <label asp-for="ShuffleQuestions" class="form-check-label">Shuffle Questions</label>
                             </div>
 
-                            <div class="col-md-6 mb-3">
-                                <div class="form-check">
-                                    <input asp-for="ShuffleChoices" class="form-check-input" type="checkbox" />
-                                    <label asp-for="ShuffleChoices" class="form-check-label">
-                                        Shuffle Choices
-                                    </label>
-                                </div>
+                            <div class="col-md-6 mb-3 form-check">
+                                <input asp-for="ShuffleChoices" class="form-check-input" type="checkbox" />
+                                <label asp-for="ShuffleChoices" class="form-check-label">Shuffle Choices</label>
                             </div>
                         </div>
 
@@ -89,9 +81,7 @@
 </div>
 
 @section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
+    @await Html.PartialAsync("_ValidationScriptsPartial")
 
     <script>
         let questionIndex = 0;
@@ -116,14 +106,19 @@
                             <textarea name="addQuestionDtos[${questionIndex}].Text" class="form-control" rows="2" placeholder="Enter question text" required></textarea>
                         </div>
 
-                        <div class="col-md-6 mb-3">
+                        <div class="col-md-4 mb-3">
                             <label class="form-label fw-bold">Points *</label>
                             <input type="number" name="addQuestionDtos[${questionIndex}].Points" class="form-control" placeholder="Enter points" min="1" value="1" required />
                         </div>
 
-                        <div class="col-md-6 mb-3">
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label fw-bold">Image URL (optional)</label>
+                            <input type="url" name="addQuestionDtos[${questionIndex}].ImageUrl" class="form-control" placeholder="Enter image URL" />
+                        </div>
+
+                        <div class="col-md-4 mb-3">
                             <label class="form-label fw-bold">Question Type *</label>
-                            <select name="addQuestionDtos[${questionIndex}].QuestionType" class="form-select" required>
+                            <select name="addQuestionDtos[${questionIndex}].QuestionType" class="form-select" onchange="handleQuestionTypeChange(${questionIndex})" required>
                                 <option value="0">Multiple Choice</option>
                                 <option value="1">True/False</option>
                                 <option value="2">Short Answer</option>
@@ -131,92 +126,115 @@
                         </div>
                     </div>
 
-                    <hr />
-
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <label class="form-label fw-bold mb-0">Choices</label>
-                        <button type="button" class="btn btn-sm btn-outline-success" onclick="addChoice(${questionIndex})">
-                            <i class="bi bi-plus"></i> Add Choice
-                        </button>
+                    <div id="choices-section-${questionIndex}">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <label class="form-label fw-bold mb-0">Choices</label>
+                            <button type="button" class="btn btn-sm btn-outline-success" onclick="addChoice(${questionIndex})">
+                                <i class="bi bi-plus"></i> Add Choice
+                            </button>
+                        </div>
+                        <div id="choices-${questionIndex}" class="choices-container"></div>
                     </div>
 
-                    <div id="choices-${questionIndex}" class="choices-container">
-                        <!-- Choices will be added here -->
+                    <div id="short-answer-section-${questionIndex}" style="display: none;">
+                        <div class="alert alert-info mb-0">
+                            <i class="bi bi-info-circle"></i> Short answer questions will be manually graded.
+                        </div>
                     </div>
                 </div>
             `;
 
             container.appendChild(questionCard);
 
-            // Add 4 default choices
-            for (let i = 0; i < 4; i++) {
-                addChoice(questionIndex);
-            }
+            // Add 4 default choices for multiple choice
+            for (let i = 0; i < 4; i++) addChoice(questionIndex);
 
             questionIndex++;
         }
 
-        function removeQuestion(index) {
-            const question = document.getElementById(`question-${index}`);
-            if (question) {
-                question.remove();
+        function handleQuestionTypeChange(qIdx) {
+            const typeSelect = document.querySelector(`select[name="addQuestionDtos[${qIdx}].QuestionType"]`);
+            const type = parseInt(typeSelect.value);
+
+            const choicesSection = document.getElementById(`choices-section-${qIdx}`);
+            const shortAnswerSection = document.getElementById(`short-answer-section-${qIdx}`);
+            const choicesContainer = document.getElementById(`choices-${qIdx}`);
+            const addBtn = choicesSection.querySelector('button');
+
+            choicesContainer.innerHTML = '';
+
+            if (type === 0) {
+                // Multiple choice
+                choicesSection.style.display = 'block';
+                shortAnswerSection.style.display = 'none';
+                addBtn.style.display = 'inline-block';
+                for (let i = 0; i < 4; i++) addChoice(qIdx);
+            } else if (type === 1) {
+                // True/False
+                choicesSection.style.display = 'block';
+                shortAnswerSection.style.display = 'none';
+                addBtn.style.display = 'none';
+                addTrueFalseChoices(qIdx);
+            } else {
+                // Short answer
+                choicesSection.style.display = 'none';
+                shortAnswerSection.style.display = 'block';
             }
-            updateQuestionNumbers();
         }
 
-        function updateQuestionNumbers() {
-            const questions = document.querySelectorAll('[id^="question-"]');
-            questions.forEach((q, idx) => {
-                const header = q.querySelector('.card-header h6');
-                if (header) {
-                    header.textContent = `Question ${idx + 1}`;
-                }
+        function addTrueFalseChoices(qIdx) {
+            const container = document.getElementById(`choices-${qIdx}`);
+            ['True', 'False'].forEach((text, i) => {
+                const div = document.createElement('div');
+                div.className = 'input-group mb-2';
+                div.innerHTML = `
+                    <div class="input-group-text">
+                        <input type="radio" name="question-${qIdx}-correct" onchange="setCorrectAnswer(${qIdx}, ${i})">
+                    </div>
+                    <input type="text" name="addQuestionDtos[${qIdx}].Choices[${i}].Text" value="${text}" class="form-control" readonly>
+                    <input type="hidden" name="addQuestionDtos[${qIdx}].Choices[${i}].IsCorrect" id="choice-${qIdx}-${i}-iscorrect" value="false">
+                `;
+                container.appendChild(div);
             });
         }
 
-        function addChoice(questionIdx) {
-            const choicesContainer = document.getElementById(`choices-${questionIdx}`);
-            const choiceIndex = choicesContainer.children.length;
+        function setCorrectAnswer(qIdx, correctIdx) {
+            const all = document.querySelectorAll(`#choices-${qIdx} [id$="-iscorrect"]`);
+            all.forEach(x => x.value = "false");
+            document.getElementById(`choice-${qIdx}-${correctIdx}-iscorrect`).value = "true";
+        }
 
-            const choiceDiv = document.createElement('div');
-            choiceDiv.className = 'input-group mb-2';
-            choiceDiv.id = `question-${questionIdx}-choice-${choiceIndex}`;
+        function addChoice(qIdx) {
+            const container = document.getElementById(`choices-${qIdx}`);
+            const idx = container.children.length;
 
-            choiceDiv.innerHTML = `
+            const div = document.createElement('div');
+            div.className = 'input-group mb-2';
+            div.id = `question-${qIdx}-choice-${idx}`;
+            div.innerHTML = `
                 <div class="input-group-text">
-                    <input type="checkbox"
-                           name="addQuestionDtos[${questionIdx}].Choices[${choiceIndex}].IsCorrect"
-                           value="true"
-                           class="form-check-input mt-0"
-                           title="Mark as correct answer">
-                    <input type="hidden"
-                           name="addQuestionDtos[${questionIdx}].Choices[${choiceIndex}].IsCorrect"
-                           value="false">
+                    <input type="checkbox" name="addQuestionDtos[${qIdx}].Choices[${idx}].IsCorrect" value="true" class="form-check-input mt-0">
+                    <input type="hidden" name="addQuestionDtos[${qIdx}].Choices[${idx}].IsCorrect" value="false">
                 </div>
-                <input type="text"
-                       name="addQuestionDtos[${questionIdx}].Choices[${choiceIndex}].Text"
-                       class="form-control"
-                       placeholder="Enter choice text"
-                       required />
-                <button type="button" class="btn btn-outline-danger" onclick="removeChoice(${questionIdx}, ${choiceIndex})">
+                <input type="text" name="addQuestionDtos[${qIdx}].Choices[${idx}].Text" class="form-control" placeholder="Enter choice text" required>
+                <button type="button" class="btn btn-outline-danger" onclick="removeChoice(${qIdx}, ${idx})">
                     <i class="bi bi-x"></i>
                 </button>
             `;
-
-            choicesContainer.appendChild(choiceDiv);
+            container.appendChild(div);
         }
 
-        function removeChoice(questionIdx, choiceIdx) {
-            const choice = document.getElementById(`question-${questionIdx}-choice-${choiceIdx}`);
-            if (choice) {
-                choice.remove();
-            }
+        function removeChoice(qIdx, cIdx) {
+            const choice = document.getElementById(`question-${qIdx}-choice-${cIdx}`);
+            if (choice) choice.remove();
         }
 
-        // Add first question on page load
-        document.addEventListener('DOMContentLoaded', function() {
-            addQuestion();
-        });
+        function removeQuestion(qIdx) {
+            const question = document.getElementById(`question-${qIdx}`);
+            if (question) question.remove();
+        }
+
+        document.addEventListener('DOMContentLoaded', () => addQuestion());
     </script>
 
     <style>
@@ -226,10 +244,6 @@
 
         .card-header {
             border-radius: 8px 8px 0 0 !important;
-        }
-
-        .form-label.fw-bold {
-            color: #2c3e50;
         }
 
         .border-primary {

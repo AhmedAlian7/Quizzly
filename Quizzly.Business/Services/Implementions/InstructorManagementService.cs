@@ -104,6 +104,7 @@ namespace Quizzly.Business.Services.Implementions
                     Text = q.Text,
                     Points = q.Points,
                     QuestionType = q.QuestionType,
+                    ImageUrl = q.ImageUrl,
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow
                 };
@@ -125,6 +126,12 @@ namespace Quizzly.Business.Services.Implementions
 
             await _unitOfWork.Quizzes.AddAsync(quiz);
             await _unitOfWork.SaveAsync();
+        }
+
+        public async Task<Instructor?> GetInstructorByUserIdAsync(string userId)
+        {
+            return await _unitOfWork.Instructors
+                .GetByUserIdAsync(userId);
         }
     }   
 }
