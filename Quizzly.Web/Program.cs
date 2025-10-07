@@ -43,6 +43,29 @@ namespace Quizzly.Web
             .AddEntityFrameworkStores<AppDbContext>()
             .AddDefaultTokenProviders();
 
+            // Register External Login
+            builder.Services.AddAuthentication()
+                .AddGoogle(options =>
+                {
+                    var googleAuthNSection = builder.Configuration.GetSection("Authentication:Google");
+                    options.ClientId = googleAuthNSection["ClientId"];
+                    options.ClientSecret = googleAuthNSection["ClientSecret"];
+                })
+                .AddFacebook(options =>
+                {
+                    var facebookAuthNSection = builder.Configuration.GetSection("Authentication:Facebook");
+                    options.ClientId = facebookAuthNSection["AppId"];
+                    options.ClientSecret = facebookAuthNSection["AppSecret"];
+
+                    options.SaveTokens = true;
+                    options.CorrelationCookie.SameSite = SameSiteMode.None;
+                    options.CorrelationCookie.SecurePolicy = CookieSecurePolicy.Always;
+                    options.CallbackPath = "/signin-facebook"; // default
+
+                });
+
+
+
             var app = builder.Build();
 
             // Seed roles at startup
