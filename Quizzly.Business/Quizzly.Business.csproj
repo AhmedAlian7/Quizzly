@@ -15,4 +15,8 @@
     <ProjectReference Include="..\Quizzly.DataAccess\Quizzly.DataAccess.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="ViewModels/Student/" />
+  </ItemGroup>
+
 </Project>

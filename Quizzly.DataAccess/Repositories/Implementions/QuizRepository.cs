@@ -63,5 +63,22 @@ namespace Quizzly.DataAccess.Repositories.Implementions
                  .Take(5)
                  .ToListAsync();
         }
+
+        public async Task<Quiz?> GetByAccessTokenAsync(string accessToken, bool includeRelations = true)
+        {
+            var query = _context.Quizzes.AsQueryable();
+            if (includeRelations)
+            {
+                query = query
+                    .Include(q => q.Instructor)
+                    .Include(q => q.QuizCategory)
+                    .Include(q => q.Questions)
+                        .ThenInclude(qn => qn.Choices)
+                    .Include(q => q.StudentInfoFields)
+                    .Include(q => q.QuizAttempts);
+            }
+
+            return await query.FirstOrDefaultAsync(q => q.AccessToken == accessToken);
+        }
     }
 }

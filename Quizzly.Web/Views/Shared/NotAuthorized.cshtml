@@ -1,0 +1,18 @@
+@{
+    ViewData["Title"] = "Not Authorized";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="alert alert-warning shadow-sm">
+                <h4 class="alert-heading">Not Authorized</h4>
+                <p>You are not authorized to access the student portal. Please log in as a student.</p>
+                <a class="btn btn-primary" href="@Url.Action("Login","Account", new { area = "Authentication" })">Go to Login</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+

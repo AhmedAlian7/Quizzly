@@ -1,0 +1,73 @@
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Quizzly Student</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" />
+    <style>
+        :root { --primary:#2563EB; }
+        a, .text-primary { color: var(--primary) !important; }
+        .btn-primary { background: var(--primary); border-color: var(--primary); }
+        .navbar-student { border-bottom: 1px solid #eef2f7; }
+    </style>
+    @RenderSection("Styles", required: false)
+}</head>
+<body class="bg-light">
+    <header class="bg-white navbar-student">
+        <div class="container py-2 d-flex align-items-center justify-content-between">
+            <a class="navbar-brand fw-semibold" href="@Url.Action("Index","Dashboard", new { area = "Student" })">Quizzly • Student</a>
+            <div class="d-flex gap-2">
+                <a class="btn btn-outline-primary" href="@Url.Action("Index","Dashboard", new { area = "Student" })">Dashboard</a>
+                <a class="btn btn-outline-secondary" href="@Url.Action("Logout","Account", new { area = "Authentication" })">Logout</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="fade-in" style="margin: 0 auto; padding: 20px;">
+        <div class="container loading" data-aos="fade-up" data-aos-delay="100">
+
+            <!-- Alert Messages -->
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <i class="bi bi-check-circle"></i> @TempData["SuccessMessage"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+
+            @if (TempData["ErrorMessage"] != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="bi bi-exclamation-triangle"></i> @TempData["ErrorMessage"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+
+            @if (TempData["InfoMessage"] != null)
+            {
+                <div class="alert alert-info alert-dismissible fade show" role="alert">
+                    <i class="bi bi-info-circle"></i> @TempData["InfoMessage"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+            <main class="content">
+                @RenderSection("Content", required: false)
+            </main>
+        </div>
+        @RenderBody()
+    </main>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js"></script>
+    @RenderSection("Scripts", required: false)
+</body>
+</html>
+
+

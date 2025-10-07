@@ -20,4 +20,9 @@
     <ProjectReference Include="..\Quizzly.Business\Quizzly.Business.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Areas\Student\Controllers\" />
+    <Folder Include="Areas\Student\Views\" />
+  </ItemGroup>
+
 </Project>
