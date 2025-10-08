@@ -9,7 +9,6 @@ namespace Quizzly.Business.Services.Interfaces
     public interface IInstructorManagementService
     {
 
-        Task<int> GetTotalQuizzesAsync(int InstructorId);
         Task<decimal?> GetAvgScoreAsync(int InstructorId);
         Task<int> GetTotalStudentsCountAsync(int InstructorId);
         Task<List<InstructorRecentQuizDto>> GetRecentQuizzesAsync(int InstructorId);

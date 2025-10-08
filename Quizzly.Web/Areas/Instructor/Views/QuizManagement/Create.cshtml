@@ -3,633 +3,328 @@
 
 @{
     ViewData["Title"] = "Create Quiz";
-    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<div class="container-fluid py-4 bg-light min-vh-100">
-    <div class="row justify-content-center">
-        <div class="col-12 col-xl-11">
-            <div class="card shadow-lg border-0 rounded-4">
-                <div class="card-header bg-gradient-primary text-white py-4 rounded-top-4">
-                    <div class="d-flex align-items-center">
-                        <i class="bi bi-clipboard-check fs-2 me-3"></i>
-                        <div>
-                            <h3 class="mb-0 fw-bold">Create New Quiz</h3>
-                            <p class="mb-0 opacity-75 small">Design your quiz with questions and settings</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="card-body p-4 p-md-5">
-                    <form asp-action="Create" method="post" enctype="multipart/form-data" id="quizForm">
+<div class="container mt-4 mb-5">
+    <h2 class="mb-4 fw-bold text-primary">Create New Quiz</h2>
 
-                        <!-- Quiz Basic Information -->
-                        <div class="row mb-5">
-                            <div class="col-12 mb-4">
-                                <div class="d-flex align-items-center">
-                                    <div class="bg-primary rounded-circle p-2 me-3">
-                                        <i class="bi bi-info-circle text-white"></i>
-                                    </div>
-                                    <h5 class="mb-0 fw-bold text-primary">Quiz Information</h5>
-                                </div>
-                                <hr class="mt-3 mb-0">
-                            </div>
+    <form asp-action="Create" method="post" enctype="multipart/form-data" id="quizForm" class="bg-white p-4 rounded shadow-sm border">
+        <div class="row g-3">
+            <div class="col-md-6">
+                <label asp-for="Title" class="form-label fw-semibold"></label>
+                <input asp-for="Title" class="form-control" placeholder="Enter quiz title..." required />
+                <span asp-validation-for="Title" class="text-danger small"></span>
+            </div>
 
-                            <div class="col-md-6 mb-4">
-                                <label asp-for="Title" class="form-label fw-semibold">
-                                    <i class="bi bi-pencil-square text-primary me-1"></i> Quiz Title *
-                                </label>
-                                <input asp-for="Title" class="form-control form-control-lg rounded-3" placeholder="Enter quiz title" required />
-                                <span asp-validation-for="Title" class="text-danger small"></span>
-                            </div>
+            <div class="col-md-6">
+                <label asp-for="TimeLimit" class="form-label fw-semibold"></label>
+                <input asp-for="TimeLimit" type="number" class="form-control" min="1" placeholder="Time in minutes" required />
+                <span asp-validation-for="TimeLimit" class="text-danger small"></span>
+            </div>
 
-                            <div class="col-md-6 mb-4">
-                                <label asp-for="TimeLimit" class="form-label fw-semibold">
-                                    <i class="bi bi-clock text-primary me-1"></i> Time Limit (minutes) *
-                                </label>
-                                <input asp-for="TimeLimit" type="number" class="form-control form-control-lg rounded-3" placeholder="Enter time limit" min="1" required />
-                                <span asp-validation-for="TimeLimit" class="text-danger small"></span>
-                            </div>
+            <div class="col-md-12">
+                <label asp-for="Description" class="form-label fw-semibold"></label>
+                <textarea asp-for="Description" class="form-control" rows="3" placeholder="Write a short description..."></textarea>
+                <span asp-validation-for="Description" class="text-danger small"></span>
+            </div>
 
-                            <div class="col-md-6 mb-4">
-                                <label asp-for="CaregoryId" class="form-label fw-semibold">
-                                    <i class="bi bi-folder text-primary me-1"></i> Category *
-                                </label>
-                                <select asp-for="CaregoryId" asp-items="Model.Categories" class="form-select form-select-lg rounded-3" required>
-                                    <option value="">-- Select Category --</option>
-                                </select>
-                                <span asp-validation-for="CaregoryId" class="text-danger small"></span>
-                            </div>
+            <div class="col-md-6">
+                <label asp-for="CaregoryId" class="form-label fw-semibold"></label>
+                <select asp-for="CaregoryId" asp-items="Model.Categories" class="form-select" required>
+                    <option value="">-- Select Category --</option>
+                </select>
+                <span asp-validation-for="CaregoryId" class="text-danger small"></span>
+            </div>
 
-                            <div class="col-md-6 mb-4">
-                                <label asp-for="PassingScore" class="form-label fw-semibold">
-                                    <i class="bi bi-trophy text-primary me-1"></i> Passing Score (%)
-                                </label>
-                                <input asp-for="PassingScore" type="number" step="0.01" class="form-control form-control-lg rounded-3" placeholder="e.g., 70" min="0" max="100" />
-                                <span asp-validation-for="PassingScore" class="text-danger small"></span>
-                            </div>
+            <div class="col-md-6">
+                <label asp-for="PassingScore" class="form-label fw-semibold"></label>
+                <input asp-for="PassingScore" type="number" step="0.1" class="form-control" placeholder="Enter passing score %" />
+                <span asp-validation-for="PassingScore" class="text-danger small"></span>
+            </div>
 
-                            <div class="col-12 mb-4">
-                                <label asp-for="Description" class="form-label fw-semibold">
-                                    <i class="bi bi-card-text text-primary me-1"></i> Description
-                                </label>
-                                <textarea asp-for="Description" class="form-control rounded-3" rows="4" placeholder="Enter quiz description (optional)"></textarea>
-                                <span asp-validation-for="Description" class="text-danger small"></span>
-                            </div>
+            <div class="col-md-6">
+                <label asp-for="StartAt" class="form-label fw-semibold"></label>
+                <input asp-for="StartAt" type="datetime-local" class="form-control" />
+                <span asp-validation-for="StartAt" class="text-danger small"></span>
+            </div>
 
-                            <!-- Date and Time Section -->
-                            <div class="col-12 mb-3">
-                                <h6 class="fw-semibold text-secondary">
-                                    <i class="bi bi-calendar-range me-1"></i> Schedule
-                                </h6>
-                            </div>
-
-                            <div class="col-md-6 mb-4">
-                                <label asp-for="StartAt" class="form-label fw-semibold">Start Date & Time</label>
-                                <input asp-for="StartAt" type="datetime-local" class="form-control form-control-lg rounded-3" />
-                                <div class="form-text">
-                                    <i class="bi bi-info-circle"></i> Leave empty for immediate availability
-                                </div>
-                            </div>
-
-                            <div class="col-md-6 mb-4">
-                                <label asp-for="EndAt" class="form-label fw-semibold">End Date & Time</label>
-                                <input asp-for="EndAt" type="datetime-local" class="form-control form-control-lg rounded-3" />
-                                <div class="form-text">
-                                    <i class="bi bi-info-circle"></i> Leave empty for no expiration
-                                </div>
-                            </div>
-
-                            <!-- Settings Section -->
-                            <div class="col-12 mb-3 mt-2">
-                                <h6 class="fw-semibold text-secondary">
-                                    <i class="bi bi-gear me-1"></i> Quiz Settings
-                                </h6>
-                            </div>
-
-                            <div class="col-md-4 mb-3">
-                                <div class="card bg-light border-0 h-100 rounded-3">
-                                    <div class="card-body">
-                                        <div class="form-check form-switch">
-                                            <input asp-for="ShuffleQuestions" class="form-check-input" type="checkbox" role="switch" style="width: 3em; height: 1.5em;" />
-                                            <label asp-for="ShuffleQuestions" class="form-check-label fw-semibold">
-                                                <i class="bi bi-shuffle text-primary"></i> Shuffle Questions
-                                            </label>
-                                        </div>
-                                        <small class="text-muted d-block mt-1">Randomize question order</small>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="col-md-4 mb-3">
-                                <div class="card bg-light border-0 h-100 rounded-3">
-                                    <div class="card-body">
-                                        <div class="form-check form-switch">
-                                            <input asp-for="ShuffleChoices" class="form-check-input" type="checkbox" role="switch" style="width: 3em; height: 1.5em;" />
-                                            <label asp-for="ShuffleChoices" class="form-check-label fw-semibold">
-                                                <i class="bi bi-arrow-left-right text-primary"></i> Shuffle Choices
-                                            </label>
-                                        </div>
-                                        <small class="text-muted d-block mt-1">Randomize answer order</small>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="col-md-4 mb-3">
-                                <div class="card bg-light border-0 h-100 rounded-3">
-                                    <div class="card-body">
-                                        <div class="form-check form-switch">
-                                            <input asp-for="IsAutoGraded" class="form-check-input" type="checkbox" role="switch" style="width: 3em; height: 1.5em;" />
-                                            <label asp-for="IsAutoGraded" class="form-check-label fw-semibold">
-                                                <i class="bi bi-lightning-charge text-primary"></i> Auto Grade
-                                            </label>
-                                        </div>
-                                        <small class="text-muted d-block mt-1">Grade automatically</small>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="col-md-4 mb-3">
-                                <div class="card bg-light border-0 h-100 rounded-3">
-                                    <div class="card-body">
-                                        <div class="form-check form-switch">
-                                            <input asp-for="AllowMultipleAttempts" class="form-check-input" type="checkbox" role="switch" style="width: 3em; height: 1.5em;" id="allowAttemptsSwitch" />
-                                            <label asp-for="AllowMultipleAttempts" class="form-check-label fw-semibold">
-                                                <i class="bi bi-arrow-repeat text-primary"></i> Multiple Attempts
-                                            </label>
-                                        </div>
-                                        <small class="text-muted d-block mt-1">Allow retries</small>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="col-md-4 mb-3">
-                                <div class="card bg-light border-0 h-100 rounded-3">
-                                    <div class="card-body">
-                                        <div class="form-check form-switch">
-                                            <input asp-for="ShowCorrectAnswers" class="form-check-input" type="checkbox" role="switch" style="width: 3em; height: 1.5em;" />
-                                            <label asp-for="ShowCorrectAnswers" class="form-check-label fw-semibold">
-                                                <i class="bi bi-check-circle text-primary"></i> Show Answers
-                                            </label>
-                                        </div>
-                                        <small class="text-muted d-block mt-1">Display after completion</small>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="col-md-4 mb-3">
-                                <div class="card bg-light border-0 h-100 rounded-3">
-                                    <div class="card-body">
-                                        <div class="form-check form-switch">
-                                            <input asp-for="ShowScoreImmediatlely" class="form-check-input" type="checkbox" role="switch" style="width: 3em; height: 1.5em;" />
-                                            <label asp-for="ShowScoreImmediatlely" class="form-check-label fw-semibold">
-                                                <i class="bi bi-speedometer text-primary"></i> Instant Score
-                                            </label>
-                                        </div>
-                                        <small class="text-muted d-block mt-1">Show score right away</small>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="col-md-6 mb-4" id="maxAttemptsField" style="display: none;">
-                                <label asp-for="MaxAttempts" class="form-label fw-semibold">
-                                    <i class="bi bi-hash text-primary me-1"></i> Maximum Attempts
-                                </label>
-                                <input asp-for="MaxAttempts" type="number" class="form-control form-control-lg rounded-3" placeholder="e.g., 3" min="1" max="10" />
-                                <div class="form-text">
-                                    <i class="bi bi-info-circle"></i> How many times can students retake?
-                                </div>
-                            </div>
-                        </div>
-
-                        <hr class="my-5" />
-
-                        <!-- Questions Section -->
-                        <div class="row mb-4">
-                            <div class="col-12 mb-4">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <div class="d-flex align-items-center">
-                                        <div class="bg-success rounded-circle p-2 me-3">
-                                            <i class="bi bi-question-circle text-white"></i>
-                                        </div>
-                                        <h5 class="mb-0 fw-bold text-success">Questions</h5>
-                                    </div>
-                                    <button type="button" class="btn btn-success btn-lg rounded-pill shadow-sm" onclick="addQuestion()">
-                                        <i class="bi bi-plus-circle me-2"></i> Add Question
-                                    </button>
-                                </div>
-                                <hr class="mt-3 mb-0">
-                            </div>
-                        </div>
-
-                        <div id="questionsContainer" class="mb-4">
-                            <!-- Questions will be added here dynamically -->
-                        </div>
-
-                        <!-- Submit Buttons -->
-                        <div class="row mt-5">
-                            <div class="col-12">
-                                <div class="d-flex justify-content-end gap-3 flex-wrap">
-                                    <a asp-action="Index" class="btn btn-outline-secondary btn-lg px-5 rounded-pill">
-                                        <i class="bi bi-x-circle me-2"></i> Cancel
-                                    </a>
-                                    <button type="submit" class="btn btn-primary btn-lg px-5 rounded-pill shadow">
-                                        <i class="bi bi-check-circle me-2"></i> Create Quiz
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </form>
-                </div>
+            <div class="col-md-6">
+                <label asp-for="EndAt" class="form-label fw-semibold"></label>
+                <input asp-for="EndAt" type="datetime-local" class="form-control" />
+                <span asp-validation-for="EndAt" class="text-danger small"></span>
             </div>
         </div>
-    </div>
+
+        <hr class="my-4" />
+
+        <h4 class="mb-3 fw-bold text-secondary">Quiz Settings</h4>
+        <div class="row gy-2">
+            <div class="col-md-4 form-check form-switch">
+                <input asp-for="ShuffleQuestions" class="form-check-input" type="checkbox" />
+                <label asp-for="ShuffleQuestions" class="form-check-label fw-semibold"></label>
+            </div>
+
+            <div class="col-md-4 form-check form-switch">
+                <input asp-for="ShuffleChoices" class="form-check-input" type="checkbox" />
+                <label asp-for="ShuffleChoices" class="form-check-label fw-semibold"></label>
+            </div>
+
+            <div class="col-md-4 form-check form-switch">
+                <input asp-for="AllowMultipleAttempts" class="form-check-input" type="checkbox" id="allowAttemptsSwitch" />
+                <label asp-for="AllowMultipleAttempts" class="form-check-label fw-semibold"></label>
+            </div>
+
+            <div class="col-md-4 form-check form-switch">
+                <input asp-for="IsAutoGraded" class="form-check-input" type="checkbox" />
+                <label asp-for="IsAutoGraded" class="form-check-label fw-semibold"></label>
+            </div>
+
+            <div class="col-md-4 form-check form-switch">
+                <input asp-for="ShowCorrectAnswers" class="form-check-input" type="checkbox" />
+                <label asp-for="ShowCorrectAnswers" class="form-check-label fw-semibold"></label>
+            </div>
+
+            <div class="col-md-4 form-check form-switch">
+                <input asp-for="ShowScoreImmediatlely" class="form-check-input" type="checkbox" />
+                <label asp-for="ShowScoreImmediatlely" class="form-check-label fw-semibold"></label>
+            </div>
+        </div>
+
+        <div class="col-md-6 mt-3" id="maxAttemptsField" style="display: none;">
+            <label asp-for="MaxAttempts" class="form-label fw-semibold"></label>
+            <input asp-for="MaxAttempts" type="number" class="form-control" placeholder="e.g., 3" min="1" max="10" />
+        </div>
+
+        <hr class="my-4" />
+
+        <h4 class="fw-bold text-secondary mb-3">Questions</h4>
+        <div class="mb-3">
+            <button type="button" class="btn btn-outline-primary rounded-pill" onclick="addQuestion()">
+                <i class="bi bi-plus-circle me-1"></i> Add Question
+            </button>
+        </div>
+
+        <div id="questionsContainer"></div>
+
+        <hr class="my-4" />
+
+        <div class="d-flex justify-content-end gap-3">
+            <a asp-action="Index" class="btn btn-outline-secondary px-5 rounded-pill">
+                Cancel
+            </a>
+            <button type="submit" class="btn btn-primary px-5 rounded-pill">
+                Create Quiz
+            </button>
+        </div>
+    </form>
 </div>
 
 @section Scripts {
-    @await Html.PartialAsync("_ValidationScriptsPartial")
-
     <script>
-        let questionIndexCounter = 0; // For unique IDs
-        let questions = []; // Track all questions
-
-        // Show/hide max attempts field based on checkbox
-        document.addEventListener('DOMContentLoaded', () => {
-            const allowAttemptsSwitch = document.getElementById('allowAttemptsSwitch');
-            const maxAttemptsField = document.getElementById('maxAttemptsField');
-
-            if (allowAttemptsSwitch) {
-                allowAttemptsSwitch.addEventListener('change', function() {
-                    maxAttemptsField.style.display = this.checked ? 'block' : 'none';
-                });
-            }
-
-            // Set minimum dates for start and end datetime inputs
-            const now = new Date();
-            const startInput = document.querySelector('input[name="StartAt"]');
-            const endInput = document.querySelector('input[name="EndAt"]');
-
-            if (startInput) {
-                // Format current datetime for datetime-local input
-                const nowStr = now.toISOString().slice(0, 16);
-                startInput.min = nowStr;
-
-                startInput.addEventListener('change', function() {
-                    if (endInput && this.value) {
-                        endInput.min = this.value;
-                        if (endInput.value && endInput.value < this.value) {
-                            endInput.value = '';
-                        }
-                    }
-                });
-            }
-
-            if (endInput && startInput) {
-                endInput.addEventListener('change', function() {
-                    if (startInput.value && this.value && this.value < startInput.value) {
-                        alert('End date must be after start date');
-                        this.value = '';
-                    }
-                });
-            }
-
-            addQuestion();
-        });
+        let questionCount = 0;
 
         function addQuestion() {
-            const questionId = questionIndexCounter++;
-            questions.push(questionId);
+            questionCount++;
 
-            const container = document.getElementById('questionsContainer');
-            const questionCard = document.createElement('div');
-            questionCard.className = 'card mb-4 border-0 shadow-sm rounded-4';
-            questionCard.id = `question-${questionId}`;
-            questionCard.dataset.questionId = questionId;
+            const questionHtml = `
+                <div class="border rounded p-3 mb-3 bg-light question-block" id="question-${questionCount}">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h6 class="fw-bold mb-0">Question ${questionCount}</h6>
+                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeQuestion(${questionCount})">
+                            <i class="bi bi-x-circle"></i> Remove
+                        </button>
+                    </div>
 
-            const displayNumber = questions.length;
-            const arrayIndex = questions.length - 1;
+                    <div class="mb-2">
+                        <label class="form-label">Question Text</label>
+                        <input name="Questions[${questionCount - 1}].Text" class="form-control" placeholder="Enter question text..." required />
+                    </div>
 
-            questionCard.innerHTML = `
-                <div class="card-header bg-gradient-success text-white d-flex justify-content-between align-items-center py-3 rounded-top-4">
-                    <h6 class="mb-0 fw-bold question-title">
-                        <i class="bi bi-patch-question me-2"></i> Question ${displayNumber}
-                    </h6>
-                    <button type="button" class="btn btn-light btn-sm rounded-pill shadow-sm" onclick="removeQuestion(${questionId})">
-                        <i class="bi bi-trash text-danger"></i> Remove
+                    <div class="mb-2">
+                        <label class="form-label">Type</label>
+                        <select name="Questions[${questionCount - 1}].Type" class="form-select" onchange="toggleChoices(this, ${questionCount})">
+                            <option value="MultipleChoice" selected>Multiple Choice</option>
+                            <option value="TrueFalse">True / False</option>
+                            <option value="ShortAnswer">Short Answer</option>
+                        </select>
+                    </div>
+
+                    <div class="choices-container" id="choices-${questionCount}">
+                        ${getChoiceInputs(questionCount)}
+                    </div>
+
+                    <div class="text-end mt-2">
+                        <button type="button" class="btn btn-sm btn-outline-primary" onclick="addChoice(${questionCount})">
+                            <i class="bi bi-plus-circle"></i> Add Choice
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById("questionsContainer").insertAdjacentHTML("beforeend", questionHtml);
+        }
+
+        function getChoiceInputs(qId) {
+            return `
+                <div id="choices-list-${qId}">
+                    ${getChoiceRow(qId, 0)}
+                    ${getChoiceRow(qId, 1)}
+                </div>
+            `;
+        }
+
+        function getChoiceRow(qId, cIndex) {
+            return `
+                <div class="input-group mb-2 choice-row" id="choice-${qId}-${cIndex}">
+                    <div class="input-group-text">
+                        <input type="checkbox" name="Questions[${qId - 1}].Choices[${cIndex}].IsCorrect" class="form-check-input mt-0" />
+                    </div>
+                    <input name="Questions[${qId - 1}].Choices[${cIndex}].Text" class="form-control" placeholder="Choice ${cIndex + 1}" required />
+                    <button type="button" class="btn btn-outline-danger" onclick="removeChoice(${qId}, ${cIndex})">
+                        <i class="bi bi-dash-circle"></i>
                     </button>
                 </div>
-                <div class="card-body p-4">
-                    <div class="row">
-                        <div class="col-12 mb-4">
-                            <label class="form-label fw-semibold">
-                                <i class="bi bi-chat-left-text text-success me-1"></i> Question Text *
-                            </label>
-                            <textarea name="addQuestionDtos[${arrayIndex}].Text" class="form-control rounded-3 question-text-field" rows="3" placeholder="Enter your question here..." required></textarea>
-                        </div>
-                        <div class="col-md-4 mb-4">
-                            <label class="form-label fw-semibold">
-                                <i class="bi bi-star text-warning me-1"></i> Points *
-                            </label>
-                            <input type="number" name="addQuestionDtos[${arrayIndex}].Points" class="form-control form-control-lg rounded-3 question-points-field" placeholder="Points" min="1" value="1" required />
-                        </div>
-                        <div class="col-md-4 mb-4">
-                            <label class="form-label fw-semibold">
-                                <i class="bi bi-image text-info me-1"></i> Upload Image
-                            </label>
-                            <input type="file" name="addQuestionDtos[${arrayIndex}].ImageFile" class="form-control rounded-3 question-image-field" accept="image/*" />
-                        </div>
-                        <div class="col-md-4 mb-4">
-                            <label class="form-label fw-semibold">
-                                <i class="bi bi-list-check text-primary me-1"></i> Question Type *
-                            </label>
-                            <select name="addQuestionDtos[${arrayIndex}].QuestionType" class="form-select form-select-lg rounded-3 question-type-field" onchange="handleQuestionTypeChange(${questionId})" required>
-                                <option value="0">Multiple Choice</option>
-                                <option value="1">True/False</option>
-                                <option value="2">Short Answer</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div id="choices-section-${questionId}">
-                        <div class="d-flex justify-content-between align-items-center mb-3 mt-2">
-                            <label class="form-label fw-semibold mb-0">
-                                <i class="bi bi-ui-checks text-success me-1"></i> Answer Choices
-                            </label>
-                            <button type="button" class="btn btn-sm btn-outline-success rounded-pill" onclick="addChoice(${questionId})">
-                                <i class="bi bi-plus-lg"></i> Add Choice
-                            </button>
-                        </div>
-                        <div id="choices-${questionId}" class="choices-container"></div>
-                    </div>
-
-                    <div id="short-answer-section-${questionId}" style="display: none;">
-                        <div class="alert alert-info border-0 rounded-3 d-flex align-items-center shadow-sm">
-                            <i class="bi bi-info-circle-fill fs-4 me-3"></i>
-                            <div>
-                                <strong>Manual Grading Required</strong>
-                                <p class="mb-0 small">Short answer questions will need to be graded manually by the instructor.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
             `;
-
-            container.appendChild(questionCard);
-
-            for (let i = 0; i < 4; i++) addChoice(questionId);
         }
 
-        function handleQuestionTypeChange(questionId) {
-            const arrayIndex = questions.indexOf(questionId);
-            const typeSelect = document.querySelector(`#question-${questionId} .question-type-field`);
-            const type = parseInt(typeSelect.value);
-            const choicesSection = document.getElementById(`choices-section-${questionId}`);
-            const shortAnswerSection = document.getElementById(`short-answer-section-${questionId}`);
-            const choicesContainer = document.getElementById(`choices-${questionId}`);
-            const addBtn = choicesSection.querySelector('button');
-
-            choicesContainer.innerHTML = '';
-
-            if (type === 0) { // Multiple choice
-                choicesSection.style.display = 'block';
-                shortAnswerSection.style.display = 'none';
-                addBtn.style.display = 'inline-block';
-                for (let i = 0; i < 4; i++) addChoice(questionId);
-            } else if (type === 1) { // True/False
-                choicesSection.style.display = 'block';
-                shortAnswerSection.style.display = 'none';
-                addBtn.style.display = 'none';
-                addTrueFalseChoices(questionId);
-            } else { // Short answer
-                choicesSection.style.display = 'none';
-                shortAnswerSection.style.display = 'block';
-            }
+        function addChoice(qId) {
+            const container = document.getElementById(`choices-list-${qId}`);
+            const index = container.querySelectorAll('.choice-row').length;
+            container.insertAdjacentHTML("beforeend", getChoiceRow(qId, index));
         }
 
-        function addTrueFalseChoices(questionId) {
-            const arrayIndex = questions.indexOf(questionId);
-            const container = document.getElementById(`choices-${questionId}`);
-            ['True', 'False'].forEach((text, i) => {
-                const div = document.createElement('div');
-                div.className = 'input-group mb-3 shadow-sm';
-                div.innerHTML = `
-                    <div class="input-group-text bg-white border-end-0 rounded-start-3">
-                        <input type="radio" name="question-${questionId}-correct" onchange="setCorrectAnswer(${questionId}, ${i})" class="form-check-input mt-0" style="width: 1.2em; height: 1.2em;">
-                    </div>
-                    <input type="text" name="addQuestionDtos[${arrayIndex}].Choices[${i}].Text" value="${text}" class="form-control form-control-lg border-start-0 rounded-end-3 bg-light" readonly>
-                    <input type="hidden" name="addQuestionDtos[${arrayIndex}].Choices[${i}].IsCorrect" id="choice-${questionId}-${i}-iscorrect" value="false">
-                `;
-                container.appendChild(div);
-            });
-        }
-
-        function setCorrectAnswer(questionId, correctIdx) {
-            const all = document.querySelectorAll(`#choices-${questionId} [id$="-iscorrect"]`);
-            all.forEach(x => x.value = "false");
-            document.getElementById(`choice-${questionId}-${correctIdx}-iscorrect`).value = "true";
-        }
-
-        function addChoice(questionId) {
-            const arrayIndex = questions.indexOf(questionId);
-            const container = document.getElementById(`choices-${questionId}`);
-            const idx = container.children.length;
-            const div = document.createElement('div');
-            div.className = 'input-group mb-3 shadow-sm';
-            div.id = `question-${questionId}-choice-${idx}`;
-            div.innerHTML = `
-                <div class="input-group-text bg-white border-end-0 rounded-start-3">
-                    <input type="checkbox" name="addQuestionDtos[${arrayIndex}].Choices[${idx}].IsCorrect" value="true" class="form-check-input mt-0" style="width: 1.2em; height: 1.2em;">
-                    <input type="hidden" name="addQuestionDtos[${arrayIndex}].Choices[${idx}].IsCorrect" value="false">
-                </div>
-                <input type="text" name="addQuestionDtos[${arrayIndex}].Choices[${idx}].Text" class="form-control form-control-lg border-start-0 border-end-0" placeholder="Enter choice text" required>
-                <button type="button" class="btn btn-outline-danger rounded-end-3" onclick="removeChoice(${questionId}, ${idx})">
-                    <i class="bi bi-x-lg"></i>
-                </button>
-            `;
-            container.appendChild(div);
-        }
-
-        function removeChoice(questionId, choiceIdx) {
-            const choice = document.getElementById(`question-${questionId}-choice-${choiceIdx}`);
+        function removeChoice(qId, cIndex) {
+            const choice = document.getElementById(`choice-${qId}-${cIndex}`);
             if (choice) choice.remove();
+            reindexChoices(qId);
         }
 
-        function removeQuestion(questionId) {
-            const question = document.getElementById(`question-${questionId}`);
-            if (question) {
-                question.remove();
-                // Remove from questions array
-                const index = questions.indexOf(questionId);
-                if (index > -1) {
-                    questions.splice(index, 1);
-                }
-                renumberQuestions();
+        function reindexChoices(qId) {
+            const rows = document.querySelectorAll(`#choices-list-${qId} .choice-row`);
+            rows.forEach((row, i) => {
+                row.id = `choice-${qId}-${i}`;
+                const checkbox = row.querySelector('input[type="checkbox"]');
+                const text = row.querySelector('input.form-control');
+                checkbox.name = `Questions[${qId - 1}].Choices[${i}].IsCorrect`;
+                text.name = `Questions[${qId - 1}].Choices[${i}].Text`;
+                text.placeholder = `Choice ${i + 1}`;
+            });
+        }
+
+        function toggleChoices(select, qId) {
+            const container = document.getElementById(`choices-${qId}`);
+            if (select.value === "MultipleChoice") {
+                container.innerHTML = getChoiceInputs(qId);
+            } else if (select.value === "TrueFalse") {
+                container.innerHTML = `
+                    <div id="choices-list-${qId}">
+                        <div class="input-group mb-2 choice-row">
+                            <div class="input-group-text">
+                                <input type="checkbox" name="Questions[${qId - 1}].Choices[0].IsCorrect" class="form-check-input mt-0" />
+                            </div>
+                            <input name="Questions[${qId - 1}].Choices[0].Text" class="form-control" value="True" readonly />
+                        </div>
+                        <div class="input-group mb-2 choice-row">
+                            <div class="input-group-text">
+                                <input type="checkbox" name="Questions[${qId - 1}].Choices[1].IsCorrect" class="form-check-input mt-0" />
+                            </div>
+                            <input name="Questions[${qId - 1}].Choices[1].Text" class="form-control" value="False" readonly />
+                        </div>
+                    </div>
+                `;
+            } else {
+                container.innerHTML = `
+                    <div class="mb-2">
+                        <label class="form-label">Answer</label>
+                        <input name="Questions[${qId - 1}].CorrectAnswer" class="form-control" placeholder="Short answer text" />
+                    </div>
+                `;
             }
         }
 
-        function renumberQuestions() {
-            const container = document.getElementById('questionsContainer');
-            const questionCards = container.querySelectorAll('[id^="question-"]');
+        function removeQuestion(id) {
+            const question = document.getElementById(`question-${id}`);
+            if (question) question.remove();
 
-            questionCards.forEach((card, index) => {
-                // Update display number
-                const header = card.querySelector('.question-title');
-                if (header) {
-                    header.innerHTML = `<i class="bi bi-patch-question me-2"></i> Question ${index + 1}`;
-                }
+            reindexQuestions();
+        }
 
-                // Update all name attributes for form fields
-                const textField = card.querySelector('.question-text-field');
-                const pointsField = card.querySelector('.question-points-field');
-                const imageField = card.querySelector('.question-image-field');
-                const typeField = card.querySelector('.question-type-field');
+        function reindexQuestions() {
+            const questions = document.querySelectorAll('.question-block');
+            questions.forEach((q, i) => {
+                const newIndex = i + 1;
+                q.id = `question-${newIndex}`;
 
-                if (textField) textField.name = `addQuestionDtos[${index}].Text`;
-                if (pointsField) pointsField.name = `addQuestionDtos[${index}].Points`;
-                if (imageField) imageField.name = `addQuestionDtos[${index}].ImageFile`;
-                if (typeField) typeField.name = `addQuestionDtos[${index}].QuestionType`;
+                // Update heading
+                q.querySelector("h6").textContent = `Question ${newIndex}`;
 
-                // Update choices
-                const questionId = card.dataset.questionId;
-                const choicesContainer = document.getElementById(`choices-${questionId}`);
-                if (choicesContainer) {
-                    const choices = choicesContainer.querySelectorAll('.input-group');
-                    choices.forEach((choice, choiceIdx) => {
-                        const textInput = choice.querySelector('input[type="text"]');
-                        const checkboxInput = choice.querySelector('input[type="checkbox"]');
-                        const hiddenInput = choice.querySelectorAll('input[type="hidden"]')[0];
-                        const isCorrectHidden = choice.querySelector('[id$="-iscorrect"]');
+                // Update remove button
+                const removeBtn = q.querySelector('button.btn-outline-danger');
+                removeBtn.setAttribute('onclick', `removeQuestion(${newIndex})`);
 
-                        if (textInput && !textInput.readOnly) {
-                            textInput.name = `addQuestionDtos[${index}].Choices[${choiceIdx}].Text`;
-                        } else if (textInput) {
-                            textInput.name = `addQuestionDtos[${index}].Choices[${choiceIdx}].Text`;
-                        }
+                // Update all input/select names inside this question
+                const inputs = q.querySelectorAll('input, select');
+                inputs.forEach(input => {
+                    if (input.name) {
+                        input.name = input.name.replace(/Questions\[\d+\]/g, `Questions[${i}]`);
+                    }
+                });
 
-                        if (checkboxInput) {
-                            checkboxInput.name = `addQuestionDtos[${index}].Choices[${choiceIdx}].IsCorrect`;
-                        }
-                        if (hiddenInput && !isCorrectHidden) {
-                            hiddenInput.name = `addQuestionDtos[${index}].Choices[${choiceIdx}].IsCorrect`;
-                        }
-                        if (isCorrectHidden) {
-                            isCorrectHidden.name = `addQuestionDtos[${index}].Choices[${choiceIdx}].IsCorrect`;
-                        }
-                    });
-                }
+                // Fix choice container IDs
+                const choicesContainer = q.querySelector('.choices-container');
+                if (choicesContainer) choicesContainer.id = `choices-${newIndex}`;
+
+                const choicesList = q.querySelector('.choices-container > div');
+                if (choicesList) choicesList.id = `choices-list-${newIndex}`;
+
+                // Fix add choice button
+                const addChoiceBtn = q.querySelector('.btn-outline-primary');
+                if (addChoiceBtn) addChoiceBtn.setAttribute('onclick', `addChoice(${newIndex})`);
+
+                // Fix select onchange
+                const select = q.querySelector('select');
+                if (select) select.setAttribute('onchange', `toggleChoices(this, ${newIndex})`);
             });
+
+            questionCount = questions.length; // update count
         }
     </script>
-
-    <style>
-        .bg-gradient-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
-        }
-
-        .bg-gradient-success {
-            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%) !important;
-        }
-
-        .rounded-4 {
-            border-radius: 1rem !important;
-        }
-
-        .rounded-top-4 {
-            border-top-left-radius: 1rem !important;
-            border-top-right-radius: 1rem !important;
-        }
-
-        .card {
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-        }
-
-            .card:hover {
-                transform: translateY(-2px);
-                box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.15) !important;
-            }
-
-        .choices-container {
-            max-height: 500px;
-            overflow-y: auto;
-        }
-
-            .choices-container::-webkit-scrollbar {
-                width: 8px;
-            }
-
-            .choices-container::-webkit-scrollbar-track {
-                background: #f1f1f1;
-                border-radius: 10px;
-            }
-
-            .choices-container::-webkit-scrollbar-thumb {
-                background: #888;
-                border-radius: 10px;
-            }
-
-                .choices-container::-webkit-scrollbar-thumb:hover {
-                    background: #555;
-                }
-
-        .form-control:focus,
-        .form-select:focus {
-            border-color: #667eea;
-            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border: none;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-        }
-
-            .btn-primary:hover {
-                transform: translateY(-2px);
-                box-shadow: 0 0.5rem 1rem rgba(102, 126, 234, 0.4);
-                background: linear-gradient(135deg, #7c92f0 0%, #8b5bb3 100%);
-            }
-
-        .btn-success {
-            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
-            border: none;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-        }
-
-            .btn-success:hover {
-                transform: translateY(-2px);
-                box-shadow: 0 0.5rem 1rem rgba(17, 153, 142, 0.4);
-                background: linear-gradient(135deg, #20a89e 0%, #4dff8d 100%);
-            }
-
-        .form-check-input:checked {
-            background-color: #667eea;
-            border-color: #667eea;
-        }
-
-        .form-switch .form-check-input:checked {
-            background-color: #11998e;
-            border-color: #11998e;
-        }
-
-        .input-group-text {
-            background-color: #f8f9fa;
-        }
-
-        .shadow-lg {
-            box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.175) !important;
-        }
-
-        @@media (max-width: 768px) {
-            .btn-lg
-
-        {
-            padding: 0.5rem 1.5rem;
-            font-size: 1rem;
-        }
-
-        .card-body {
-            padding: 1.5rem !important;
-        }
-
-        }
-    </style>
 }
+
+
+<style>
+    .form-label {
+        color: #333;
+    }
+
+    .fw-bold {
+        font-weight: 600 !important;
+    }
+
+    .form-check-input:checked {
+        background-color: #0d6efd;
+        border-color: #0d6efd;
+    }
+
+    .form-check-label {
+        color: #444;
+    }
+
+    .btn-primary {
+        background-color: #0d6efd;
+        border: none;
+    }
+
+        .btn-primary:hover {
+            background-color: #0b5ed7;
+        }
+
+    .btn-outline-primary:hover {
+        background-color: #0d6efd;
+        color: white;
+    }
+
+    .card, .form-control, .form-select {
+        border-radius: 0.5rem;
+    }
+</style>

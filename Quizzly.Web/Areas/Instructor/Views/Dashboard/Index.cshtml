@@ -3,7 +3,6 @@
 @model InstructorDashboardDto
 @{
     ViewData["Title"] = "Teacher Dashboard";
-	Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
 <div class="container py-4">
@@ -29,17 +28,6 @@
                     <h6 class="text-muted">Average Score</h6>
                     <h3>@(Model.AvgScore.HasValue ? $"{Model.AvgScore.Value:F1}%" : "N/A")</h3>
                     <small class="text-success">+2.3% this month</small>
-                </div>
-            </div>
-        </div>
-
-        <!-- Pending Grading (Static Example) -->
-        <div class="col-md-3">
-            <div class="card shadow-sm border-0 rounded-3">
-                <div class="card-body">
-                    <h6 class="text-muted">Pending Grading</h6>
-                    <h3>12</h3>
-                    <small class="text-secondary">3 essays</small>
                 </div>
             </div>
         </div>

@@ -10,19 +10,16 @@ namespace Quizzly.Business.Services.Implementions
     public class InstructorManagementService : IInstructorManagementService
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IInstructorAnalyticsService _instructorAnalyticsService ;
         private readonly IFileUploadService _fileUploadService;
 
-        public InstructorManagementService(IUnitOfWork unitOfWork, IFileUploadService fileUploadService)
+        public InstructorManagementService(IUnitOfWork unitOfWork, IFileUploadService fileUploadService, IInstructorAnalyticsService instructorAnalyticsService)
         {
             _unitOfWork = unitOfWork;
             _fileUploadService = fileUploadService;
+            _instructorAnalyticsService = instructorAnalyticsService;
         }
 
-        public async Task<int> GetTotalQuizzesAsync(int InstructorId)
-        {
-            return await _unitOfWork.Quizzes
-                .GetTotalQuizzesPerInstructor(InstructorId);
-        }
         public async Task<decimal?> GetAvgScoreAsync(int InstructorId)
         {
             return await _unitOfWork.Quizzes
@@ -58,7 +55,7 @@ namespace Quizzly.Business.Services.Implementions
             {
                 instructorRecentQuizDtos = await GetRecentQuizzesAsync(InstructorId),
                 AvgScore = await GetAvgScoreAsync(InstructorId),
-                TotalQuizzes = await GetTotalQuizzesAsync(InstructorId),
+                TotalQuizzes = await _instructorAnalyticsService.GetTotalQuizzesAuthoredAsync(InstructorId),
                 TotalStudents = await GetTotalStudentsCountAsync(InstructorId),
             });
 

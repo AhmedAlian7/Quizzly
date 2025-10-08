@@ -304,8 +304,8 @@
                         <i class="bi bi-person"></i>
                     </div>
                     <div class="ms-2">
-                        <div class="fw-bold">Instructor</div>
-                        <small class="text-muted">Instructor</small>
+                        <div class="fw-bold">@User.FindFirst("Fullname")?.Value</div>
+                        <small class="text-muted">@User.FindFirst("Title")?.Value</small>
                     </div>
                 </div>
             </div>
