@@ -73,8 +73,12 @@
                                         <i class="bi bi-three-dots-vertical"></i>
                                     </button>
                                     <ul class="dropdown-menu dropdown-menu-end">
-                                        <li><a class="dropdown-item" href="#">View</a></li>
-                                        <li><a class="dropdown-item" href="#">Edit</a></li>
+                                        <li>
+                                            <a class="dropdown-item" asp-action="Details" asp-route-id="@quiz.Id">Details</a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item" asp-action="Update" asp-route-id="@quiz.Id">Edit</a>
+                                        </li>
                                         <li><a class="dropdown-item text-danger" href="#">Delete</a></li>
                                     </ul>
                                 </div>

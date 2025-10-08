@@ -4,5 +4,8 @@ namespace Quizzly.DataAccess.Repositories.Interfaces
 {
     public interface IQuizCategoryRepository : IRepository<QuizCategory>
     {
+
+        Task<IEnumerable<QuizCategory>> GetAllByInstructorIdAsync(int instructorId);
+
     }
 }

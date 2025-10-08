@@ -14,13 +14,15 @@ namespace Quizzly.Web.Areas.Instructor.Controllers
     {
         private readonly IInstructorManagementService _instructorManagementService;
         private readonly IQuizCategoriesService _quizCategoriesService;
+        private readonly IQuizService _quizService;
         private readonly UserManager<ApplicationUser> _userManager;
 
-        public QuizManagementController( IInstructorManagementService instructorManagementService , UserManager<ApplicationUser> userManager , IQuizCategoriesService quizCategoriesService)
+        public QuizManagementController( IInstructorManagementService instructorManagementService , UserManager<ApplicationUser> userManager , IQuizCategoriesService quizCategoriesService , IQuizService quizService)
         {
             _instructorManagementService = instructorManagementService;
             _userManager = userManager;
             _quizCategoriesService = quizCategoriesService;
+            _quizService = quizService;
         }
 
         public async Task<IActionResult> Index()
@@ -76,6 +78,55 @@ namespace Quizzly.Web.Areas.Instructor.Controllers
                 return NotFound("Instructor profile not found.");
 
             await _instructorManagementService.AddQuizAsync(instructor.Id, addQuizDto);
+            return RedirectToAction("Index");
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Details(int id)
+        {
+            var quizDto = await _quizService
+                .GetQuizByIdAsync(id);
+
+            if (quizDto == null)
+                return NotFound("Quiz not found.");
+
+            return View(quizDto);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Update(int id)
+        {
+            var quizDto = await _quizService
+                .GetQuizByIdAsync(id);
+
+            if (quizDto == null)
+                return NotFound("Quiz not found.");
+
+            quizDto.Categories = (await _quizCategoriesService.GetAllAsync())
+                .Select(c => new SelectListItem
+                {
+                    Value = c.Id.ToString(),
+                    Text = c.Name
+                });
+
+            return View(quizDto);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Update(QuizDetailsDto quizDetailsDto)
+        {
+            if (!ModelState.IsValid)
+                return View(quizDetailsDto);
+
+            var existingQuiz = await _quizService
+                .GetQuizByIdAsync(quizDetailsDto.Id);
+
+            if (existingQuiz == null)
+                return NotFound("Quiz not found.");
+
+          
+
+            await _quizService.UpdateQuizAsync(quizDetailsDto);
             return RedirectToAction("Index");
         }
 

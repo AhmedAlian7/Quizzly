@@ -1,4 +1,5 @@
-﻿using Quizzly.DataAccess.Entities;
+﻿using Quizzly.Business.ViewModels.QuizCategories;
+using Quizzly.DataAccess.Entities;
 
 namespace Quizzly.Business.Services.Interfaces
 {
@@ -6,6 +7,7 @@ namespace Quizzly.Business.Services.Interfaces
     {
 
         Task<IEnumerable<QuizCategory>> GetAllAsync();
+        Task<IEnumerable<AddQuizCategoryDto>> GetAllByInstructorIdAsync(int InstructorId);
 
     }
 }

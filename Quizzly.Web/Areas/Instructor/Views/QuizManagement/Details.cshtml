@@ -1,0 +1,255 @@
+﻿@using System.Text.Json
+@using Quizzly.Business.ViewModels.Quiz
+@model QuizDetailsDto
+
+@{
+    ViewData["Title"] = "Quiz Details";
+}
+
+<div class="container mt-5">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold text-primary">
+            <i class="bi bi-journal-text me-2"></i> @Model.Title
+        </h2>
+        <a asp-action="Index" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left-circle me-1"></i> Back to Quizzes
+        </a>
+    </div>
+
+    <!-- Quiz Info -->
+    <div class="card shadow-sm border-0 mb-5">
+        <div class="card-body">
+            <h5 class="card-title text-secondary mb-3">
+                <i class="bi bi-info-circle me-1"></i> Quiz Information
+            </h5>
+            <hr />
+
+            <div class="row gy-3">
+                <div class="col-md-6">
+                    <p><strong>Description:</strong><br /> @Model.Description</p>
+                </div>
+                <div class="col-md-3">
+                    <p><strong>Time Limit:</strong><br /> @Model.TimeLimit min</p>
+                </div>
+                <div class="col-md-3">
+                    <p><strong>Passing Score:</strong><br /> @(Model.PassingScore.HasValue ? $"{Model.PassingScore}%" : "N/A")</p>
+                </div>
+
+                <div class="col-md-3">
+                    <p>
+                        <strong>Attempts:</strong><br />
+                        @(Model.AllowMultipleAttempts
+                            ? (Model.MaxAttempts.HasValue ? $"{Model.MaxAttempts} attempts" : "Unlimited")
+                            : "Single Attempt")
+                    </p>
+                </div>
+                <div class="col-md-3">
+                    <p>
+                        <strong>Auto Graded:</strong><br />
+                        <span class="badge bg-@(Model.IsAutoGraded ? "success" : "secondary")">
+                            @(Model.IsAutoGraded ? "Enabled" : "Disabled")
+                        </span>
+                    </p>
+                </div>
+                <div class="col-md-3">
+                    <p>
+                        <strong>Show Correct Answers:</strong><br />
+                        <span class="badge bg-@(Model.ShowCorrectAnswers ? "success" : "secondary")">
+                            @(Model.ShowCorrectAnswers ? "Yes" : "No")
+                        </span>
+                    </p>
+                </div>
+                <div class="col-md-3">
+                    <p>
+                        <strong>Show Score Immediately:</strong><br />
+                        <span class="badge bg-@(Model.ShowScoreImmediatlely ? "success" : "secondary")">
+                            @(Model.ShowScoreImmediatlely ? "Yes" : "No")
+                        </span>
+                    </p>
+                </div>
+
+                <div class="col-md-4">
+                    <p><strong>Start At:</strong><br /> @Model.StartAt?.ToString("yyyy-MM-dd HH:mm")</p>
+                </div>
+                <div class="col-md-4">
+                    <p><strong>End At:</strong><br /> @Model.EndAt?.ToString("yyyy-MM-dd HH:mm")</p>
+                </div>
+                <div class="col-md-4">
+                    <p><strong>Category:</strong><br /> @Model.CaregoryId</p>
+                </div>
+
+                <div class="col-md-3">
+                    <p>
+                        <strong>Status:</strong><br />
+                        <span class="badge bg-@(Model.IsPublished ? "success" : "warning text-dark")">
+                            @(Model.IsPublished ? "Published" : "Draft")
+                        </span>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Performance Analytics -->
+    <div class="row g-4 mb-5">
+        <!-- Question-Level Performance -->
+        <div class="col-md-6">
+            <div class="card shadow-sm border-0 rounded-3">
+                <div class="card-body">
+                    <h5 class="mb-3 text-primary"><i class="bi bi-graph-up me-2"></i> Question Performance</h5>
+                    <canvas id="questionPerformanceChart" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Student Score Distribution -->
+        <div class="col-md-6">
+            <div class="card shadow-sm border-0 rounded-3">
+                <div class="card-body">
+                    <h5 class="mb-3 text-primary"><i class="bi bi-bar-chart-line me-2"></i> Student Score Distribution</h5>
+                    <canvas id="scoreDistributionChart" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Common Incorrect Answers -->
+    @if (Model.CommonIncorrectAnswers != null && Model.CommonIncorrectAnswers.Any())
+    {
+        <div class="card shadow-sm border-0 mb-5">
+            <div class="card-body">
+                <h5 class="text-danger mb-3"><i class="bi bi-exclamation-triangle me-2"></i> Common Incorrect Answers</h5>
+                <table class="table table-striped">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Question ID</th>
+                            <th>Answer Text</th>
+                            <th>Selection Count</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model.CommonIncorrectAnswers)
+                        {
+                            <tr>
+                                <td>@item.QuestionId</td>
+                                <td>@item.AnswerText</td>
+                                <td>@item.SelectionCount</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+
+    <!-- Questions -->
+    <div>
+        <h4 class="fw-semibold text-dark mb-3">
+            <i class="bi bi-question-circle me-1"></i> Questions
+        </h4>
+
+        @if (Model.Questions != null && Model.Questions.Any())
+        {
+            int index = 1;
+            foreach (var question in Model.Questions)
+            {
+                <div class="card mb-4 border-0 shadow-sm">
+                    <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="fw-bold text-primary">Question @index:</span> @question.Text
+                        </div>
+                        <span class="badge bg-info text-dark">@question.QuestionType</span>
+                    </div>
+                    <div class="card-body">
+                        <p class="mb-1"><strong>Points:</strong> @question.Points</p>
+
+                        @if (!string.IsNullOrEmpty(question.ImageUrl))
+                        {
+                            <div class="mb-3">
+                                <img src="@question.ImageUrl" class="img-thumbnail shadow-sm" style="max-width: 300px;" />
+                            </div>
+                        }
+
+                        <h6 class="fw-semibold mt-3">Choices:</h6>
+                        <ul class="list-group list-group-flush">
+                            @foreach (var choice in question.Choices)
+                            {
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <span>@choice.Text</span>
+                                    @if (choice.IsCorrect)
+                                    {
+                                        <span class="badge bg-success rounded-pill">Correct</span>
+                                    }
+                                </li>
+                            }
+                        </ul>
+                    </div>
+                </div>
+                index++;
+            }
+        }
+        else
+        {
+            <div class="alert alert-info">
+                <i class="bi bi-exclamation-circle me-1"></i> No questions available for this quiz.
+            </div>
+        }
+    </div>
+
+    <div class="text-center mt-4">
+        <a asp-action="Index" class="btn btn-lg btn-outline-primary px-4">
+            <i class="bi bi-arrow-left-circle me-1"></i> Back to Quizzes
+        </a>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    @@section Scripts {
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <script>
+            // Question-Level Performance Chart
+            const qCtx = document.getElementById('questionPerformanceChart').getContext('2d');
+            new Chart(qCtx, {
+                type: 'bar',
+                data: {
+                    labels: @Html.Raw(JsonSerializer.Serialize(Model.QuestionPerformances.Select(q => q.QuestionText))),
+                    datasets: [{
+                        label: 'Correct (%)',
+                        data: @Html.Raw(JsonSerializer.Serialize(Model.QuestionPerformances.Select(q => q.PercentCorrect))),
+                        backgroundColor: 'rgba(54, 162, 235, 0.8)',
+                    }, {
+                        label: 'Incorrect (%)',
+                        data: @Html.Raw(JsonSerializer.Serialize(Model.QuestionPerformances.Select(q => q.PercentIncorrect))),
+                        backgroundColor: 'rgba(255, 99, 132, 0.8)',
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: { y: { beginAtZero: true, max: 100 } },
+                    plugins: { legend: { position: 'bottom' } }
+                }
+            });
+
+            // Student Score Distribution Chart
+            const sCtx = document.getElementById('scoreDistributionChart').getContext('2d');
+            new Chart(sCtx, {
+                type: 'bar',
+                data: {
+                    labels: @Html.Raw(JsonSerializer.Serialize(Model.StudentScoreDistributions.Select(d => $"{d.RangeStart}-{d.RangeEnd}"))),
+                    datasets: [{
+                        label: 'Student Count',
+                        data: @Html.Raw(JsonSerializer.Serialize(Model.StudentScoreDistributions.Select(d => d.StudentCount))),
+                        backgroundColor: 'rgba(75, 192, 192, 0.8)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: { y: { beginAtZero: true } },
+                    plugins: { legend: { display: false } }
+                }
+            });
+        </script>
+    }
+}

@@ -1,12 +1,13 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Quizzly.Business.Services;
+using Quizzly.Business.Services.Implementions;
+using Quizzly.Business.Services.Interfaces;
+using Quizzly.DataAccess.Constants;
 using Quizzly.DataAccess.Data;
 using Quizzly.DataAccess.Entities;
-using Quizzly.DataAccess.Constants;
 using Quizzly.DataAccess.Repositories.Implementions;
 using Quizzly.DataAccess.Repositories.Interfaces;
-using Quizzly.Business.Services.Interfaces;
-using Quizzly.Business.Services.Implementions;
 
 namespace Quizzly.Web
 {
@@ -25,8 +26,10 @@ namespace Quizzly.Web
 
             builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
             builder.Services.AddScoped<IInstructorManagementService, InstructorManagementService>();
+            builder.Services.AddScoped<IInstructorAnalyticsService, InstructorAnalyticsService>();
             builder.Services.AddScoped<IFileUploadService, FileUploadService>();
             builder.Services.AddScoped<IQuizCategoriesService, QuizCategoriesService>();
+            builder.Services.AddScoped<IQuizService, QuizService>();
 
             // Add Identity
             builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>

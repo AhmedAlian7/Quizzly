@@ -31,14 +31,19 @@ namespace Quizzly.DataAccess.Repositories.Implementions
         }
         public async Task<TimeSpan> GetAvgTime(int quizId)
         {
-            return TimeSpan.FromTicks(Convert.ToInt64(
-                 await _context.Quizzes
-                 .SelectMany(q => q.QuizAttempts)
-                 .Where(qa => qa.QuizId == quizId && qa.FinishedAt.HasValue)
-                 .Select(qa => (qa.FinishedAt.Value - qa.StartedAt).Ticks)
-                 .DefaultIfEmpty(0)
-                 .AverageAsync()
-            ));
+            var avgTicks = _context.Quizzes
+                .SelectMany(q => q.QuizAttempts)
+                .Where(qa => qa.QuizId == quizId && qa.FinishedAt.HasValue)
+                .Select(qa => new { StartedAt = qa.StartedAt, FinishedAt = qa.FinishedAt })
+                .AsEnumerable()
+                .Select(qa => (double)(qa.FinishedAt.Value - qa.StartedAt).Ticks)
+                .DefaultIfEmpty(0)
+                .Average();
+
+            if (avgTicks <= 0)
+                return TimeSpan.Zero;
+
+            return TimeSpan.FromTicks((long)avgTicks);
         }
         public async Task<int> GetTotalStudentsCountPerInstructor(int InstructorId)
         {
