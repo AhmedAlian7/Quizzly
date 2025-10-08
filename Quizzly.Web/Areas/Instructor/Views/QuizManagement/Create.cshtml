@@ -29,11 +29,11 @@
             </div>
 
             <div class="col-md-6">
-                <label asp-for="CaregoryId" class="form-label fw-semibold"></label>
-                <select asp-for="CaregoryId" asp-items="Model.Categories" class="form-select" required>
+                <label asp-for="CategoryId" class="form-label fw-semibold"></label>
+                <select asp-for="CategoryId" asp-items="Model.Categories" class="form-select" required>
                     <option value="">-- Select Category --</option>
                 </select>
-                <span asp-validation-for="CaregoryId" class="text-danger small"></span>
+                <span asp-validation-for="CategoryId" class="text-danger small"></span>
             </div>
 
             <div class="col-md-6">
@@ -92,7 +92,7 @@
 
         <div class="col-md-6 mt-3" id="maxAttemptsField" style="display: none;">
             <label asp-for="MaxAttempts" class="form-label fw-semibold"></label>
-            <input asp-for="MaxAttempts" type="number" class="form-control" placeholder="e.g., 3" min="1" max="10" />
+            <input asp-for="MaxAttempts" type="number" class="form-control" placeholder="e.g., 3" min="1" max="5" />
         </div>
 
         <hr class="my-4" />
@@ -112,8 +112,11 @@
             <a asp-action="Index" class="btn btn-outline-secondary px-5 rounded-pill">
                 Cancel
             </a>
-            <button type="submit" class="btn btn-primary px-5 rounded-pill">
-                Create Quiz
+            <button type="submit" name="formAction" value="save" class="btn btn-outline-primary px-5 rounded-pill">
+                Save Draft
+            </button>
+            <button type="submit" name="formAction" value="publish" class="btn btn-primary px-5 rounded-pill">
+                Publish Quiz
             </button>
         </div>
     </form>
@@ -122,6 +125,11 @@
 @section Scripts {
     <script>
         let questionCount = 0;
+
+        // Show/hide max attempts field
+        document.getElementById('allowAttemptsSwitch').addEventListener('change', function () {
+            document.getElementById('maxAttemptsField').style.display = this.checked ? 'block' : 'none';
+        });
 
         function addQuestion() {
             questionCount++;
@@ -137,23 +145,33 @@
 
                     <div class="mb-2">
                         <label class="form-label">Question Text</label>
-                        <input name="Questions[${questionCount - 1}].Text" class="form-control" placeholder="Enter question text..." required />
+                        <input name="addQuestionDtos[${questionCount - 1}].Text" class="form-control" placeholder="Enter question text..." required />
                     </div>
 
                     <div class="mb-2">
-                        <label class="form-label">Type</label>
-                        <select name="Questions[${questionCount - 1}].Type" class="form-select" onchange="toggleChoices(this, ${questionCount})">
-                            <option value="MultipleChoice" selected>Multiple Choice</option>
-                            <option value="TrueFalse">True / False</option>
-                            <option value="ShortAnswer">Short Answer</option>
+                        <label class="form-label">Points</label>
+                        <input name="addQuestionDtos[${questionCount - 1}].Points" type="number" step="0.5" class="form-control" placeholder="Points for this question" value="1" required />
+                    </div>
+
+                    <div class="mb-2">
+                        <label class="form-label">Question Type</label>
+                        <select name="addQuestionDtos[${questionCount - 1}].QuestionType" class="form-select" onchange="toggleChoices(this, ${questionCount})">
+                            <option value="0" selected>Multiple Choice</option>
+                            <option value="1">True / False</option>
+                            <option value="2">Short Answer</option>
                         </select>
+                    </div>
+
+                    <div class="mb-2">
+                        <label class="form-label">Image (Optional)</label>
+                        <input name="addQuestionDtos[${questionCount - 1}].ImageFile" type="file" class="form-control" accept="image/*" />
                     </div>
 
                     <div class="choices-container" id="choices-${questionCount}">
                         ${getChoiceInputs(questionCount)}
                     </div>
 
-                    <div class="text-end mt-2">
+                    <div class="text-end mt-2" id="addChoiceBtn-${questionCount}">
                         <button type="button" class="btn btn-sm btn-outline-primary" onclick="addChoice(${questionCount})">
                             <i class="bi bi-plus-circle"></i> Add Choice
                         </button>
@@ -177,9 +195,10 @@
             return `
                 <div class="input-group mb-2 choice-row" id="choice-${qId}-${cIndex}">
                     <div class="input-group-text">
-                        <input type="checkbox" name="Questions[${qId - 1}].Choices[${cIndex}].IsCorrect" class="form-check-input mt-0" />
+                        <input type="hidden" name="addQuestionDtos[${qId - 1}].Choices[${cIndex}].IsCorrect" value="false" />
+                        <input type="checkbox" name="addQuestionDtos[${qId - 1}].Choices[${cIndex}].IsCorrect" value="true" class="form-check-input mt-0" />
                     </div>
-                    <input name="Questions[${qId - 1}].Choices[${cIndex}].Text" class="form-control" placeholder="Choice ${cIndex + 1}" required />
+                    <input name="addQuestionDtos[${qId - 1}].Choices[${cIndex}].Text" class="form-control" placeholder="Choice ${cIndex + 1}" required />
                     <button type="button" class="btn btn-outline-danger" onclick="removeChoice(${qId}, ${cIndex})">
                         <i class="bi bi-dash-circle"></i>
                     </button>
@@ -203,49 +222,62 @@
             const rows = document.querySelectorAll(`#choices-list-${qId} .choice-row`);
             rows.forEach((row, i) => {
                 row.id = `choice-${qId}-${i}`;
+                const hidden = row.querySelector('input[type="hidden"]');
                 const checkbox = row.querySelector('input[type="checkbox"]');
                 const text = row.querySelector('input.form-control');
-                checkbox.name = `Questions[${qId - 1}].Choices[${i}].IsCorrect`;
-                text.name = `Questions[${qId - 1}].Choices[${i}].Text`;
+
+                if (hidden) {
+                    hidden.name = `addQuestionDtos[${qId - 1}].Choices[${i}].IsCorrect`;
+                    hidden.value = "false";
+                }
+                checkbox.name = `addQuestionDtos[${qId - 1}].Choices[${i}].IsCorrect`;
+                checkbox.value = "true";
+                text.name = `addQuestionDtos[${qId - 1}].Choices[${i}].Text`;
                 text.placeholder = `Choice ${i + 1}`;
             });
         }
 
         function toggleChoices(select, qId) {
             const container = document.getElementById(`choices-${qId}`);
-            if (select.value === "MultipleChoice") {
+            const addBtn = document.getElementById(`addChoiceBtn-${qId}`);
+
+            if (select.value === "0") { // Multiple Choice
                 container.innerHTML = getChoiceInputs(qId);
-            } else if (select.value === "TrueFalse") {
+                addBtn.style.display = 'block';
+            } else if (select.value === "1") { // True/False
                 container.innerHTML = `
                     <div id="choices-list-${qId}">
                         <div class="input-group mb-2 choice-row">
                             <div class="input-group-text">
-                                <input type="checkbox" name="Questions[${qId - 1}].Choices[0].IsCorrect" class="form-check-input mt-0" />
+                                <input type="hidden" name="addQuestionDtos[${qId - 1}].Choices[0].IsCorrect" value="false" />
+                                <input type="checkbox" name="addQuestionDtos[${qId - 1}].Choices[0].IsCorrect" value="true" class="form-check-input mt-0" />
                             </div>
-                            <input name="Questions[${qId - 1}].Choices[0].Text" class="form-control" value="True" readonly />
+                            <input name="addQuestionDtos[${qId - 1}].Choices[0].Text" class="form-control" value="True" readonly />
                         </div>
                         <div class="input-group mb-2 choice-row">
                             <div class="input-group-text">
-                                <input type="checkbox" name="Questions[${qId - 1}].Choices[1].IsCorrect" class="form-check-input mt-0" />
+                                <input type="hidden" name="addQuestionDtos[${qId - 1}].Choices[1].IsCorrect" value="false" />
+                                <input type="checkbox" name="addQuestionDtos[${qId - 1}].Choices[1].IsCorrect" value="true" class="form-check-input mt-0" />
                             </div>
-                            <input name="Questions[${qId - 1}].Choices[1].Text" class="form-control" value="False" readonly />
+                            <input name="addQuestionDtos[${qId - 1}].Choices[1].Text" class="form-control" value="False" readonly />
                         </div>
                     </div>
                 `;
-            } else {
+                addBtn.style.display = 'none';
+            } else { // Short Answer
                 container.innerHTML = `
                     <div class="mb-2">
-                        <label class="form-label">Answer</label>
-                        <input name="Questions[${qId - 1}].CorrectAnswer" class="form-control" placeholder="Short answer text" />
+                        <label class="form-label">Correct Answer</label>
+                        <input name="addQuestionDtos[${qId - 1}].CorrectAnswer" class="form-control" placeholder="Enter the correct answer" required />
                     </div>
                 `;
+                addBtn.style.display = 'none';
             }
         }
 
         function removeQuestion(id) {
             const question = document.getElementById(`question-${id}`);
             if (question) question.remove();
-
             reindexQuestions();
         }
 
@@ -255,42 +287,35 @@
                 const newIndex = i + 1;
                 q.id = `question-${newIndex}`;
 
-                // Update heading
                 q.querySelector("h6").textContent = `Question ${newIndex}`;
 
-                // Update remove button
                 const removeBtn = q.querySelector('button.btn-outline-danger');
                 removeBtn.setAttribute('onclick', `removeQuestion(${newIndex})`);
 
-                // Update all input/select names inside this question
                 const inputs = q.querySelectorAll('input, select');
                 inputs.forEach(input => {
-                    if (input.name) {
-                        input.name = input.name.replace(/Questions\[\d+\]/g, `Questions[${i}]`);
+                    if (input.name && input.name.includes('addQuestionDtos')) {
+                        input.name = input.name.replace(/addQuestionDtos\[\d+\]/g, `addQuestionDtos[${i}]`);
                     }
                 });
 
-                // Fix choice container IDs
                 const choicesContainer = q.querySelector('.choices-container');
                 if (choicesContainer) choicesContainer.id = `choices-${newIndex}`;
 
                 const choicesList = q.querySelector('.choices-container > div');
                 if (choicesList) choicesList.id = `choices-list-${newIndex}`;
 
-                // Fix add choice button
                 const addChoiceBtn = q.querySelector('.btn-outline-primary');
                 if (addChoiceBtn) addChoiceBtn.setAttribute('onclick', `addChoice(${newIndex})`);
 
-                // Fix select onchange
-                const select = q.querySelector('select');
+                const select = q.querySelector('select[name*="QuestionType"]');
                 if (select) select.setAttribute('onchange', `toggleChoices(this, ${newIndex})`);
             });
 
-            questionCount = questions.length; // update count
+            questionCount = questions.length;
         }
     </script>
 }
-
 
 <style>
     .form-label {

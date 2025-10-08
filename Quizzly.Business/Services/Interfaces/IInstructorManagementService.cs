@@ -14,7 +14,7 @@ namespace Quizzly.Business.Services.Interfaces
         Task<List<InstructorRecentQuizDto>> GetRecentQuizzesAsync(int InstructorId);
         Task<List<InstructorAllQuizzesDto>> GetAllQuizzesAsync(int InstructorId);
         Task<InstructorDashboardDto> GetInstructorDashboardAsync(int InstructorId);
-        Task AddQuizAsync(int instructorId, AddQuizDto dto);
+        Task<int> AddQuizAsync(int instructorId, AddQuizDto dto);
         Task AddQuizCategoryAsync(int instructorId, AddQuizCategoryDto dto);
         Task<Instructor?> GetInstructorByUserIdAsync(string userId);
 

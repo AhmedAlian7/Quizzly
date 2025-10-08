@@ -29,7 +29,7 @@ namespace Quizzly.Business.Services.Implementions
                 Description = quiz.Description,
                 TimeLimit = quiz.DurationMintes,
                 IsPublished = quiz.IsPublished,
-                CaregoryId = quiz.QuizCategoryId,
+                CategoryId = quiz.QuizCategoryId,
                 AllowMultipleAttempts = quiz.AllowMultipleAttempts,
                 MaxAttempts = quiz.MaxAttempts,
                 IsAutoGraded = quiz.IsAutoGraded,
@@ -38,6 +38,7 @@ namespace Quizzly.Business.Services.Implementions
                 ShowScoreImmediatlely = quiz.ShowScoreImmediatlely,
                 StartAt = quiz.StartAt,
                 EndAt = quiz.EndAt,
+                AccessCode = quiz.AccessToken,
                 QuestionPerformances = await _instructorAnalyticsService.GetQuestionLevelPerformanceAsync(quizId),
                 CommonIncorrectAnswers = await _instructorAnalyticsService.GetCommonIncorrectAnswersAsync(quizId),
                 AverageQuizTime = await _instructorAnalyticsService.GetAverageQuizTimeAsync(quizId),
@@ -62,6 +63,23 @@ namespace Quizzly.Business.Services.Implementions
             return dto;
         }
 
+        public async Task<string> PublishQuizAsync(int quizId)
+        {
+            var quiz = await _unitOfWork.Quizzes
+                .GetByIdAsync(quizId);
+
+            if (quiz == null)
+                throw new Exception("Quiz not found.");
+
+            quiz.IsPublished = true;
+            quiz.UpdatedAt = DateTime.UtcNow;
+
+            _unitOfWork.Quizzes.Update(quiz);
+            await _unitOfWork.SaveAsync();
+
+            return quiz.AccessToken;
+        }
+
         public async Task UpdateQuizAsync(QuizDetailsDto dto)
         {
             var quiz = await _unitOfWork.Quizzes
@@ -79,9 +97,10 @@ namespace Quizzly.Business.Services.Implementions
             quiz.ShuffleQuestions = dto.ShuffleQuestions;
             quiz.ShuffleChoices = dto.ShuffleChoices;
             quiz.UpdatedAt = DateTime.UtcNow;
-            quiz.QuizCategoryId = dto.CaregoryId;
+            quiz.QuizCategoryId = dto.CategoryId;
             quiz.AllowMultipleAttempts = dto.AllowMultipleAttempts;
             quiz.IsAutoGraded = dto.IsAutoGraded;
+            quiz.IsPublished = dto.IsPublished;
             quiz.PassingScore = dto.PassingScore;
             quiz.MaxAttempts = dto.MaxAttempts;
             quiz.StartAt = dto.StartAt;

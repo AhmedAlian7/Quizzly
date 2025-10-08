@@ -3,6 +3,7 @@ using Quizzly.Business.ViewModels.Instructor;
 using Quizzly.Business.ViewModels.Quiz;
 using Quizzly.Business.ViewModels.QuizCategories;
 using Quizzly.DataAccess.Entities;
+using Quizzly.DataAccess.Enums;
 using Quizzly.DataAccess.Repositories.Interfaces;
 
 namespace Quizzly.Business.Services.Implementions
@@ -82,7 +83,7 @@ namespace Quizzly.Business.Services.Implementions
             return QuizzesDto;
         }
 
-        public async Task AddQuizAsync(int instructorId, AddQuizDto dto)
+        public async Task<int> AddQuizAsync(int instructorId, AddQuizDto dto)
         {
             var quiz = new Quiz
             {
@@ -95,26 +96,29 @@ namespace Quizzly.Business.Services.Implementions
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow,
                 IsPublished = false,
-                QuizCategoryId = dto.CaregoryId,
+                QuizCategoryId = dto.CategoryId,
                 AllowMultipleAttempts = dto.AllowMultipleAttempts,
                 IsAutoGraded = dto.IsAutoGraded,
                 PassingScore = dto.PassingScore,
                 MaxAttempts = dto.MaxAttempts,
                 StartAt = dto.StartAt,
                 EndAt = dto.EndAt,
-                AccessToken = Guid.NewGuid().ToString("N") // N produces a 32-digit hexadecimal string without hyphens
+                AccessToken = Guid.NewGuid().ToString("N")
             };
-
 
             foreach (var q in dto.addQuestionDtos)
             {
-                try
+                // Upload image if exists
+                if (q.ImageFile != null)
                 {
-                    q.ImageUrl = await _fileUploadService.UploadAsync(q.ImageFile, "Questions");
-                }
-                catch (Exception ex)
-                {
-                    throw new InvalidOperationException("Error uploading main image: " + ex.Message);
+                    try
+                    {
+                        q.ImageUrl = await _fileUploadService.UploadAsync(q.ImageFile, "Questions");
+                    }
+                    catch (Exception ex)
+                    {
+                        throw new InvalidOperationException("Error uploading image: " + ex.Message);
+                    }
                 }
 
                 var question = new Question
@@ -127,26 +131,45 @@ namespace Quizzly.Business.Services.Implementions
                     UpdatedAt = DateTime.UtcNow
                 };
 
-                foreach (var c in q.Choices)
+                // Handle different question types
+                if (q.QuestionType == QuestionType.ShortAnswer)
                 {
+                    // For short answer, create a single choice with the correct answer
                     var choice = new Choice
                     {
-                        Text = c.Text,
-                        IsCorrect = c.IsCorrect,
+                        Text = q.CorrectAnswer ?? string.Empty,
+                        IsCorrect = true,
                         CreatedAt = DateTime.UtcNow,
                         UpdatedAt = DateTime.UtcNow
                     };
                     question.Choices.Add(choice);
                 }
+                else
+                {
+                    // For Multiple Choice and True/False
+                    if (q.Choices != null && q.Choices.Any())
+                    {
+                        foreach (var c in q.Choices)
+                        {
+                            var choice = new Choice
+                            {
+                                Text = c.Text,
+                                IsCorrect = c.IsCorrect,
+                                CreatedAt = DateTime.UtcNow,
+                                UpdatedAt = DateTime.UtcNow
+                            };
+                            question.Choices.Add(choice);
+                        }
+                    }
+                }
 
                 quiz.Questions.Add(question);
             }
 
-
             await _unitOfWork.Quizzes.AddAsync(quiz);
             await _unitOfWork.SaveAsync();
+            return quiz.Id;
         }
-
         public async Task AddQuizCategoryAsync(int instructorId, AddQuizCategoryDto dto)
         {
             var category = new QuizCategory
