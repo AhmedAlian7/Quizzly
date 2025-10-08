@@ -1,4 +1,5 @@
 ﻿using Quizzly.Business.Services.Interfaces;
+using Quizzly.Business.ViewModels.QuizCategories;
 using Quizzly.DataAccess.Entities;
 using Quizzly.DataAccess.Repositories.Interfaces;
 
@@ -17,6 +18,18 @@ namespace Quizzly.Business.Services.Implementions
         {
             return await _unitOfWork.QuizCategories
                 .GetAllAsync("");
+        }
+        public async Task<IEnumerable<AddQuizCategoryDto>> GetAllByInstructorIdAsync(int InstructorId)
+        {
+            var categories = await _unitOfWork.QuizCategories
+                .GetAllByInstructorIdAsync(InstructorId);
+
+            return categories.Select(c => new AddQuizCategoryDto
+            {
+                Name = c.Name,
+                Description = c.Description
+            });
+
         }
 
     }

@@ -10,9 +10,11 @@ namespace Quizzly.Business.Services.Implementions
     public class QuizService : IQuizService
     {
         private readonly IUnitOfWork _unitOfWork;
-        public QuizService(IUnitOfWork unitOfWork)
+        private readonly IInstructorAnalyticsService _instructorAnalyticsService;
+        public QuizService(IUnitOfWork unitOfWork, IInstructorAnalyticsService instructorAnalyticsService)
         {
             _unitOfWork = unitOfWork;
+            _instructorAnalyticsService = instructorAnalyticsService;
         }
 
         public async Task<QuizDetailsDto> GetQuizByIdAsync(int quizId)
@@ -36,6 +38,11 @@ namespace Quizzly.Business.Services.Implementions
                 ShowScoreImmediatlely = quiz.ShowScoreImmediatlely,
                 StartAt = quiz.StartAt,
                 EndAt = quiz.EndAt,
+                QuestionPerformances = await _instructorAnalyticsService.GetQuestionLevelPerformanceAsync(quizId),
+                CommonIncorrectAnswers = await _instructorAnalyticsService.GetCommonIncorrectAnswersAsync(quizId),
+                AverageQuizTime = await _instructorAnalyticsService.GetAverageQuizTimeAsync(quizId),
+                StudentScoreDistributions = await _instructorAnalyticsService.GetStudentPerformanceDistributionAsync(quizId , 5),
+
                 Questions = quiz.Questions.Select(q => new QuestionDetailsDto
                 {
                     Text = q.Text,
@@ -47,6 +54,8 @@ namespace Quizzly.Business.Services.Implementions
                         IsCorrect = c.IsCorrect
                     }).ToList()
                 }).ToList()
+               
+
 
             };
 

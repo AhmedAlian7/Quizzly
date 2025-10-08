@@ -13,13 +13,33 @@ namespace Quizzly.Web.Areas.Instructor.Controllers
     public class QuizCategoryManagementController : Controller
     {
         private readonly IInstructorManagementService _instructorManagementService;
+        private readonly IQuizCategoriesService _QuizCategoriesService;
         private readonly UserManager<ApplicationUser> _userManager;
 
-        public QuizCategoryManagementController(IInstructorManagementService instructorManagementService , UserManager<ApplicationUser> userManager)
+        public QuizCategoryManagementController(IInstructorManagementService instructorManagementService , UserManager<ApplicationUser> userManager, IQuizCategoriesService quizCategoriesService)
         {
             _instructorManagementService = instructorManagementService;
             _userManager = userManager;
+            _QuizCategoriesService = quizCategoriesService;
         }
+       
+        [HttpGet]
+        public async Task<IActionResult> Index()
+        {
+            var user = await _userManager.GetUserAsync(User);
+
+            var instructor = await _instructorManagementService
+                .GetInstructorByUserIdAsync(user.Id);
+
+            if (instructor == null)
+                return NotFound("Instructor profile not found.");
+
+            var categories = await _QuizCategoriesService
+                .GetAllByInstructorIdAsync(instructor.Id);
+
+            return View(categories);
+        }
+
         [HttpGet]
         public IActionResult Create()
         {

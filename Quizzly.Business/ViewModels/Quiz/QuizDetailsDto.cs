@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc.Rendering;
+using Quizzly.Business.ViewModels.Analytics;
 using Quizzly.Business.ViewModels.Question;
 using System.ComponentModel.DataAnnotations;
 
@@ -24,6 +25,11 @@ namespace Quizzly.Business.ViewModels.Quiz
         public int CaregoryId { get; set; }
         public IEnumerable<SelectListItem>? Categories { get; set; }
         public List<QuestionDetailsDto> Questions { get; set; } = new List<QuestionDetailsDto>();
+
+        public List<QuestionPerformanceDto>? QuestionPerformances { get; set; } = new List<QuestionPerformanceDto>();
+        public List<CommonIncorrectAnswerDto>? CommonIncorrectAnswers { get; set; } = new List<CommonIncorrectAnswerDto>();
+        public TimeSpan? AverageQuizTime { get; set; }
+        public List<StudentScoreDistributionDto>? StudentScoreDistributions { get; set; } = new List<StudentScoreDistributionDto>();
 
     }
 }

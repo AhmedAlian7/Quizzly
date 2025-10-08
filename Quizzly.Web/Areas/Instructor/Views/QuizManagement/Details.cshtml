@@ -1,4 +1,5 @@
-﻿@using Quizzly.Business.ViewModels.Quiz
+﻿@using System.Text.Json
+@using Quizzly.Business.ViewModels.Quiz
 @model QuizDetailsDto
 
 @{
@@ -16,7 +17,7 @@
         </a>
     </div>
 
-    <!-- Quiz Info Card -->
+    <!-- Quiz Info -->
     <div class="card shadow-sm border-0 mb-5">
         <div class="card-body">
             <h5 class="card-title text-secondary mb-3">
@@ -39,8 +40,8 @@
                     <p>
                         <strong>Attempts:</strong><br />
                         @(Model.AllowMultipleAttempts
-                                                ? (Model.MaxAttempts.HasValue ? $"{Model.MaxAttempts} attempts" : "Unlimited")
-                                                : "Single Attempt")
+                            ? (Model.MaxAttempts.HasValue ? $"{Model.MaxAttempts} attempts" : "Unlimited")
+                            : "Single Attempt")
                     </p>
                 </div>
                 <div class="col-md-3">
@@ -75,7 +76,7 @@
                     <p><strong>End At:</strong><br /> @Model.EndAt?.ToString("yyyy-MM-dd HH:mm")</p>
                 </div>
                 <div class="col-md-4">
-                    <p><strong>Category ID:</strong><br /> @Model.CaregoryId</p>
+                    <p><strong>Category:</strong><br /> @Model.CaregoryId</p>
                 </div>
 
                 <div class="col-md-3">
@@ -90,8 +91,60 @@
         </div>
     </div>
 
+    <!-- Performance Analytics -->
+    <div class="row g-4 mb-5">
+        <!-- Question-Level Performance -->
+        <div class="col-md-6">
+            <div class="card shadow-sm border-0 rounded-3">
+                <div class="card-body">
+                    <h5 class="mb-3 text-primary"><i class="bi bi-graph-up me-2"></i> Question Performance</h5>
+                    <canvas id="questionPerformanceChart" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Student Score Distribution -->
+        <div class="col-md-6">
+            <div class="card shadow-sm border-0 rounded-3">
+                <div class="card-body">
+                    <h5 class="mb-3 text-primary"><i class="bi bi-bar-chart-line me-2"></i> Student Score Distribution</h5>
+                    <canvas id="scoreDistributionChart" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Common Incorrect Answers -->
+    @if (Model.CommonIncorrectAnswers != null && Model.CommonIncorrectAnswers.Any())
+    {
+        <div class="card shadow-sm border-0 mb-5">
+            <div class="card-body">
+                <h5 class="text-danger mb-3"><i class="bi bi-exclamation-triangle me-2"></i> Common Incorrect Answers</h5>
+                <table class="table table-striped">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Question ID</th>
+                            <th>Answer Text</th>
+                            <th>Selection Count</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model.CommonIncorrectAnswers)
+                        {
+                            <tr>
+                                <td>@item.QuestionId</td>
+                                <td>@item.AnswerText</td>
+                                <td>@item.SelectionCount</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+
     <!-- Questions -->
-    <div class="mb-3">
+    <div>
         <h4 class="fw-semibold text-dark mb-3">
             <i class="bi bi-question-circle me-1"></i> Questions
         </h4>
@@ -150,3 +203,53 @@
         </a>
     </div>
 </div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    @@section Scripts {
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <script>
+            // Question-Level Performance Chart
+            const qCtx = document.getElementById('questionPerformanceChart').getContext('2d');
+            new Chart(qCtx, {
+                type: 'bar',
+                data: {
+                    labels: @Html.Raw(JsonSerializer.Serialize(Model.QuestionPerformances.Select(q => q.QuestionText))),
+                    datasets: [{
+                        label: 'Correct (%)',
+                        data: @Html.Raw(JsonSerializer.Serialize(Model.QuestionPerformances.Select(q => q.PercentCorrect))),
+                        backgroundColor: 'rgba(54, 162, 235, 0.8)',
+                    }, {
+                        label: 'Incorrect (%)',
+                        data: @Html.Raw(JsonSerializer.Serialize(Model.QuestionPerformances.Select(q => q.PercentIncorrect))),
+                        backgroundColor: 'rgba(255, 99, 132, 0.8)',
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: { y: { beginAtZero: true, max: 100 } },
+                    plugins: { legend: { position: 'bottom' } }
+                }
+            });
+
+            // Student Score Distribution Chart
+            const sCtx = document.getElementById('scoreDistributionChart').getContext('2d');
+            new Chart(sCtx, {
+                type: 'bar',
+                data: {
+                    labels: @Html.Raw(JsonSerializer.Serialize(Model.StudentScoreDistributions.Select(d => $"{d.RangeStart}-{d.RangeEnd}"))),
+                    datasets: [{
+                        label: 'Student Count',
+                        data: @Html.Raw(JsonSerializer.Serialize(Model.StudentScoreDistributions.Select(d => d.StudentCount))),
+                        backgroundColor: 'rgba(75, 192, 192, 0.8)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: { y: { beginAtZero: true } },
+                    plugins: { legend: { display: false } }
+                }
+            });
+        </script>
+    }
+}
