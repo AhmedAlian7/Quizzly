@@ -1,12 +1,12 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Quizzly.Business.ViewModels.Student;
 using Quizzly.DataAccess.Constants;
 using Quizzly.DataAccess.Entities;
 using Quizzly.DataAccess.Enums;
 using Quizzly.DataAccess.Repositories.Interfaces;
+using System.Text.Json;
 
 namespace Quizzly.Web.Areas.Student.Controllers
 {
@@ -77,15 +77,35 @@ namespace Quizzly.Web.Areas.Student.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Take(int attemptId, int index = 0)
+        public async Task<IActionResult> Take(int attemptId, int? questionId = null, int index = 0)
         {
             var attempt = await _uow.QuizAttempts.GetByIdAsync(attemptId, includes: "Quiz,Answers,Answers.Question,Answers.Choice");
-            if (attempt == null || attempt.IsCompleted) return NotFound();
+            if (attempt == null || attempt.IsCompleted)
+                return NotFound();
 
             var quiz = await _uow.Quizzes.GetByIdAsync(attempt.QuizId, includes: "Questions,Questions.Choices");
-            var orderedQuestions = quiz!.Questions.OrderBy(q => q.OrderIndex).ToList();
+            if (quiz == null)
+                return NotFound();
 
+            // Check quiz availability window
+            var nowUtc = DateTime.UtcNow;
+            if (quiz.StartAt.HasValue && nowUtc < quiz.StartAt.Value)
+                return BadRequest("Quiz has not started yet.");
+            if (quiz.EndAt.HasValue && nowUtc > quiz.EndAt.Value)
+                return BadRequest("Quiz has expired.");
+
+            // end time for the timer
             var endsAt = attempt.StartedAt.AddMinutes(quiz.DurationMintes);
+
+            var orderedQuestions = quiz.Questions.OrderBy(q => q.OrderIndex).ToList();
+
+            // determine current index by questionId if provided
+            var resolvedIndex = Math.Clamp(index, 0, Math.Max(0, orderedQuestions.Count - 1));
+            if (questionId.HasValue)
+            {
+                var idxById = orderedQuestions.FindIndex(q => q.Id == questionId.Value);
+                if (idxById >= 0) resolvedIndex = idxById;
+            }
 
             var vm = new QuizTakingViewModel
             {
@@ -95,7 +115,7 @@ namespace Quizzly.Web.Areas.Student.Controllers
                 DurationMinutes = quiz.DurationMintes,
                 StartedAtUtc = attempt.StartedAt,
                 EndsAtUtc = endsAt,
-                CurrentIndex = Math.Clamp(index, 0, Math.Max(0, orderedQuestions.Count - 1)),
+                CurrentIndex = resolvedIndex,
                 TotalQuestions = orderedQuestions.Count,
                 Questions = orderedQuestions.Select(q => new QuizTakingViewModel.QuestionVm
                 {
@@ -112,57 +132,61 @@ namespace Quizzly.Web.Areas.Student.Controllers
                         Text = c.Text
                     }).ToList(),
                     ExistingTextAnswer = attempt.Answers.FirstOrDefault(a => a.QuestionId == q.Id)?.TextAnswer,
-                    ExistingChoiceIds = attempt.Answers.Where(a => a.QuestionId == q.Id && a.ChoiceId.HasValue).Select(a => a.ChoiceId!.Value).ToList()
+                    ExistingChoiceIds = attempt.Answers
+                        .Where(a => a.QuestionId == q.Id && a.ChoiceId.HasValue)
+                        .Select(a => a.ChoiceId!.Value)
+                        .ToList()
                 }).ToList()
             };
 
-            return View("~/Areas/Student/Views/Quiz/Take.cshtml", vm);
+            return View(vm);
         }
+
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> SaveAnswer(int attemptId, int questionId, string? textAnswer, int[]? choiceIds, bool next = true)
-        {
-            var attempt = await _uow.QuizAttempts.GetByIdAsync(attemptId, includes: "Answers");
-            if (attempt == null || attempt.IsCompleted) return NotFound();
-
-            // remove existing answers for the question
-            var existing = attempt.Answers.Where(a => a.QuestionId == questionId).ToList();
-            foreach (var ans in existing)
-            {
-                await _uow.Answers.DeleteAsync(ans.Id);
-            }
-
-            if (!string.IsNullOrWhiteSpace(textAnswer))
-            {
-                await _uow.Answers.AddAsync(new Answer { QuestionId = questionId, QuizAttemptId = attempt.Id, TextAnswer = textAnswer });
-            }
-            if (choiceIds != null)
-            {
-                foreach (var cid in choiceIds)
-                {
-                    await _uow.Answers.AddAsync(new Answer { QuestionId = questionId, QuizAttemptId = attempt.Id, ChoiceId = cid });
-                }
-            }
-            await _uow.SaveAsync();
-
-            // navigate
-            var quiz = await _uow.Quizzes.GetByIdAsync(attempt.QuizId, includes: "Questions");
-            var orderedQuestions = quiz!.Questions.OrderBy(q => q.OrderIndex).ToList();
-            var currentIndex = orderedQuestions.FindIndex(q => q.Id == questionId);
-            var nextIndex = Math.Clamp(next ? currentIndex + 1 : currentIndex - 1, 0, orderedQuestions.Count - 1);
-            return RedirectToAction(nameof(Take), new { attemptId, index = nextIndex });
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Submit(int attemptId)
+        public async Task<IActionResult> Submit(int attemptId, string? answersJson)
         {
             var attempt = await _uow.QuizAttempts.GetByIdAsync(attemptId, includes: "Quiz,Answers,Answers.Question,Answers.Choice");
             if (attempt == null) return NotFound();
 
             if (attempt.IsCompleted)
                 return RedirectToAction(nameof(Result), new { attemptId = attempt.Id });
+
+            // Save answers from client JSON if provided
+            if (!string.IsNullOrWhiteSpace(answersJson))
+            {
+                try
+                {
+                    var payload = JsonSerializer.Deserialize<List<ClientAnswerDto>>(answersJson) ?? new();
+
+                    // delete existing answers for attempt
+                    foreach (var existing in attempt.Answers.ToList())
+                    {
+                        await _uow.Answers.DeleteAsync(existing.Id);
+                    }
+
+                    foreach (var p in payload)
+                    {
+                        if (p == null) continue;
+                        if (p.choiceId.HasValue)
+                        {
+                            await _uow.Answers.AddAsync(new Answer { QuizAttemptId = attempt.Id, QuestionId = p.questionId, ChoiceId = p.choiceId, IsCorrect = false, IsGraded = false });
+                        }
+                        else if (!string.IsNullOrWhiteSpace(p.textAnswer))
+                        {
+                            await _uow.Answers.AddAsync(new Answer { QuizAttemptId = attempt.Id, QuestionId = p.questionId, TextAnswer = p.textAnswer, IsCorrect = false, IsGraded = false });
+                        }
+                    }
+                    await _uow.SaveAsync();
+                    // reload attempt with new answers for grading
+                    attempt = await _uow.QuizAttempts.GetByIdAsync(attemptId, includes: "Quiz,Answers,Answers.Question,Answers.Choice");
+                }
+                catch
+                {
+                    // ignore bad payload and continue
+                }
+            }
 
             // finalize
             attempt.FinishedAt = DateTime.UtcNow;

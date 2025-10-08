@@ -15,6 +15,12 @@ namespace Quizzly.Business.ViewModels.Student
         public bool AlreadyAttempted { get; set; }
         public string? ValidationMessage { get; set; }
     }
+    public class ClientAnswerDto
+    {
+        public int questionId { get; set; }
+        public int? choiceId { get; set; }
+        public string? textAnswer { get; set; }
+    }
 }
 
 
