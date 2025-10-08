@@ -1,101 +1,456 @@
-@model Quizzly.Business.ViewModels.Student.QuizTakingViewModel
+@model QuizTakingViewModel
 @{
     ViewData["Title"] = Model.QuizTitle;
 }
 
-<div class="border-bottom bg-white position-sticky top-0" style="z-index: 1000;">
-    <div class="container py-3 d-flex align-items-center justify-content-between">
-        <div class="fw-semibold">@Model.QuizTitle</div>
-        <div class="text-center">
-            <span class="small text-muted">Remaining Time</span>
-            <div id="timer" class="fw-bold"></div>
+<div class="min-vh-100" style="background-color: #f9fafb;">
+    <div class="container py-4">
+        <!-- Back to Dashboard Button -->
+        <a href="@Url.Action("Index", "Dashboard", new { area = "Student" })" class="btn btn-link text-decoration-none text-secondary mb-3 p-0">
+            <i class="bi bi-chevron-left"></i>
+            <span>Back to Dashboard</span>
+        </a>
+
+        <div class="row g-4">
+            <!-- Main Quiz Section -->
+            <div class="col-lg-9">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body p-4">
+                        <!-- Quiz Header -->
+                        <div class="d-flex justify-content-between align-items-start mb-4">
+                            <div>
+                                <h1 class="h3 fw-bold mb-2">@Model.QuizTitle</h1>
+                                <p class="text-muted mb-0">Question @(Model.CurrentIndex + 1) of @Model.TotalQuestions</p>
+                            </div>
+                            <div class="d-flex align-items-center gap-2 bg-light px-3 py-2 rounded">
+                                <i class="bi bi-clock text-muted"></i>
+                                <span id="timer" class="font-monospace fs-5 fw-medium"></span>
+                                <div class="d-flex gap-2 ms-2" style="font-size: 0.65rem;">
+                                    <div class="text-muted">
+                                        <div>hr</div>
+                                    </div>
+                                    <div class="text-muted">
+                                        <div>min</div>
+                                    </div>
+                                    <div class="text-muted">
+                                        <div>sec</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Question Content -->
+                        @{
+                            var q = Model.Questions[Model.CurrentIndex];
+                        }
+                        <div class="mb-4">
+                            @await Html.PartialAsync("_Question", q)
+                        </div>
+
+                        <!-- Navigation Buttons -->
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <a class="btn btn-link text-decoration-none text-secondary @(Model.CurrentIndex == 0 ? "disabled" : "")"
+                               href="@(Model.CurrentIndex > 0 ? Url.Action("Take", "Quiz", new { area = "Student", attemptId = Model.AttemptId, questionId = Model.Questions[Model.CurrentIndex - 1].QuestionId }) : "#")"
+                               @(Model.CurrentIndex == 0 ? "aria-disabled=\"true\" tabindex=\"-1\"" : "")>
+                                <i class="bi bi-chevron-left"></i>
+                                <span>Previous</span>
+                            </a>
+
+                            <a class="btn btn-primary px-4 @(Model.CurrentIndex == Model.TotalQuestions - 1 ? "disabled" : "")"
+                               href="@(Model.CurrentIndex < Model.TotalQuestions - 1 ? Url.Action("Take", "Quiz", new { area = "Student", attemptId = Model.AttemptId, questionId = Model.Questions[Model.CurrentIndex + 1].QuestionId }) : "#")"
+                               @(Model.CurrentIndex == Model.TotalQuestions - 1 ? "aria-disabled=\"true\" tabindex=\"-1\"" : "")>
+                                <span>Next</span>
+                                <i class="bi bi-chevron-right"></i>
+                            </a>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="d-flex justify-content-center gap-3 mt-4">
+                            <a href="@Url.Action("Index", "Dashboard", new { area = "Student" })" class="btn btn-secondary px-4">
+                                <span class="fw-medium">Exit Quiz</span>
+                            </a>
+                            <button type="button" class="btn btn-success px-4" id="submitQuizBtn">
+                                <i class="bi bi-check-circle me-2"></i>
+                                <span class="fw-medium">Submit Quiz</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Question Navigation Sidebar -->
+            <div class="col-lg-3">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body p-4">
+                        <h3 class="h5 fw-semibold mb-3">Questions</h3>
+
+                        <!-- Question Grid -->
+                        <div class="d-grid gap-2 mb-4" style="grid-template-columns: repeat(5, 1fr);">
+                            @for (int i = 0; i < Model.TotalQuestions; i++)
+                            {
+                                var isCurrent = i == Model.CurrentIndex;
+                                var questionId = Model.Questions[i].QuestionId;
+
+                                <a href="@Url.Action("Take", "Quiz", new { area = "Student", attemptId = Model.AttemptId, questionId = questionId })"
+                                   class="btn btn-sm question-nav-btn @(isCurrent ? "btn-primary" : "btn-outline-secondary")"
+                                   data-question-index="@i"
+                                   data-question-id="@questionId"
+                                   style="aspect-ratio: 1; min-width: 0; padding: 0.5rem;">
+                                    @(i + 1)
+                                </a>
+                            }
+                        </div>
+
+                        <!-- Legend -->
+                        <div class="d-flex flex-column gap-2">
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="bg-primary rounded" style="width: 1rem; height: 1rem;"></div>
+                                <span class="small text-muted">Current</span>
+                            </div>
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="border border-success bg-success bg-opacity-10 rounded" style="width: 1rem; height: 1rem;"></div>
+                                <span class="small text-muted">Answered</span>
+                            </div>
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="border border-secondary bg-light rounded" style="width: 1rem; height: 1rem;"></div>
+                                <span class="small text-muted">Unanswered</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-        <form method="post" asp-action="Submit" asp-route-attemptId="@Model.AttemptId">
-            <button class="btn btn-danger">Submit Quiz</button>
-        </form>
     </div>
 </div>
 
-<div class="container py-4">
-    <!-- Question Navigation Bar -->
-    <div class="mb-3">
-        <nav aria-label="Question navigation">
-            <ul class="pagination justify-content-center">
-                @for (int i = 0; i < Model.TotalQuestions; i++)
-                {
-                    <li class="page-item @(i == Model.CurrentIndex ? "active" : "")">
-                        <a class="page-link" href="@Url.Action("Take","Quiz", new { area = "Student", attemptId = Model.AttemptId, questionId = Model.Questions[i].QuestionId })">@(i + 1)</a>
-                    </li>
+<!-- Hidden form for submission -->
+<form method="post" asp-action="Submit" asp-route-attemptId="@Model.AttemptId" id="submitForm" style="display: none;">
+    <input type="hidden" name="answersJson" id="answersJsonInput" />
+</form>
+
+@section Scripts {
+    <script>
+        // ============================================
+        // TIMER LOGIC
+        // ============================================
+        (function() {
+            const timerElement = document.getElementById('timer');
+            if (!timerElement) return;
+
+            const ATTEMPT_ID = @Model.AttemptId;
+            const TIMER_KEY = 'quizzly_timer_' + ATTEMPT_ID;
+
+            // Get duration from ViewModel
+            const durationInSeconds = @Model.DurationIsSeconds;
+
+            let endTime = localStorage.getItem(TIMER_KEY);
+            if (!endTime) {
+                // First time starting this quiz - set end time
+                endTime = Date.now() + (durationInSeconds * 1000);
+                localStorage.setItem(TIMER_KEY, endTime);
+            } else {
+                endTime = parseInt(endTime);
+            }
+
+            function updateTimer() {
+                const now = Date.now();
+                const remainingMs = Math.max(0, endTime - now);
+                const remainingSeconds = Math.floor(remainingMs / 1000);
+
+                const hours = Math.floor(remainingSeconds / 3600);
+                const minutes = Math.floor((remainingSeconds % 3600) / 60);
+                const seconds = remainingSeconds % 60;
+
+                timerElement.innerHTML =
+                    String(hours).padStart(2, '0') + ' : ' +
+                    String(minutes).padStart(2, '0') + ' : ' +
+                    '<span class="text-danger">' + String(seconds).padStart(2, '0') + '</span>';
+
+                if (remainingSeconds <= 0) {
+                    clearInterval(timerInterval);
+                    localStorage.removeItem(TIMER_KEY);
+
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Time\'s Up!',
+                        text: 'Your quiz will be submitted automatically.',
+                        confirmButtonText: 'OK',
+                        allowOutsideClick: false,
+                        allowEscapeKey: false
+                    }).then(() => {
+                        document.getElementById('submitQuizBtn').click();
+                    });
                 }
-            </ul>
-        </nav>
-    </div>
-
-    <div class="mb-3 text-muted">Question @(Model.CurrentIndex + 1) of @Model.TotalQuestions</div>
-
-    @{
-        var q = Model.Questions[Model.CurrentIndex];
-    }
-    @await Html.PartialAsync("_Question", q)
-
-    <div class="d-flex justify-content-between mt-4">
-        <a class="btn btn-outline-secondary" href="@Url.Action("Take","Quiz", new { area = "Student", attemptId = Model.AttemptId, questionId = Model.Questions[Math.Max(0, Model.CurrentIndex - 1)].QuestionId })" @(Model.CurrentIndex == 0 ? "aria-disabled=\"true\" tabindex=\"-1\"" : "")>Previous</a>
-        <a class="btn btn-primary" id="nextBtn" href="@Url.Action("Take","Quiz", new { area = "Student", attemptId = Model.AttemptId, questionId = Model.Questions[Math.Min(Model.TotalQuestions - 1, Model.CurrentIndex + 1)].QuestionId })">@(Model.CurrentIndex == Model.TotalQuestions - 1 ? "Review" : "Next")</a>
-    </div>
-</div>
-
-<script>
-    // Client-side answer cache, prefill, and attach on submit
-    (function(){
-        const ATTEMPT_ID = @Model.AttemptId;
-        const STORAGE_KEY = 'quizzly_answers_' + ATTEMPT_ID;
-        const container = document.querySelector('.question-body');
-        if(!container) return;
-        const qid = parseInt(container.getAttribute('data-question-id'));
-
-        function readAll(){ try{ return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); }catch(e){ return []; } }
-        function writeAll(arr){ try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(arr)); }catch(e){} }
-        function upsertAnswer(rec){
-            const arr = readAll();
-            const idx = arr.findIndex(x => x.questionId === rec.questionId);
-            if (idx >= 0) arr.splice(idx, 1);
-            arr.push(rec);
-            writeAll(arr);
-        }
-        function prefill(){
-            const arr = readAll();
-            const rec = arr.find(x => x.questionId === qid);
-            if (!rec) return;
-            if (rec.choiceId != null) {
-                const input = container.querySelector('input.question-choice[value="' + rec.choiceId + '"]');
-                if (input) input.checked = true;
             }
-            if (rec.textAnswer) {
-                const ta = container.querySelector('.question-text');
-                if (ta) ta.value = rec.textAnswer;
-            }
-        }
 
-        container.addEventListener('change', function(e){
-            if (e.target.matches('input.question-choice')){
-                upsertAnswer({ questionId: qid, choiceId: parseInt(e.target.value), textAnswer: null });
-            }
-            if (e.target.matches('.question-text')){
-                upsertAnswer({ questionId: qid, choiceId: null, textAnswer: e.target.value });
-            }
-        });
+            updateTimer();
+            const timerInterval = setInterval(updateTimer, 1000);
+        })();
 
-        prefill();
+        // ============================================
+        // ANSWER CACHING AND NAVIGATION LOGIC
+        // ============================================
+        (function(){
+            const ATTEMPT_ID = @Model.AttemptId;
+            const STORAGE_KEY = 'quizzly_answers_' + ATTEMPT_ID;
+            const container = document.querySelector('.question-body');
+            if(!container) return;
+            const qid = parseInt(container.getAttribute('data-question-id'));
 
-        const submitForm = document.querySelector('form[asp-action="Submit"], form[action*="/Submit"]');
-        if (submitForm){
-            submitForm.addEventListener('submit', function(){
-                const input = document.createElement('input');
-                input.type = 'hidden';
-                input.name = 'answersJson';
-                input.value = JSON.stringify(readAll());
-                this.appendChild(input);
+            function readAll(){
+                try{
+                    return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+                } catch(e){
+                    return [];
+                }
+            }
+
+            function writeAll(arr){
+                try{
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(arr));
+                } catch(e){}
+            }
+
+            function upsertAnswer(rec){
+                const arr = readAll();
+                const idx = arr.findIndex(x => x.questionId === rec.questionId);
+                if (idx >= 0) arr.splice(idx, 1);
+                arr.push(rec);
+                writeAll(arr);
+                updateQuestionNavigation();
+            }
+
+            function prefill(){
+                const arr = readAll();
+                const rec = arr.find(x => x.questionId === qid);
+                if (!rec) return;
+
+                if (rec.choiceId != null) {
+                    const input = container.querySelector('input.question-choice[value="' + rec.choiceId + '"]');
+                    if (input) {
+                        input.checked = true;
+                        // Trigger the visual selection
+                        const option = input.closest('.answer-option');
+                        if (option) option.classList.add('selected');
+                    }
+                }
+                if (rec.textAnswer) {
+                    const ta = container.querySelector('.question-text');
+                    if (ta) ta.value = rec.textAnswer;
+                }
+            }
+
+            function updateQuestionNavigation() {
+                const arr = readAll();
+                const answeredQuestionIds = arr.map(x => x.questionId);
+
+                document.querySelectorAll('.question-nav-btn').forEach(btn => {
+                    const questionId = parseInt(btn.getAttribute('data-question-id'));
+                    const isCurrent = btn.classList.contains('btn-primary');
+
+                    // Don't change the current button style
+                    if (!isCurrent) {
+                        if (answeredQuestionIds.includes(questionId)) {
+                            btn.classList.remove('btn-outline-secondary');
+                            btn.classList.add('btn-outline-success');
+                        } else {
+                            btn.classList.remove('btn-outline-success');
+                            btn.classList.add('btn-outline-secondary');
+                        }
+                    }
+                });
+            }
+
+            // Save answer before navigation
+            function saveCurrentAnswer() {
+                // Check for MCQ/TrueFalse answer
+                const selectedChoice = container.querySelector('input.question-choice:checked');
+                if (selectedChoice) {
+                    upsertAnswer({
+                        questionId: qid,
+                        choiceId: parseInt(selectedChoice.value),
+                        textAnswer: null
+                    });
+                    return;
+                }
+
+                // Check for text answer
+                const textAnswer = container.querySelector('.question-text');
+                if (textAnswer && textAnswer.value.trim()) {
+                    upsertAnswer({
+                        questionId: qid,
+                        choiceId: null,
+                        textAnswer: textAnswer.value
+                    });
+                    return;
+                }
+
+                // If no answer selected, remove any existing answer for this question
+                const arr = readAll();
+                const idx = arr.findIndex(x => x.questionId === qid);
+                if (idx >= 0) {
+                    arr.splice(idx, 1);
+                    writeAll(arr);
+                    updateQuestionNavigation();
+                }
+            }
+
+            // Listen for answer changes
+            container.addEventListener('change', function(e){
+                if (e.target.matches('input.question-choice')){
+                    upsertAnswer({
+                        questionId: qid,
+                        choiceId: parseInt(e.target.value),
+                        textAnswer: null
+                    });
+                }
+                if (e.target.matches('.question-text')){
+                    const value = e.target.value.trim();
+                    if (value) {
+                        upsertAnswer({
+                            questionId: qid,
+                            choiceId: null,
+                            textAnswer: value
+                        });
+                    } else {
+                        // Remove answer if text is cleared
+                        const arr = readAll();
+                        const idx = arr.findIndex(x => x.questionId === qid);
+                        if (idx >= 0) {
+                            arr.splice(idx, 1);
+                            writeAll(arr);
+                            updateQuestionNavigation();
+                        }
+                    }
+                }
             });
+
+            // Save answer before clicking navigation links
+            document.querySelectorAll('a[href*="Take"]').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    saveCurrentAnswer();
+                });
+            });
+
+            // Also save on blur for text inputs
+            const textInputs = container.querySelectorAll('.question-text');
+            textInputs.forEach(input => {
+                input.addEventListener('blur', function() {
+                    saveCurrentAnswer();
+                });
+            });
+
+            // Prefill answers on page load
+            prefill();
+            updateQuestionNavigation();
+
+            // ============================================
+            // SUBMIT QUIZ LOGIC WITH SWEETALERT2
+            // ============================================
+            const submitBtn = document.getElementById('submitQuizBtn');
+            const submitForm = document.getElementById('submitForm');
+            const answersInput = document.getElementById('answersJsonInput');
+
+            if (submitBtn && submitForm) {
+                submitBtn.addEventListener('click', async function(e) {
+                    e.preventDefault();
+
+                    // Save current answer before submitting
+                    saveCurrentAnswer();
+
+                    const answersArray = readAll();
+                    const totalQuestions = @Model.TotalQuestions;
+
+                    let confirmResult;
+
+                    if (answersArray.length === 0) {
+                        confirmResult = await Swal.fire({
+                            icon: 'warning',
+                            title: 'No Answers Submitted',
+                            text: 'You have not answered any questions. Are you sure you want to submit?',
+                            showCancelButton: true,
+                            confirmButtonText: 'Yes, Submit',
+                            cancelButtonText: 'Cancel',
+                            confirmButtonColor: '#d33',
+                            cancelButtonColor: '#3085d6'
+                        });
+                    } else if (answersArray.length < totalQuestions) {
+                        confirmResult = await Swal.fire({
+                            icon: 'question',
+                            title: 'Incomplete Quiz',
+                            html: `You have answered <strong>${answersArray.length}</strong> out of <strong>${totalQuestions}</strong> questions.<br>Are you sure you want to submit?`,
+                            showCancelButton: true,
+                            confirmButtonText: 'Yes, Submit',
+                            cancelButtonText: 'No, Continue',
+                            confirmButtonColor: '#f59e0b',
+                            cancelButtonColor: '#3085d6'
+                        });
+                    } else {
+                        confirmResult = await Swal.fire({
+                            icon: 'question',
+                            title: 'Submit Quiz?',
+                            text: 'Are you sure you want to submit your quiz? You cannot change your answers after submission.',
+                            showCancelButton: true,
+                            confirmButtonText: 'Yes, Submit',
+                            cancelButtonText: 'Cancel',
+                            confirmButtonColor: '#10b981',
+                            cancelButtonColor: '#6b7280'
+                        });
+                    }
+
+                    if (confirmResult.isConfirmed) {
+                        // Set the answers JSON
+                        answersInput.value = JSON.stringify(answersArray);
+
+                        // Show success message
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Quiz Submitted!',
+                            text: 'Your answers have been submitted successfully.',
+                            timer: 2000,
+                            timerProgressBar: true,
+                            showConfirmButton: false,
+                            allowOutsideClick: false,
+                            allowEscapeKey: false
+                        }).then(() => {
+                            // Clear localStorage
+                            localStorage.removeItem(STORAGE_KEY);
+                            localStorage.removeItem('quizzly_timer_' + ATTEMPT_ID);
+
+                            // Submit the form
+                            submitForm.submit();
+                        });
+                    }
+                });
+            }
+        })();
+    </script>
+}
+
+<style>
+    .btn-link:hover {
+        color: #2563eb !important;
+    }
+
+    .btn-outline-success {
+        border-color: #10b981;
+        color: #059669;
+        background-color: rgba(16, 185, 129, 0.1);
+    }
+
+        .btn-outline-success:hover {
+            background-color: #d1fae5;
+            border-color: #10b981;
+            color: #047857;
         }
-    })();
-</script>
+
+    .question-nav-btn {
+        font-weight: 500;
+        font-size: 0.875rem;
+    }
+
+    .swal2-popup {
+        font-family: inherit;
+    }
+</style>
+}

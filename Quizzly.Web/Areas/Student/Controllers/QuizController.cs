@@ -112,7 +112,7 @@ namespace Quizzly.Web.Areas.Student.Controllers
                 QuizId = quiz.Id,
                 QuizTitle = quiz.Title,
                 AttemptId = attempt.Id,
-                DurationMinutes = quiz.DurationMintes,
+                DurationIsSeconds = quiz.DurationMintes * 60,
                 StartedAtUtc = attempt.StartedAt,
                 EndsAtUtc = endsAt,
                 CurrentIndex = resolvedIndex,

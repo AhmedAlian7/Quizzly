@@ -1,41 +1,234 @@
-@model Quizzly.Business.ViewModels.Student.QuizTakingViewModel.QuestionVm
+@model QuizTakingViewModel.QuestionVm
 
-<div class="card shadow-sm">
-    <div class="card-body">
-        <div class="d-flex align-items-start justify-content-between">
-            <h5 class="mb-3">@Model.Text</h5>
-            @if (Model.IsRequired)
-            {<span class="badge bg-primary">Required</span>}
+<div class="mb-4">
+    <div class="d-flex align-items-start justify-content-between mb-4">
+        <h2 class="h5 fw-medium text-dark mb-0">@Model.Text</h2>
+        @if (Model.IsRequired)
+        {
+            <span class="badge bg-primary">Required</span>
+        }
+    </div>
+
+    @if (!string.IsNullOrEmpty(Model.ImageUrl))
+    {
+        <div class="mb-4">
+            <div class="question-image-container rounded overflow-hidden border position-relative">
+                <img src="@Model.ImageUrl"
+                     alt="Question image"
+                     class="img-fluid w-100 question-image"
+                     style="max-height: 500px; object-fit: contain; background-color: #f9fafb; cursor: pointer;"
+                     onclick="viewImageFullScreen(this.src)" />
+                <div class="position-absolute top-0 end-0 m-2">
+                    <button type="button" class="btn btn-sm btn-light shadow-sm" onclick="viewImageFullScreen('@Model.ImageUrl')" title="View full size">
+                        <i class="bi bi-arrows-fullscreen"></i>
+                    </button>
+                </div>
+            </div>
         </div>
+    }
 
-        <div data-question-id="@Model.QuestionId" class="question-body">
-            @switch (Model.QuestionType)
-            {
-                case Quizzly.DataAccess.Enums.QuestionType.MCQ:
-                case Quizzly.DataAccess.Enums.QuestionType.TrueFalse:
-                    {
-                        foreach (var c in Model.Choices)
+    <div data-question-id="@Model.QuestionId" class="question-body">
+        @switch (Model.QuestionType)
+        {
+            case Quizzly.DataAccess.Enums.QuestionType.MCQ:
+            case Quizzly.DataAccess.Enums.QuestionType.TrueFalse:
+                {
+                    <div class="d-flex flex-column gap-3">
+                        @foreach (var c in Model.Choices)
                         {
-                            <div class="form-check mb-2">
-                                <input class="form-check-input question-choice" type="radio" name="choiceIds" value="@c.ChoiceId" />
-                                <label class="form-check-label">@c.Text</label>
+                            <div class="answer-option p-3 border rounded position-relative"
+                                 style="cursor: pointer; transition: all 0.2s;"
+                                 data-choice-id="@c.ChoiceId">
+                                <input class="form-check-input question-choice position-absolute"
+                                       type="radio"
+                                       name="choiceIds_@Model.QuestionId"
+                                       value="@c.ChoiceId"
+                                       id="choice_@c.ChoiceId"
+                                       style="opacity: 0; pointer-events: none;" />
+                                <label class="d-flex align-items-center w-100 m-0"
+                                       for="choice_@c.ChoiceId"
+                                       style="cursor: pointer;">
+                                    <div class="custom-radio me-3">
+                                        <div class="radio-outer"></div>
+                                        <div class="radio-inner"></div>
+                                    </div>
+                                    <span class="text-dark">@c.Text</span>
+                                </label>
                             </div>
                         }
-                        break;
-                    }
-                case Quizzly.DataAccess.Enums.QuestionType.ShortAnswer:
-                    {
-                        <input class="form-control question-text" name="textAnswer" maxlength="250" />
-                        break;
-                    }
-                case Quizzly.DataAccess.Enums.QuestionType.Essay:
-                    {
-                        <textarea class="form-control question-text" name="textAnswer" rows="6"></textarea>
-                        break;
-                    }
-            }
-        </div>
+                    </div>
+                    break;
+                }
+            case Quizzly.DataAccess.Enums.QuestionType.ShortAnswer:
+                {
+                    <input class="form-control form-control-lg question-text"
+                           name="textAnswer"
+                           maxlength="250"
+                           placeholder="Enter your answer here..."
+                           value="@Model.ExistingTextAnswer" />
+                    break;
+                }
+            case Quizzly.DataAccess.Enums.QuestionType.Essay:
+                {
+                    <textarea class="form-control question-text"
+                  name="textAnswer"
+                  rows="8"
+                  placeholder="Write your answer here..."
+                  style="resize: vertical;">@Model.ExistingTextAnswer</textarea>
+                    break;
+                }
+        }
     </div>
+
+    @if (Model.Points > 0)
+    {
+        <div class="mt-3">
+            <span class="badge bg-secondary">@Model.Points points</span>
+        </div>
+    }
 </div>
 
+<style>
+    .question-image-container {
+        background-color: #f9fafb;
+        box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+        position: relative;
+    }
 
+        .question-image-container img {
+            display: block;
+            margin: 0 auto;
+            transition: transform 0.2s ease;
+        }
+
+    .question-image:hover {
+        transform: scale(1.02);
+    }
+
+    .question-image-container .btn {
+        opacity: 0.8;
+        transition: opacity 0.2s ease;
+    }
+
+    .question-image-container:hover .btn {
+        opacity: 1;
+    }
+
+    /* Answer Option Styling */
+    .answer-option {
+        background-color: #ffffff;
+        border: 1px solid #e5e7eb !important;
+        transition: all 0.2s ease;
+    }
+
+        .answer-option:hover {
+            background-color: #f9fafb;
+        }
+
+        .answer-option.selected {
+            background-color: #eff6ff;
+            border: 1px solid #93c5fd !important;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+    .custom-radio {
+        position: relative;
+        width: 20px;
+        height: 20px;
+        flex-shrink: 0;
+    }
+
+    .radio-outer {
+        width: 20px;
+        height: 20px;
+        border: 2px solid #d1d5db;
+        border-radius: 50%;
+        transition: all 0.2s ease;
+        background-color: #ffffff;
+    }
+
+    .radio-inner {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%) scale(0);
+        width: 8px;
+        height: 8px;
+        background-color: #ffffff;
+        border-radius: 50%;
+        transition: transform 0.2s ease;
+    }
+
+    .answer-option.selected .radio-outer {
+        border-color: #3b82f6;
+        background-color: #3b82f6;
+    }
+
+    .answer-option.selected .radio-inner {
+        transform: translate(-50%, -50%) scale(1);
+    }
+
+    .form-control:focus {
+        border-color: #93c5fd;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+</style>
+
+<script>
+    (function() {
+        // Handle answer option clicks for MCQ/True-False
+        const answerOptions = document.querySelectorAll('.answer-option');
+
+        answerOptions.forEach(option => {
+            option.addEventListener('click', function() {
+                // Get the parent question body to limit scope
+                const questionBody = this.closest('.question-body');
+
+                // Remove selected class from all options in this question
+                questionBody.querySelectorAll('.answer-option').forEach(opt => {
+                    opt.classList.remove('selected');
+                });
+
+                // Add selected class to clicked option
+                this.classList.add('selected');
+
+                // Check the radio button
+                const radio = this.querySelector('.question-choice');
+                if (radio) {
+                    radio.checked = true;
+
+                    // Trigger change event for answer caching
+                    radio.dispatchEvent(new Event('change', { bubbles: true }));
+                }
+            });
+        });
+
+        // Restore selected state on page load (if radio is already checked)
+        document.querySelectorAll('.question-choice:checked').forEach(radio => {
+            const option = radio.closest('.answer-option');
+            if (option) {
+                option.classList.add('selected');
+            }
+        });
+    })();
+
+    // Function to view image in full screen using SweetAlert2
+    function viewImageFullScreen(imageUrl) {
+        Swal.fire({
+            imageUrl: imageUrl,
+            imageAlt: 'Question Image',
+            showCloseButton: true,
+            showConfirmButton: false,
+            width: '90%',
+            padding: '1rem',
+            background: '#fff',
+            customClass: {
+                image: 'img-fluid',
+                popup: 'swal-image-popup'
+            },
+            backdrop: `
+                rgba(0,0,0,0.8)
+            `
+        });
+    }
+</script>
