@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Quizzly.Business.Services.Interfaces;
 using Quizzly.Business.ViewModels.Quiz;
 using Quizzly.DataAccess.Entities;
+using System;
 
 namespace Quizzly.Web.Areas.Instructor.Controllers
 {
@@ -64,21 +65,46 @@ namespace Quizzly.Web.Areas.Instructor.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create(AddQuizDto addQuizDto)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create(AddQuizDto addQuizDto , string formAction)
         {
-            if (!ModelState.IsValid)
-                return View(addQuizDto);
+                if (!ModelState.IsValid)
+                {
+                    var errors = ModelState.Values
+                        .SelectMany(v => v.Errors)
+                        .Select(e => e.ErrorMessage)
+                        .ToList();
+                
+                    // Reload categories
+                    addQuizDto.Categories = (await _quizCategoriesService.GetAllAsync())
+                        .Select(c => new SelectListItem
+                        {
+                            Value = c.Id.ToString(),
+                            Text = c.Name
+                        });
 
-            var user = await _userManager.GetUserAsync(User);
+                    return Json(new { success = false, errors = errors });
+                }
 
-            var instructor = await _instructorManagementService
-                .GetInstructorByUserIdAsync(user.Id);
+                var user = await _userManager.GetUserAsync(User);
 
-            if (instructor == null)
-                return NotFound("Instructor profile not found.");
+                var instructor = await _instructorManagementService
+                    .GetInstructorByUserIdAsync(user.Id);
 
-            await _instructorManagementService.AddQuizAsync(instructor.Id, addQuizDto);
-            return RedirectToAction("Index");
+                if (instructor == null)
+                    return Json(new { success = false, error = "Instructor profile not found." });
+
+                var quizId = await _instructorManagementService
+                    .AddQuizAsync(instructor.Id, addQuizDto);
+
+            if (formAction == "publish")
+            {
+                var token = await _quizService.PublishQuizAsync(quizId);
+                return View("Token", token);
+            }
+
+            return RedirectToAction("Index", "QuizCategoryManagement", new { area = "Instructor" });
+
         }
 
         [HttpGet]

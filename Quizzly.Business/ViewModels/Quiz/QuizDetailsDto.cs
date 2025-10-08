@@ -19,10 +19,11 @@ namespace Quizzly.Business.ViewModels.Quiz
         public bool ShowCorrectAnswers { get; set; }
         public bool IsPublished { get; set; }
         public bool ShowScoreImmediatlely { get; set; }
+        public string? AccessCode { get; set; }
         public decimal? PassingScore { get; set; }
         public DateTime? StartAt { get; set; } = DateTime.UtcNow;
         public DateTime? EndAt { get; set; } = DateTime.UtcNow;
-        public int CaregoryId { get; set; }
+        public int CategoryId { get; set; }
         public IEnumerable<SelectListItem>? Categories { get; set; }
         public List<QuestionDetailsDto> Questions { get; set; } = new List<QuestionDetailsDto>();
 

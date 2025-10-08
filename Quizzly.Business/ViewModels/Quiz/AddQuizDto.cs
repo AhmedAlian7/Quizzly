@@ -6,6 +6,8 @@ namespace Quizzly.Business.ViewModels.Quiz
 {
     public class AddQuizDto
     {
+        public int Id { get; set; }
+
         [Required]
         [MaxLength(100)]
         public string Title { get; set; }
@@ -30,7 +32,7 @@ namespace Quizzly.Business.ViewModels.Quiz
         public DateTime EndAt { get; set; } = DateTime.UtcNow;
 
         [Required]
-        public int CaregoryId { get; set;}
+        public int CategoryId { get; set;}
         public IEnumerable<SelectListItem>? Categories { get; set; }
         public List<AddQuestionDto> addQuestionDtos { get; set; } = new List<AddQuestionDto>();
 

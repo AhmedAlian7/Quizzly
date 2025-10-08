@@ -7,7 +7,7 @@ namespace Quizzly.Business.Services.Interfaces
     {
         Task<QuizDetailsDto> GetQuizByIdAsync(int quizId);
         Task UpdateQuizAsync(QuizDetailsDto dto);
-
+        Task<string> PublishQuizAsync(int quizId);
 
     }
 }
