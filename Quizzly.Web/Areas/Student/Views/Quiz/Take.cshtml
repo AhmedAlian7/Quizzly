@@ -72,14 +72,26 @@
 
 <script>
     const endsAt = new Date('@Model.EndsAtUtc?.ToString("o")');
+    const serverNow = new Date('@DateTime.UtcNow.ToString("o")');
+    const clientNowAtLoad = new Date();
+    const clockSkewMs = clientNowAtLoad - serverNow; // positive if client is ahead of server
+
     const timerEl = document.getElementById('timer');
     const warnBeforeSec = 5 * 60;
     const dangerBeforeSec = 60;
 
     function pad(n) { return n.toString().padStart(2, '0'); }
+    function nowServerAligned() {
+        // Compensate client time using measured skew against server UTC at render time
+        return new Date(Date.now() - clockSkewMs);
+    }
     function tick() {
-        const now = new Date();
-        const diffMs = endsAt - now;
+        if (isNaN(endsAt.getTime())) {
+            timerEl.innerText = '--:--';
+            return;
+        }
+        const alignedNow = nowServerAligned();
+        const diffMs = endsAt - alignedNow;
         if (diffMs <= 0) {
             timerEl.innerText = '00:00';
             document.removeEventListener('beforeunload', beforeUnloadHandler);

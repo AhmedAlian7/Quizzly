@@ -24,7 +24,7 @@ namespace Quizzly.Web.Areas.Student.Controllers
             var student = (await _uow.Students.GetAllAsync("")).FirstOrDefault(s => s.UserId == user!.Id);
             var attempts = await _uow.QuizAttempts.GetAllAsync(includes: "Quiz");
             var myAttempts = attempts.Where(a => a.StudentId == (student?.Id ?? 0)).OrderByDescending(a => a.CreatedAt).Take(5).ToList();
-            return View("~/Areas/Student/Views/Dashboard/Index.cshtml", myAttempts);
+            return View(myAttempts);
         }
     }
 }

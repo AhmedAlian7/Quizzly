@@ -1,4 +1,8 @@
-﻿<!DOCTYPE html>
+﻿@{
+    var insName = (User?.Identity?.Name ?? "Instructor");
+}
+
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
@@ -304,7 +308,7 @@
                         <i class="bi bi-person"></i>
                     </div>
                     <div class="ms-2">
-                        <div class="fw-bold">Instructor</div>
+                        <div class="fw-bold">@insName</div>
                         <small class="text-muted">Instructor</small>
                     </div>
                 </div>
@@ -329,30 +333,24 @@
         }
 
         document.addEventListener('DOMContentLoaded', () => {
+            // Set active menu item based on current page
             const currentPath = window.location.pathname.toLowerCase();
-            const links = document.querySelectorAll('.sidebar-menu a');
-            links.forEach(link => {
+            const menuLinks = document.querySelectorAll('.sidebar-menu a');
+            menuLinks.forEach(link => {
                 const href = link.getAttribute('href')?.toLowerCase();
-                if (href && currentPath.includes(href)) {
-        // Initialize toasts
-        document.addEventListener("DOMContentLoaded", function () {
+                if (href && currentPath === href) {
+                    link.classList.add('active');
+                } else {
+                    link.classList.remove('active');
+                }
+            });
+
+            // Initialize toasts
             var toastEl = document.querySelector('.toast');
             if (toastEl) {
                 var toast = new bootstrap.Toast(toastEl);
                 toast.show();
             }
-        });
-
-            // Set active menu item based on current page
-            const currentPath = window.location.pathname;
-            const menuLinks = document.querySelectorAll('.sidebar-menu a');
-
-            menuLinks.forEach(link => {
-                link.classList.remove('active');
-                if (link.getAttribute('href') === currentPath) {
-                    link.classList.add('active');
-                }
-            });
         });
     </script>
 
