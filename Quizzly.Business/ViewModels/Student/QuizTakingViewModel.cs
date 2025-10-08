@@ -10,6 +10,9 @@ namespace Quizzly.Business.ViewModels.Student
         public int DurationMinutes { get; set; }
         public DateTime StartedAtUtc { get; set; }
         public DateTime? EndsAtUtc { get; set; }
+        public DateTime? QuizStartAtUtc { get; set; }
+        public DateTime? QuizEndAtUtc { get; set; }
+
 
         public int CurrentIndex { get; set; }
         public int TotalQuestions { get; set; }

@@ -1,0 +1,41 @@
+@model Quizzly.Business.ViewModels.Student.QuizTakingViewModel.QuestionVm
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        <div class="d-flex align-items-start justify-content-between">
+            <h5 class="mb-3">@Model.Text</h5>
+            @if (Model.IsRequired)
+            {<span class="badge bg-primary">Required</span>}
+        </div>
+
+        <div data-question-id="@Model.QuestionId" class="question-body">
+            @switch (Model.QuestionType)
+            {
+                case Quizzly.DataAccess.Enums.QuestionType.MCQ:
+                case Quizzly.DataAccess.Enums.QuestionType.TrueFalse:
+                    {
+                        foreach (var c in Model.Choices)
+                        {
+                            <div class="form-check mb-2">
+                                <input class="form-check-input question-choice" type="radio" name="choiceIds" value="@c.ChoiceId" />
+                                <label class="form-check-label">@c.Text</label>
+                            </div>
+                        }
+                        break;
+                    }
+                case Quizzly.DataAccess.Enums.QuestionType.ShortAnswer:
+                    {
+                        <input class="form-control question-text" name="textAnswer" maxlength="250" />
+                        break;
+                    }
+                case Quizzly.DataAccess.Enums.QuestionType.Essay:
+                    {
+                        <textarea class="form-control question-text" name="textAnswer" rows="6"></textarea>
+                        break;
+                    }
+            }
+        </div>
+    </div>
+</div>
+
+
