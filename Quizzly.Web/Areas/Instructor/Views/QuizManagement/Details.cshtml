@@ -15,23 +15,22 @@
         </div>
     </div>
 
-    <!-- Quiz Status -->
+    <!-- Quiz Status & Access Code -->
     <div class="alert @(Model.IsPublished ? "alert-success" : "alert-warning") mb-4">
         <div class="d-flex justify-content-between align-items-center">
             <span>
                 <strong>Status:</strong> @(Model.IsPublished ? "Published" : "Draft")
                 @if (Model.IsPublished && !string.IsNullOrEmpty(Model.AccessCode))
                 {
-                    <span class="ms-3"><strong>Access Code:</strong> <code>@Model.AccessCode</code></span>
+                    <span class="ms-3">
+                        <strong>Access Code:</strong>
+                        <code class="fs-5 mx-2">@Model.AccessCode</code>
+                        <button type="button" class="btn btn-sm btn-outline-primary" onclick="copyAccessCode()">
+                            <i class="fas fa-copy"></i> Copy
+                        </button>
+                    </span>
                 }
             </span>
-            @if (!Model.IsPublished)
-            {
-                <form method="post" action="@Url.Action("Publish", new { id = Model.Id })" class="d-inline">
-                    @Html.AntiForgeryToken()
-                    <button type="submit" class="btn btn-success btn-sm">Publish Quiz</button>
-                </form>
-            }
         </div>
     </div>
 
@@ -89,7 +88,9 @@
                                 </div>
                             }
 
-                            @if (question.QuestionType != Quizzly.DataAccess.Enums.QuestionType.ShortAnswer && question.Choices.Any())
+                            @if (question.QuestionType != Quizzly.DataAccess.Enums.QuestionType.ShortAnswer &&
+                                                    question.QuestionType != Quizzly.DataAccess.Enums.QuestionType.Essay &&
+                                                    question.Choices.Any())
                             {
                                 <div class="choices-list">
                                     @foreach (var choice in question.Choices)
@@ -111,7 +112,23 @@
                             else if (question.QuestionType == Quizzly.DataAccess.Enums.QuestionType.ShortAnswer)
                             {
                                 <div class="alert alert-info mb-0">
-                                    <small><strong>Short Answer Question:</strong> Students will type their answer</small>
+                                    <small>
+                                        <strong>Short Answer Question:</strong>
+                                        @if (question.Choices.Any())
+                                        {
+                                            <span>Correct answer: <strong>@question.Choices.First().Text</strong></span>
+                                        }
+                                        else
+                                        {
+                                            <span>Students will type their answer</span>
+                                        }
+                                    </small>
+                                </div>
+                            }
+                            else if (question.QuestionType == Quizzly.DataAccess.Enums.QuestionType.Essay)
+                            {
+                                <div class="alert alert-warning mb-0">
+                                    <small><strong>Essay Question:</strong> Students will write their answer in a text area. Manual grading required.</small>
                                 </div>
                             }
                         </div>
@@ -245,6 +262,30 @@
     </div>
 </div>
 
+@section Scripts {
+    <script>
+        function copyAccessCode() {
+            const accessCode = '@Model.AccessCode';
+            navigator.clipboard.writeText(accessCode).then(function() {
+                // Show success message
+                const originalText = event.target.innerHTML;
+                event.target.innerHTML = '<i class="fas fa-check"></i> Copied!';
+                event.target.classList.remove('btn-outline-primary');
+                event.target.classList.add('btn-success');
+
+                setTimeout(function() {
+                    event.target.innerHTML = originalText;
+                    event.target.classList.remove('btn-success');
+                    event.target.classList.add('btn-outline-primary');
+                }, 2000);
+            }).catch(function(err) {
+                console.error('Failed to copy access code: ', err);
+                alert('Failed to copy access code. Please copy it manually.');
+            });
+        }
+    </script>
+}
+
 @functions {
     private string GetQuestionTypeBadge(Quizzly.DataAccess.Enums.QuestionType questionType)
     {
@@ -253,6 +294,7 @@
             Quizzly.DataAccess.Enums.QuestionType.MCQ => "bg-primary",
             Quizzly.DataAccess.Enums.QuestionType.TrueFalse => "bg-info",
             Quizzly.DataAccess.Enums.QuestionType.ShortAnswer => "bg-warning",
+            Quizzly.DataAccess.Enums.QuestionType.Essay => "bg-secondary",
             _ => "bg-secondary"
         };
     }

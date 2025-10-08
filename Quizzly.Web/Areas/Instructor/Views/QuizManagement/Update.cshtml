@@ -12,6 +12,29 @@
 
         <input type="hidden" asp-for="Id" />
 
+        <!-- Quiz Status Toggle -->
+        <div class="card mb-4">
+            <div class="card-header bg-light">
+                <h6 class="mb-0">Quiz Status</h6>
+            </div>
+            <div class="card-body">
+                <div class="form-check form-switch mb-3">
+                    <input type="hidden" asp-for="IsPublished" value="false" />
+                    <input asp-for="IsPublished" class="form-check-input" value="true" id="IsPublished" />
+                    <label asp-for="IsPublished" class="form-check-label fw-semibold">
+                        Publish Quiz
+                    </label>
+                </div>
+                <div class="alert alert-info mb-0">
+                    <small>
+                        <i class="fas fa-info-circle"></i>
+                        <strong>Published:</strong> Students can access and take the quiz<br />
+                        <strong>Draft:</strong> Only you can see and edit the quiz
+                    </small>
+                </div>
+            </div>
+        </div>
+
         <!-- Basic Quiz Information -->
         <div class="row mb-4">
             <div class="col-md-8">
@@ -243,13 +266,6 @@
         <div class="d-flex gap-2">
             <button type="submit" class="btn btn-primary">Update Quiz</button>
             <a href="@Url.Action("Index")" class="btn btn-secondary">Cancel</a>
-            @if (!Model.IsPublished)
-            {
-                <button type="submit" formaction="@Url.Action("Publish", new { id = Model.Id })"
-                        class="btn btn-success ms-auto">
-                    Publish Quiz
-                </button>
-            }
         </div>
     </form>
 </div>

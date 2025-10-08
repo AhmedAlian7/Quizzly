@@ -38,6 +38,7 @@ namespace Quizzly.Business.Services.Implementions
                 ShowScoreImmediatlely = quiz.ShowScoreImmediatlely,
                 StartAt = quiz.StartAt,
                 EndAt = quiz.EndAt,
+                AccessCode = quiz.AccessToken,
                 QuestionPerformances = await _instructorAnalyticsService.GetQuestionLevelPerformanceAsync(quizId),
                 CommonIncorrectAnswers = await _instructorAnalyticsService.GetCommonIncorrectAnswersAsync(quizId),
                 AverageQuizTime = await _instructorAnalyticsService.GetAverageQuizTimeAsync(quizId),
