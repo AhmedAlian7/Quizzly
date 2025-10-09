@@ -166,7 +166,7 @@ namespace Quizzly.Business.Services.Implementions
             attempt.IsCompleted = true;
 
             decimal score = 0m;
-            foreach (var q in attempt.Quiz.Questions)
+            foreach (var q in attempt.Quiz!.Questions)
             {
                 if (q.QuestionType == QuestionType.MCQ || q.QuestionType == QuestionType.TrueFalse)
                 {
@@ -206,6 +206,53 @@ namespace Quizzly.Business.Services.Implementions
             return attempt.Id;
         }
 
+        public async Task ExitAsync(int attemptId, string? answersJson)
+        {
+            var attempt = await _uow.QuizAttempts.GetAttemptByIdAsync(
+                attemptId,
+                includes: "Quiz,Quiz.Questions,Quiz.Questions.Choices,Answers,Answers.Question,Answers.Choice");
+            if (attempt == null)
+                throw new KeyNotFoundException("Attempt not found");
+
+            if (attempt.IsCompleted)
+                return;
+
+            if (!string.IsNullOrWhiteSpace(answersJson))
+            {
+                try
+                {
+                    var payload = JsonSerializer.Deserialize<List<ClientAnswerDto>>(answersJson) ?? new();
+                    foreach (var existing in attempt.Answers.ToList())
+                    {
+                        await _uow.Answers.DeleteAsync(existing.Id);
+                    }
+                    foreach (var p in payload)
+                    {
+                        if (p == null) continue;
+                        if (p.choiceId.HasValue)
+                        {
+                            await _uow.Answers.AddAsync(new Answer { QuizAttemptId = attempt.Id, QuestionId = p.questionId, ChoiceId = p.choiceId, IsCorrect = null, IsGraded = false });
+                        }
+                        else if (!string.IsNullOrWhiteSpace(p.textAnswer))
+                        {
+                            await _uow.Answers.AddAsync(new Answer { QuizAttemptId = attempt.Id, QuestionId = p.questionId, TextAnswer = p.textAnswer, IsCorrect = null, IsGraded = false });
+                        }
+                    }
+                }
+                catch
+                {
+                    // ignore bad payload and continue
+                }
+            }
+
+            // Keep attempt open and update timestamp
+            attempt.IsCompleted = false;
+            attempt.FinishedAt = null;
+            attempt.UpdatedAt = DateTime.UtcNow;
+            _uow.QuizAttempts.Update(attempt);
+            await _uow.SaveAsync();
+        }
+
         public async Task<QuizResultViewModel> GetResultAsync(int attemptId)
         {
             var attempt = await _uow.QuizAttempts.GetAttemptByIdAsync(
@@ -213,6 +260,13 @@ namespace Quizzly.Business.Services.Implementions
                 includes: "Quiz,Quiz.Questions,Quiz.Questions.Choices,Answers,Answers.Question,Answers.Choice");
             if (attempt == null)
                 throw new KeyNotFoundException("Attempt not found");
+
+            var autoGradedQuestions = attempt.Quiz.Questions
+                .Where(q => q.QuestionType == QuestionType.MCQ || q.QuestionType == QuestionType.TrueFalse)
+                .ToList();
+            var autoMax = autoGradedQuestions.Sum(q => q.Points);
+            var autoScore = attempt.Score ?? 0m; // attempt.Score is computed only from auto-graded questions
+            var autoPct = autoMax > 0 ? Math.Round((autoScore / autoMax) * 100m, 2) : (decimal?)0;
 
             var vm = new QuizResultViewModel
             {
@@ -225,8 +279,12 @@ namespace Quizzly.Business.Services.Implementions
                 TimeTaken = (attempt.FinishedAt ?? DateTime.UtcNow) - attempt.StartedAt,
                 IsAutoGraded = attempt.IsAutoGraded,
                 ShowCorrectAnswers = attempt.Quiz.ShowCorrectAnswers,
+                ShowScoreImmediately = attempt.Quiz.ShowScoreImmediatlely,
                 Passed = attempt.Quiz.PassingScore.HasValue ? (attempt.Score ?? 0) >= attempt.Quiz.PassingScore.Value : false,
-                AwaitingManualGrading = attempt.Answers.Any(a => a.Question.QuestionType == QuestionType.Essay || a.Question.QuestionType == QuestionType.ShortAnswer)
+                AwaitingManualGrading = attempt.Answers.Any(a => a.Question.QuestionType == QuestionType.Essay || a.Question.QuestionType == QuestionType.ShortAnswer),
+                AutoGradedMaxScore = autoMax,
+                AutoGradedScore = autoScore,
+                AutoGradedPercentage = autoPct
             };
 
             vm.Questions = attempt.Quiz.Questions.OrderBy(q => q.OrderIndex).Select(q => new QuizResultViewModel.QuestionResultVm
@@ -346,11 +404,27 @@ namespace Quizzly.Business.Services.Implementions
                     AttemptId = a.Id,
                     QuizId = a.QuizId,
                     QuizTitle = a.Quiz.Title,
-                    Percentage = a.Percentage,
+                    Percentage = a.Quiz.ShowScoreImmediatlely
+                        ? (
+                            (
+                                (a.Quiz.Questions.Where(q => q.QuestionType == QuestionType.MCQ || q.QuestionType == QuestionType.TrueFalse).Sum(q => (decimal?)q.Points) ?? 0) > 0
+                            )
+                                ? Math.Round(
+                                    (((a.Score ?? 0) / (a.Quiz.Questions.Where(q => q.QuestionType == QuestionType.MCQ || q.QuestionType == QuestionType.TrueFalse).Sum(q => (decimal?)q.Points) ?? 0)) * 100m)
+                                  , 2)
+                                : (decimal?)0
+                          )
+                        : null,
                     QuestionsCount = a.Quiz.Questions.Count,
-                    Duration = (a.FinishedAt ?? a.StartedAt) - a.StartedAt,
+                    Duration = (a.FinishedAt ?? a.UpdatedAt) - a.StartedAt,
                     FinishedAt = a.FinishedAt,
-                    IsCompleted = a.IsCompleted
+                    IsCompleted = a.IsCompleted,
+                    Status = a.IsCompleted
+                        ? (a.Answers.Any(ans => (ans.Question.QuestionType == QuestionType.Essay || ans.Question.QuestionType == QuestionType.ShortAnswer) && !ans.IsGraded)
+                            ? "Pending Grading" : "Completed")
+                        : "Exited",
+                    DisplayAt = (a.FinishedAt ?? a.UpdatedAt),
+                    ShowScoreImmediately = a.Quiz.ShowScoreImmediatlely
                 })
                 .ToListAsync();
 

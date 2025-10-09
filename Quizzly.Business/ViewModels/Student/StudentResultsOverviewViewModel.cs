@@ -22,6 +22,9 @@ namespace Quizzly.Business.ViewModels.Student
             public TimeSpan Duration { get; set; }
             public DateTime? FinishedAt { get; set; }
             public bool IsCompleted { get; set; }
+            public string Status { get; set; }
+            public DateTime DisplayAt { get; set; }
+            public bool ShowScoreImmediately { get; set; }
         }
     }
 }

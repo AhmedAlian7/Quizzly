@@ -11,21 +11,31 @@
                     <h3 class="mb-3">@Model.QuizTitle</h3>
 
                     <div class="d-flex gap-3 flex-wrap mb-3">
-                        <div class="badge bg-primary">Score: @(Model.Score ?? 0)/@Model.MaxScore (@(Model.Percentage?.ToString("0.##") ?? "0")%)</div>
-                        <div class="badge bg-light text-dark">Time Taken: @Model.TimeTaken.ToString("hh'h 'mm'm 'ss's'")</div>
-                        @if (Model.Passed)
+                        @if (Model.ShowScoreImmediately)
                         {
-                            <div class="badge bg-success">Passed</div>
+                            <div class="badge bg-primary">Score: @(Model.AutoGradedScore)/@Model.AutoGradedMaxScore (@(Model.AutoGradedPercentage?.ToString("0.##") ?? "0")%)</div>
                         }
                         else
                         {
-                            <div class="badge bg-danger">Failed</div>
+                            <div class="badge bg-secondary">Score hidden</div>
+                        }
+                        <div class="badge bg-light text-dark">Time Taken: @Model.TimeTaken.ToString("hh'h 'mm'm 'ss's'")</div>
+                        @if (Model.ShowScoreImmediately)
+                        {
+                            if (Model.Passed)
+                            {
+                                <div class="badge bg-success">Passed</div>
+                            }
+                            else
+                            {
+                                <div class="badge bg-danger">Failed</div>
+                            }
                         }
                     </div>
 
                     @if (Model.AwaitingManualGrading)
                     {
-                        <div class="alert alert-info">Your quiz has been submitted for grading. Some answers require manual review.</div>
+                        <div class="alert alert-info">Your quiz is pending manual grading for short answer/essay questions. Final score may change after instructor review.</div>
                     }
 
                     @if (Model.ShowCorrectAnswers)
@@ -38,18 +48,42 @@
                             <div class="mb-4">
                                 <div class="d-flex align-items-center gap-2">
                                     <span class="fw-semibold">@q.Text</span>
-                                    <span class="badge @(isCorrect?"bg-success":"bg-danger")">@(isCorrect?"Correct":"Incorrect")</span>
+                                    @if (q.PointsAwarded.HasValue)
+                                    {
+                                        <span class="badge @(isCorrect?"bg-success":"bg-danger")">@(isCorrect?"Correct":"Incorrect")</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-warning text-dark">Pending grading</span>
+                                    }
                                 </div>
-                                <div class="small text-muted">Points: @q.PointsAwarded/@q.Points</div>
+                                <div class="small text-muted">Points: @(q.PointsAwarded?.ToString() ?? "-")/@q.Points</div>
                                 @if (!string.IsNullOrWhiteSpace(q.Explanation)) { <div class="mt-2"><em>@q.Explanation</em></div> }
                                 <ul class="mt-2">
                                     @foreach (var c in q.Choices)
                                     {
                                         var chosen = q.SelectedChoiceIds.Contains(c.ChoiceId);
-                                        <li>
+                                        var css = chosen
+                                            ? (c.IsCorrect ? "text-success fw-semibold" : "text-danger fw-semibold")
+                                            : (c.IsCorrect ? "text-success" : "text-muted");
+                                        <li class="@css">
                                             @if (c.IsCorrect)
-                                            {<span class="text-success">✅</span>} else {<span class="text-danger">❌</span>}
-                                            <span class="@(chosen?"fw-semibold":"")">@c.Text</span>
+                                            {
+                                                <span>✅</span>
+                                            }
+                                            else if (chosen)
+                                            {
+                                                <span>❌</span>
+                                            }
+                                            <span>@c.Text</span>
+                                            @if (chosen && !c.IsCorrect)
+                                            {
+                                                <span class="ms-2 small text-danger">(your choice)</span>
+                                            }
+                                            @if (chosen && c.IsCorrect)
+                                            {
+                                                <span class="ms-2 small text-success">(your choice)</span>
+                                            }
                                         </li>
                                     }
                                 </ul>

@@ -7,6 +7,7 @@ namespace Quizzly.Business.Services.Interfaces
         Task<QuizTakingViewModel> GetTakeViewModelAsync(int attemptId, int? questionId, int index);
         Task<int> StartAttemptAsync(string token, string userId, string userEmail, string? ipAddress);
         Task<int> SubmitAsync(int attemptId, string? answersJson);
+        Task ExitAsync(int attemptId, string? answersJson);
         Task<QuizResultViewModel> GetResultAsync(int attemptId);
         Task<StudentAccessViewModel> GetAccessLinkAsync(string token, string userId);
         Task<List<DataAccess.Entities.QuizAttempt>> GetRecentAttemptsForStudentAsync(int studentId, int take);

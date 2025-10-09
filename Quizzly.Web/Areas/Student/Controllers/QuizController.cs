@@ -61,6 +61,14 @@ namespace Quizzly.Web.Areas.Student.Controllers
             return RedirectToAction(nameof(Result), new { attemptId = attemptIdResult });
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Exit(int attemptId, string? answersJson)
+        {
+            await _studentQuizService.ExitAsync(attemptId, answersJson);
+            return RedirectToAction("Index", "Results", new { area = "Student" });
+        }
+
         [HttpGet]
         public async Task<IActionResult> Result(int attemptId)
         {

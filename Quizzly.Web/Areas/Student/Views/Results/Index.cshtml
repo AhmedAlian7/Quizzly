@@ -92,25 +92,38 @@
                             {
                                 var pct = a.Percentage ?? 0m;
                                 string badgeClass = pct > 90 ? "bg-success" : pct > 80 ? "bg-primary" : pct > 70 ? "bg-warning text-dark" : pct > 60 ? "bg-orange" : "bg-danger";
-                                string status = a.IsCompleted ? "Completed" : "In Progress";
+                                string status = a.Status;
                                 var durationMinutes = Math.Max(0, (int)Math.Round(a.Duration.TotalMinutes));
                                 <tr class="rounded-3">
                                     <td class="fw-medium">@a.QuizTitle</td>
                                     <td>
-                                        <span class="badge @badgeClass rounded-pill">@pct.ToString("0.##")%</span>
+                                        @if (a.ShowScoreImmediately)
+                                        {
+                                            <span class="badge @badgeClass rounded-pill">@pct.ToString("0.##")%</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary rounded-pill">Hidden</span>
+                                        }
                                     </td>
                                     <td>@a.QuestionsCount</td>
                                     <td>@durationMinutes min</td>
-                                    <td>@(a.FinishedAt?.ToLocalTime().ToString("yyyy-MM-dd HH:mm") ?? "-")</td>
+                                    <td>@a.DisplayAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</td>
                                     <td>
-                                        <span class="badge @(a.IsCompleted ? "bg-success-subtle text-success" : "bg-secondary-subtle text-secondary") rounded-pill">@status</span>
+                                        <span class="badge @(status=="Completed" ? "bg-success-subtle text-success" : status=="Pending Grading" ? "bg-warning-subtle text-warning" : "bg-secondary-subtle text-secondary") rounded-pill">@status</span>
                                     </td>
                                     <td class="text-end">
-                                        @if (a.IsCompleted)
+                                        @switch(status)
                                         {
-                                            <a class="btn btn-sm btn-outline-primary" href="@Url.Action("Result", "Quiz", new { area = "Student", attemptId = a.AttemptId })">
-                                                View
-                                            </a>
+                                            case "Completed":
+                                                <a class="btn btn-sm btn-outline-primary" href="@Url.Action("Result", "Quiz", new { area = "Student", attemptId = a.AttemptId })">View</a>;
+                                                break;
+                                            case "Pending Grading":
+                                                <a class="btn btn-sm btn-outline-secondary disabled" href="#" tabindex="-1" aria-disabled="true">Pending</a>;
+                                                break;
+                                            default:
+                                                <a class="btn btn-sm btn-outline-secondary disabled" href="#" tabindex="-1" aria-disabled="true">Exited</a>;
+                                                break;
                                         }
                                     </td>
                                 </tr>

@@ -13,6 +13,12 @@ namespace Quizzly.Business.ViewModels.Student
         public bool IsAutoGraded { get; set; }
         public bool AwaitingManualGrading { get; set; }
         public bool ShowCorrectAnswers { get; set; }
+        public bool ShowScoreImmediately { get; set; }
+
+        // Auto-graded summary (MCQ & True/False only)
+        public decimal AutoGradedMaxScore { get; set; }
+        public decimal AutoGradedScore { get; set; }
+        public decimal? AutoGradedPercentage { get; set; }
 
         public List<QuestionResultVm> Questions { get; set; } = new();
 
