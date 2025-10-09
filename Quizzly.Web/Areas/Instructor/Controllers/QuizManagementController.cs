@@ -116,6 +116,13 @@ namespace Quizzly.Web.Areas.Instructor.Controllers
             if (quizDto == null)
                 return NotFound("Quiz not found.");
 
+            quizDto.Categories = (await _quizCategoriesService.GetAllAsync())
+               .Select(c => new SelectListItem
+               {
+                   Value = c.Id.ToString(),
+                   Text = c.Name
+               });
+
             return View(quizDto);
         }
 
@@ -158,6 +165,16 @@ namespace Quizzly.Web.Areas.Instructor.Controllers
                 return NotFound("Quiz not found.");
 
             await _quizService.UpdateQuizAsync(quizDetailsDto);
+            return RedirectToAction("Index");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Delete(int quizId)
+        {
+
+            await _quizService.DeleteQuizAsync(quizId);
+            TempData["SuccessMessage"] = "Quiz deleted successfully.";
             return RedirectToAction("Index");
         }
 

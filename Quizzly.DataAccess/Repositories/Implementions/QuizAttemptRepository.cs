@@ -42,6 +42,5 @@ namespace Quizzly.DataAccess.Repositories.Implementions
         {
             return await GetQueryable(includes).FirstOrDefaultAsync(a => a.Id == attemptId);
         }
-
     }
 }

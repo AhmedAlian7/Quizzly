@@ -49,14 +49,14 @@ namespace Quizzly.Business.Services.Implementions
 
                 Questions = quiz.Questions.Select(q => new QuestionDetailsDto
                 {
-                    Id = q.Id, // ADD THIS
+                    Id = q.Id, 
                     Text = q.Text,
                     QuestionType = q.QuestionType,
                     Points = q.Points,
-                    ImageUrl = q.ImageUrl, // ADD THIS
+                    ImageUrl = q.ImageUrl, 
                     Choices = q.Choices.Select(c => new AddChoiceDto
                     {
-                        Id = c.Id, // ADD THIS
+                        Id = c.Id, 
                         Text = c.Text,
                         IsCorrect = c.IsCorrect
                     }).ToList()
@@ -86,14 +86,10 @@ namespace Quizzly.Business.Services.Implementions
         public async Task UpdateQuizAsync(QuizDetailsDto dto)
         {
             var quiz = await _unitOfWork.Quizzes
-                .GetByIdAsync(dto.Id, "Questions,QuizCategory,Questions.Choices");
+                .GetByIdAsync(dto.Id, "Questions,Questions.Choices");
 
             if (quiz == null)
-            {
                 throw new KeyNotFoundException("Quiz not found");
-            }
-
-            bool wasOriginallyPublished = quiz.IsPublished;
 
             quiz.Title = dto.Title;
             quiz.Description = dto.Description;
@@ -112,10 +108,81 @@ namespace Quizzly.Business.Services.Implementions
             quiz.StartAt = dto.StartAt;
             quiz.EndAt = dto.EndAt;
 
-      
+            var existingQuestions = quiz.Questions.ToList();
 
-            _unitOfWork.Quizzes.Update(quiz);
+            foreach (var existing in existingQuestions)
+            {
+                if (!dto.Questions.Any(q => q.Id == existing.Id))
+                    existing.IsDeleted = true;
+            }
+
+            foreach (var questionDto in dto.Questions)
+            {
+                var question = existingQuestions.FirstOrDefault(q => q.Id == questionDto.Id);
+                if (question == null)
+                {
+                    // new question
+                    question = new Question
+                    {
+                        Text = questionDto.Text,
+                        Points = questionDto.Points,
+                        QuestionType = questionDto.QuestionType,
+                        QuizId = quiz.Id,
+                        Choices = questionDto.Choices.Select(c => new Choice
+                        {
+                            Text = c.Text,
+                            IsCorrect = c.IsCorrect
+                        }).ToList()
+                    };
+                    quiz.Questions.Add(question);
+                }
+                else
+                {
+                    question.Text = questionDto.Text;
+                    question.Points = questionDto.Points;
+                    question.QuestionType = questionDto.QuestionType;
+
+                    var existingChoices = question.Choices.ToList();
+
+                    foreach (var existingChoice in existingChoices)
+                    {
+                        if (!questionDto.Choices.Any(c => c.Id == existingChoice.Id))
+                            existingChoice.IsDeleted = true;
+                    }
+
+                    foreach (var choiceDto in questionDto.Choices)
+                    {
+                        var choice = existingChoices.FirstOrDefault(c => c.Id == choiceDto.Id);
+                        if (choice == null)
+                        {
+                            question.Choices.Add(new Choice
+                            {
+                                Text = choiceDto.Text,
+                                IsCorrect = choiceDto.IsCorrect
+                            });
+                        }
+                        else
+                        {
+                            choice.Text = choiceDto.Text;
+                            choice.IsCorrect = choiceDto.IsCorrect;
+                        }
+                    }
+                }
+            }
+
             await _unitOfWork.SaveAsync();
         }
+
+        public async Task DeleteQuizAsync(int quizId)
+        {
+            var quiz = await _unitOfWork.Quizzes
+                .GetByIdAsync(quizId);
+
+            quiz.IsDeleted = true;
+
+            await _unitOfWork.SaveAsync();
+
+        }
+
     }
 }

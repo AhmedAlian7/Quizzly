@@ -55,9 +55,20 @@ namespace Quizzly.Business.Services.Implementions
             return (new InstructorDashboardDto
             {
                 instructorRecentQuizDtos = await GetRecentQuizzesAsync(InstructorId),
+
                 AvgScore = await GetAvgScoreAsync(InstructorId),
-                TotalQuizzes = await _instructorAnalyticsService.GetTotalQuizzesAuthoredAsync(InstructorId),
+
+                TotalQuizzes = await _instructorAnalyticsService
+                .GetTotalQuizzesAuthoredAsync(InstructorId),
+
                 TotalStudents = await GetTotalStudentsCountAsync(InstructorId),
+
+                topPreformingStudentDtos = await _instructorAnalyticsService
+                .GetTopPreformingStudentAsync(InstructorId),
+
+                quizPerformanceDtos = await _instructorAnalyticsService
+                .GetQuizPerformanceAsync(InstructorId)
+
             });
 
         }
@@ -74,6 +85,7 @@ namespace Quizzly.Business.Services.Implementions
                 Attempts = q.QuizAttempts.Count(),
                 Questions = q.Questions.Count(),
                 IsPublished = q.IsPublished,
+                Category = q.QuizCategory,
                 TimeLimit = q.DurationMintes,
                 CreatedAt = q.CreatedAt,
                 AvgScore = q.QuizAttempts

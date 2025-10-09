@@ -9,14 +9,14 @@
     <h2 class="fw-bold mb-2">Teacher Dashboard</h2>
     <p class="text-muted mb-4">Overview of your quizzes and student performance</p>
 
+    <!-- Stats Cards -->
     <div class="row g-3 mb-4">
         <!-- Total Quizzes -->
         <div class="col-md-3">
             <div class="card shadow-sm border-0 rounded-3">
-                <div class="card-body">
+                <div class="card-body text-center">
                     <h6 class="text-muted">Total Quizzes</h6>
-                    <h3>@Model.TotalQuizzes</h3>
-                    <small class="text-success">+3 this week</small>
+                    <h3 class="fw-bold">@Model.TotalQuizzes</h3>
                 </div>
             </div>
         </div>
@@ -24,10 +24,11 @@
         <!-- Average Score -->
         <div class="col-md-3">
             <div class="card shadow-sm border-0 rounded-3">
-                <div class="card-body">
+                <div class="card-body text-center">
                     <h6 class="text-muted">Average Score</h6>
-                    <h3>@(Model.AvgScore.HasValue ? $"{Model.AvgScore.Value:F1}%" : "N/A")</h3>
-                    <small class="text-success">+2.3% this month</small>
+                    <h3 class="fw-bold text-primary">
+                        @(Model.AvgScore.HasValue ? $"{Model.AvgScore.Value:F1}%" : "N/A")
+                    </h3>
                 </div>
             </div>
         </div>
@@ -35,21 +36,20 @@
         <!-- Active Students -->
         <div class="col-md-3">
             <div class="card shadow-sm border-0 rounded-3">
-                <div class="card-body">
+                <div class="card-body text-center">
                     <h6 class="text-muted">Active Students</h6>
-                    <h3>@Model.TotalStudents</h3>
-                    <small class="text-success">+8 this week</small>
+                    <h3 class="fw-bold text-success">@Model.TotalStudents</h3>
                 </div>
             </div>
         </div>
     </div>
 
     <div class="row g-4">
-        <!-- Quiz Performance -->
+        <!-- Quiz Performance Chart -->
         <div class="col-md-8">
             <div class="card shadow-sm border-0 rounded-3">
                 <div class="card-body">
-                    <h5 class="mb-3">Quiz Performance</h5>
+                    <h5 class="mb-3">📊 Quiz Performance</h5>
                     <canvas id="quizPerformanceChart" height="180"></canvas>
                 </div>
             </div>
@@ -60,35 +60,97 @@
             <div class="card shadow-sm border-0 rounded-3">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h5 class="mb-0">Recent Quizzes</h5>
+                        <h5 class="mb-0">📝 Recent Quizzes</h5>
                         <a href="#" class="btn btn-sm btn-outline-secondary">View All</a>
                     </div>
 
-                    @foreach (var quiz in Model.instructorRecentQuizDtos)
+                    @if (Model.instructorRecentQuizDtos != null && Model.instructorRecentQuizDtos.Any())
                     {
-                        <div class="border-bottom pb-2 mb-2">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <strong>@quiz.Title</strong>
+                        @foreach (var quiz in Model.instructorRecentQuizDtos)
+                        {
+                            <div class="border-bottom pb-2 mb-2">
+                                <div class="d-flex justify-content-between align-items-center">
                                     <div>
-                                        @if (quiz.IsPublished)
-                                        {
-                                            <span class="badge bg-primary">published</span>
-                                        }
-                                        else
-                                        {
-                                            <span class="badge bg-secondary">draft</span>
-                                        }
-                                        <span class="text-muted ms-2">@quiz.Attempts attempts</span>
-                                        @if (quiz.AvgScore.HasValue)
-                                        {
-                                            <span class="text-muted ms-1">@quiz.AvgScore.Value.ToString("F0")% avg</span>
-                                        }
+                                        <strong>@quiz.Title</strong>
+                                        <div>
+                                            @if (quiz.IsPublished)
+                                            {
+                                                <span class="badge bg-primary">Published</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-secondary">Draft</span>
+                                            }
+                                            <span class="text-muted ms-2">@quiz.Attempts attempts</span>
+                                            @if (quiz.AvgScore.HasValue)
+                                            {
+                                                <span class="text-muted ms-1">@quiz.AvgScore.Value.ToString("F0")% avg</span>
+                                            }
+                                        </div>
                                     </div>
+                                    <small class="text-muted">@quiz.CreatedAt.ToString("yyyy-MM-dd")</small>
                                 </div>
-                                <small class="text-muted">@quiz.CreatedAt.ToString("yyyy-MM-dd")</small>
                             </div>
-                        </div>
+                        }
+                    }
+                    else
+                    {
+                        <p class="text-muted">No recent quizzes found.</p>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Leaderboard Section -->
+    <div class="row g-4 mt-3">
+        <div class="col-md-6">
+            <div class="card shadow-sm border-0 rounded-3">
+                <div class="card-body">
+                    <h5 class="mb-3">🏆 Top Performing Students</h5>
+
+                    @if (Model.topPreformingStudentDtos != null && Model.topPreformingStudentDtos.Any())
+                    {
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th style="width: 60px;">Rank</th>
+                                    <th>Student</th>
+                                    <th class="text-end">Avg Score</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var student in Model.topPreformingStudentDtos.OrderBy(s => s.Rank))
+                                {
+                                    <tr>
+                                        <td>
+                                            @if (student.Rank == 1)
+                                            {
+                                                <span class="badge bg-warning text-dark">🥇 1</span>
+                                            }
+                                            else if (student.Rank == 2)
+                                            {
+                                                <span class="badge bg-secondary">🥈 2</span>
+                                            }
+                                            else if (student.Rank == 3)
+                                            {
+                                                <span class="badge bg-info text-dark">🥉 3</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-light text-dark">@student.Rank</span>
+                                            }
+                                        </td>
+                                        <td>@student.StudentName</td>
+                                        <td class="text-end fw-semibold">@($"{student.AvgScore:F1}%")</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    }
+                    else
+                    {
+                        <p class="text-muted">No student data available yet.</p>
                     }
                 </div>
             </div>
@@ -99,25 +161,91 @@
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        const ctx = document.getElementById('quizPerformanceChart').getContext('2d');
-        const quizPerformanceChart = new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: @Html.Raw(JsonSerializer.Serialize(Model.instructorRecentQuizDtos.Select(q => q.Title).ToList())),
-                datasets: [{
-                    label: 'Average scores by quiz',
-                    data: @Html.Raw(JsonSerializer.Serialize(Model.instructorRecentQuizDtos.Select(q => q.AvgScore ?? 0).ToList())),
-                    backgroundColor: 'rgba(54, 162, 235, 1)',
-                }]
-            },
-            options: {
-                scales: {
-                    y: { beginAtZero: true, max: 100 }
-                },
-                plugins: {
-                    legend: { display: false }
+        @{
+                // Build JSON safely on the server to avoid Razor parsing issues.
+                string labelsJson;
+                string scoresJson;
+                string attemptsJson;
+
+                if (Model?.quizPerformanceDtos != null && Model.quizPerformanceDtos.Any())
+                {
+                        // Prepare arrays of primitives
+                        var labels = Model.quizPerformanceDtos.Select(q => q.QuizTitle ?? "").ToArray();
+                        var scores = Model.quizPerformanceDtos.Select(q => q.AvgScore).ToArray();
+                        var attempts = Model.quizPerformanceDtos.Select(q => q.TotalAttempts).ToArray();
+
+                        labelsJson = JsonSerializer.Serialize(labels);
+                        scoresJson = JsonSerializer.Serialize(scores);
+                        attemptsJson = JsonSerializer.Serialize(attempts);
                 }
-            }
-        });
+                else
+                {
+                        labelsJson = "[]";
+                        scoresJson = "[]";
+                        attemptsJson = "[]";
+                }
+        }
+
+        const performanceLabels = @Html.Raw(labelsJson);
+        const performanceScores = @Html.Raw(scoresJson);
+        const performanceAttempts = @Html.Raw(attemptsJson);
+
+        // If Chart.js target exists
+        const canvas = document.getElementById('quizPerformanceChart');
+        if (canvas) {
+            const ctx = canvas.getContext('2d');
+
+            // Create dual dataset chart (scores + attempts)
+            const quizPerformanceChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: performanceLabels,
+                    datasets: [
+                        {
+                            type: 'bar',
+                            label: 'Average Score (%)',
+                            data: performanceScores,
+                            backgroundColor: 'rgba(54, 162, 235, 0.85)',
+                            yAxisID: 'yScore',
+                            borderRadius: 6
+                        },
+                        {
+                            type: 'line',
+                            label: 'Attempts',
+                            data: performanceAttempts,
+                            borderColor: 'rgba(255, 159, 64, 0.9)',
+                            backgroundColor: 'rgba(255, 159, 64, 0.2)',
+                            yAxisID: 'yAttempts',
+                            tension: 0.3,
+                            pointRadius: 4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    interaction: { mode: 'index', intersect: false },
+                    scales: {
+                        yScore: {
+                            type: 'linear',
+                            position: 'left',
+                            beginAtZero: true,
+                            max: 100,
+                            title: { display: true, text: 'Average Score (%)' }
+                        },
+                        yAttempts: {
+                            type: 'linear',
+                            position: 'right',
+                            beginAtZero: true,
+                            grid: { drawOnChartArea: false },
+                            title: { display: true, text: 'Attempts' }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: true },
+                        tooltip: { enabled: true }
+                    }
+                }
+            });
+        }
     </script>
 }

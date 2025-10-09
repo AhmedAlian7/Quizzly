@@ -1,4 +1,4 @@
-﻿@using Quizzly.Business.ViewModels.Quiz
+﻿﻿@using Quizzly.Business.ViewModels.Quiz
 @model QuizDetailsDto
 @{
     ViewData["Title"] = "Update Quiz";
@@ -19,7 +19,6 @@
             </div>
             <div class="card-body">
                 <div class="form-check form-switch mb-3">
-                    <input type="hidden" asp-for="IsPublished" value="false" />
                     <input asp-for="IsPublished" class="form-check-input" value="true" id="IsPublished" />
                     <label asp-for="IsPublished" class="form-check-label fw-semibold">
                         Publish Quiz
@@ -77,19 +76,16 @@
                     </div>
                     <div class="card-body">
                         <div class="form-check form-switch mb-3">
-                            <input type="hidden" asp-for="ShuffleQuestions" value="false" />
                             <input asp-for="ShuffleQuestions" class="form-check-input" value="true" />
                             <label asp-for="ShuffleQuestions" class="form-check-label">Shuffle Questions</label>
                         </div>
 
                         <div class="form-check form-switch mb-3">
-                            <input type="hidden" asp-for="ShuffleChoices" value="false" />
                             <input asp-for="ShuffleChoices" class="form-check-input" value="true" />
                             <label asp-for="ShuffleChoices" class="form-check-label">Shuffle Choices</label>
                         </div>
 
                         <div class="form-check form-switch mb-3">
-                            <input type="hidden" asp-for="AllowMultipleAttempts" value="false" />
                             <input asp-for="AllowMultipleAttempts" class="form-check-input" value="true" id="AllowMultipleAttempts" />
                             <label asp-for="AllowMultipleAttempts" class="form-check-label">Allow Multiple Attempts</label>
                         </div>
@@ -110,19 +106,16 @@
                     </div>
                     <div class="card-body">
                         <div class="form-check form-switch mb-3">
-                            <input type="hidden" asp-for="IsAutoGraded" value="false" />
                             <input asp-for="IsAutoGraded" class="form-check-input" value="true" />
                             <label asp-for="IsAutoGraded" class="form-check-label">Auto Grade Quiz</label>
                         </div>
 
                         <div class="form-check form-switch mb-3">
-                            <input type="hidden" asp-for="ShowCorrectAnswers" value="false" />
                             <input asp-for="ShowCorrectAnswers" class="form-check-input" value="true" />
                             <label asp-for="ShowCorrectAnswers" class="form-check-label">Show Correct Answers</label>
                         </div>
 
                         <div class="form-check form-switch mb-3">
-                            <input type="hidden" asp-for="ShowScoreImmediatlely" value="false" />
                             <input asp-for="ShowScoreImmediatlely" class="form-check-input" value="true" />
                             <label asp-for="ShowScoreImmediatlely" class="form-check-label">Show Score Immediately</label>
                         </div>
@@ -227,7 +220,6 @@
                                         var choice = question.Choices[j];
                                         <div class="choice-item input-group mb-2">
                                             <div class="input-group-text">
-                                                <input type="hidden" name="Questions[@i].Choices[@j].IsCorrect" value="false" />
                                                 <input name="Questions[@i].Choices[@j].IsCorrect" value="true"
                                                        type="checkbox" class="form-check-input"
                                                        @(choice.IsCorrect ? "checked" : "") />
@@ -272,24 +264,54 @@
 
 @section Scripts {
     <script>
-        // Toggle Max Attempts field
-        document.getElementById('AllowMultipleAttempts').addEventListener('change', function() {
-            document.getElementById('maxAttemptsGroup').style.display = this.checked ? 'block' : 'none';
-        });
+        document.addEventListener("DOMContentLoaded", () => {
+            // Elements that may or may not exist
+            const allowMultipleAttempts = document.getElementById("AllowMultipleAttempts");
+            const maxAttemptsGroup = document.getElementById("maxAttemptsGroup");
 
-        // Initialize Max Attempts visibility
-        document.addEventListener('DOMContentLoaded', function() {
-            document.getElementById('maxAttemptsGroup').style.display =
-                document.getElementById('AllowMultipleAttempts').checked ? 'block' : 'none';
-        });
+            // Toggle MaxAttempts visibility (if present)
+            if (allowMultipleAttempts && maxAttemptsGroup) {
+                const toggleMaxAttempts = () => {
+                    maxAttemptsGroup.style.display = allowMultipleAttempts.checked ? "block" : "none";
+                };
+                allowMultipleAttempts.addEventListener("change", toggleMaxAttempts);
+                toggleMaxAttempts();
+            }
 
-        let questionCount = @Model.Questions.Count;
+            // Use the model count as initial baseline
+            let questionCount = @Model.Questions.Count;
 
-        function addQuestion() {
-            const container = document.getElementById('questions-container');
-            const index = questionCount++;
+            // Ensure DOM is normalized: reindex everything at start
+            reindexQuestions();
 
-            const questionHtml = `
+            // Hook submit to reindex before posting
+            const form = document.querySelector("form");
+            if (form) {
+                form.addEventListener("submit", (e) => {
+                    reindexQuestions();
+                    // allow submit to continue
+                });
+            }
+
+            // Expose functions globally used by inline onclicks (your view may use these)
+            window.addQuestion = addQuestion;
+            window.removeQuestion = removeQuestion;
+            window.addChoice = addChoice;
+            window.removeChoice = removeChoice;
+            window.toggleChoices = toggleChoices;
+            window.reindexQuestions = reindexQuestions;
+            window.reindexChoices = reindexChoices;
+            window.addTrueFalseChoices = addTrueFalseChoices;
+
+            // ---------- Functions ----------
+
+            function addQuestion() {
+                const container = document.getElementById("questions-container") || document.getElementById("questionsContainer");
+                if (!container) return;
+
+                const index = questionCount++;
+
+                const html = `
                 <div class="question-card card mb-3" data-index="${index}">
                     <div class="card-header bg-light d-flex justify-content-between align-items-center">
                         <h6 class="mb-0">Question ${index + 1}</h6>
@@ -333,194 +355,253 @@
                             <div class="choices-list" id="choices-list-${index}"></div>
                         </div>
 
-                        <div class="correct-answer-container" id="correct-answer-${index}" style="display: none;">
+                        <div class="correct-answer-container" id="correct-answer-${index}" style="display:none;">
                             <label class="form-label fw-semibold">Correct Answer</label>
                             <input type="text" name="Questions[${index}].CorrectAnswer" class="form-control" placeholder="Enter the correct answer" />
                         </div>
 
-                        <div class="essay-container" id="essay-${index}" style="display: none;">
-                            <div class="alert alert-info">
-                                <small><strong>Essay Question:</strong> Students will write their answer in a text area. Manual grading required.</small>
+                        <div class="essay-container" id="essay-${index}" style="display:none;">
+                            <div class="alert alert-info mb-0">
+                                <small><strong>Essay Question:</strong> Student will answer in text form. Manual grading required.</small>
                             </div>
                         </div>
                     </div>
-                </div>
-            `;
+                </div>`;
 
-            container.insertAdjacentHTML('beforeend', questionHtml);
-        }
-
-        function removeQuestion(index) {
-            const questionCard = document.querySelector(`.question-card[data-index="${index}"]`);
-            if (questionCard && confirm('Are you sure you want to remove this question?')) {
-                questionCard.remove();
-                reindexQuestions();
+                container.insertAdjacentHTML("beforeend", html);
+                reindexQuestions(); // normalize names & handlers
             }
-        }
 
-        function reindexQuestions() {
-            const questions = document.querySelectorAll('.question-card');
-            questionCount = questions.length;
-
-            questions.forEach((question, newIndex) => {
-                question.setAttribute('data-index', newIndex);
-                question.querySelector('.card-header h6').textContent = `Question ${newIndex + 1}`;
-
-                // Update all names and IDs within this question
-                question.querySelectorAll('[name]').forEach(element => {
-                    const name = element.getAttribute('name');
-                    const newName = name.replace(/Questions\[\d+\]/, `Questions[${newIndex}]`);
-                    element.setAttribute('name', newName);
-                });
-
-                question.querySelectorAll('[id]').forEach(element => {
-                    const id = element.getAttribute('id');
-                    if (id.includes('choices-')) {
-                        element.setAttribute('id', `choices-${newIndex}`);
-                    } else if (id.includes('choices-list-')) {
-                        element.setAttribute('id', `choices-list-${newIndex}`);
-                    } else if (id.includes('correct-answer-')) {
-                        element.setAttribute('id', `correct-answer-${newIndex}`);
-                    } else if (id.includes('essay-')) {
-                        element.setAttribute('id', `essay-${newIndex}`);
-                    }
-                });
-
-                // Update event handlers
-                const typeSelect = question.querySelector('.question-type');
-                typeSelect.setAttribute('onchange', `toggleChoices(${newIndex})`);
-
-                const addChoiceBtn = question.querySelector('button[onclick*="addChoice"]');
-                if (addChoiceBtn) {
-                    addChoiceBtn.setAttribute('onclick', `addChoice(${newIndex})`);
+            function removeQuestion(index) {
+                const card = document.querySelector(`.question-card[data-index="${index}"]`);
+                if (!card) {
+                    // fallback: try find by position if index out-of-date
+                    const all = Array.from(document.querySelectorAll('.question-card'));
+                    if (all[index]) all[index].remove();
+                    reindexQuestions();
+                    return;
                 }
 
-                // Reindex choices
-                const choices = question.querySelectorAll('.choice-item');
-                choices.forEach((choice, choiceIndex) => {
-                    choice.querySelectorAll('[name]').forEach(element => {
-                        const name = element.getAttribute('name');
-                        const newName = name.replace(/Choices\[\d+\]/, `Choices[${choiceIndex}]`);
-                        element.setAttribute('name', newName);
-                    });
-
-                    const removeBtn = choice.querySelector('button[onclick*="removeChoice"]');
-                    if (removeBtn) {
-                        removeBtn.setAttribute('onclick', `removeChoice(${newIndex}, ${choiceIndex})`);
-                    }
-                });
-            });
-        }
-
-        function toggleChoices(questionIndex) {
-            const typeSelect = document.querySelector(`[name="Questions[${questionIndex}].QuestionType"]`);
-            const choicesContainer = document.getElementById(`choices-${questionIndex}`);
-            const correctAnswerContainer = document.getElementById(`correct-answer-${questionIndex}`);
-            const essayContainer = document.getElementById(`essay-${questionIndex}`);
-
-            // Hide all containers first
-            choicesContainer.style.display = 'none';
-            correctAnswerContainer.style.display = 'none';
-            essayContainer.style.display = 'none';
-
-            // Show appropriate container based on question type
-            const questionType = parseInt(typeSelect.value);
-            switch(questionType) {
-                case 0: // MCQ
-                case 1: // True/False
-                    choicesContainer.style.display = 'block';
-                    if (questionType === 1) { // True/False
-                        addTrueFalseChoices(questionIndex);
-                    }
-                    break;
-                case 2: // Short Answer
-                    correctAnswerContainer.style.display = 'block';
-                    break;
-                case 3: // Essay
-                    essayContainer.style.display = 'block';
-                    break;
+                if (!confirm("Are you sure you want to remove this question?")) return;
+                card.remove();
+                reindexQuestions();
             }
-        }
 
-        function addTrueFalseChoices(questionIndex) {
-            const choicesList = document.getElementById(`choices-list-${questionIndex}`);
-            if (choicesList.children.length === 0) {
-                const trueFalseChoices = [
-                    { text: 'True', isCorrect: true },
-                    { text: 'False', isCorrect: false }
-                ];
+            function addChoice(questionIndex) {
 
-                trueFalseChoices.forEach((choice, index) => {
-                    const choiceHtml = `
-                        <div class="choice-item input-group mb-2">
-                            <div class="input-group-text">
-                                <input type="hidden" name="Questions[${questionIndex}].Choices[${index}].IsCorrect" value="false" />
-                                <input name="Questions[${questionIndex}].Choices[${index}].IsCorrect" value="true"
-                                       type="checkbox" class="form-check-input" ${choice.isCorrect ? 'checked' : ''} />
-                            </div>
-                            <input name="Questions[${questionIndex}].Choices[${index}].Text" type="text"
-                                   class="form-control" value="${choice.text}" readonly />
-                            <button type="button" class="btn btn-outline-danger" onclick="removeChoice(${questionIndex}, ${index})">
-                                <i class="fas fa-times"></i>
-                            </button>
+                const card = document.querySelector(`.question-card[data-index="${questionIndex}"]`);
+                if (!card) {
+
+                    const cards = Array.from(document.querySelectorAll('.question-card'));
+                    if (!cards[questionIndex]) return;
+                }
+
+                const list = (card || Array.from(document.querySelectorAll('.question-card'))[questionIndex]).querySelector('.choices-list') || document.getElementById(`choices-list-${questionIndex}`);
+                if (!list) return;
+
+                const choiceIndex = list.children.length;
+
+                const html = `
+                    <div class="choice-item input-group mb-2">
+                        <div class="input-group-text">
+                            <input name="Questions[${questionIndex}].Choices[${choiceIndex}].IsCorrect" type="checkbox" class="form-check-input" />
                         </div>
-                    `;
-                    choicesList.insertAdjacentHTML('beforeend', choiceHtml);
-                });
-            }
-        }
+                        <input name="Questions[${questionIndex}].Choices[${choiceIndex}].Text" type="text" class="form-control" placeholder="Choice text" />
+                        <button type="button" class="btn btn-outline-danger" onclick="removeChoice(${questionIndex}, ${choiceIndex})">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>`;
 
-        function addChoice(questionIndex) {
-            const choicesList = document.getElementById(`choices-list-${questionIndex}`);
-            const choiceIndex = choicesList.children.length;
-
-            const choiceHtml = `
-                <div class="choice-item input-group mb-2">
-                    <div class="input-group-text">
-                        <input type="hidden" name="Questions[${questionIndex}].Choices[${choiceIndex}].IsCorrect" value="false" />
-                        <input name="Questions[${questionIndex}].Choices[${choiceIndex}].IsCorrect" value="true"
-                               type="checkbox" class="form-check-input" />
-                    </div>
-                    <input name="Questions[${questionIndex}].Choices[${choiceIndex}].Text" type="text"
-                           class="form-control" placeholder="Choice text" />
-                    <button type="button" class="btn btn-outline-danger" onclick="removeChoice(${questionIndex}, ${choiceIndex})">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-            `;
-
-            choicesList.insertAdjacentHTML('beforeend', choiceHtml);
-        }
-
-        function removeChoice(questionIndex, choiceIndex) {
-            const choiceItem = document.querySelector(`[name="Questions[${questionIndex}].Choices[${choiceIndex}].Text"]`)?.closest('.choice-item');
-            if (choiceItem) {
-                choiceItem.remove();
+                list.insertAdjacentHTML('beforeend', html);
                 reindexChoices(questionIndex);
             }
-        }
 
-        function reindexChoices(questionIndex) {
-            const choicesList = document.getElementById(`choices-list-${questionIndex}`);
-            const choices = choicesList.querySelectorAll('.choice-item');
+            function removeChoice(qIndex, cIndex) {
+                // locate the existing choice input by exact name (best effort)
+                const selector = `[name="Questions[${qIndex}].Choices[${cIndex}].Text"]`;
+                const el = document.querySelector(selector);
+                if (el) {
+                    const group = el.closest('.choice-item');
+                    if (group) group.remove();
+                    reindexChoices(qIndex);
+                    return;
+                }
 
-            choices.forEach((choice, newIndex) => {
-                choice.querySelectorAll('[name]').forEach(element => {
-                    const name = element.getAttribute('name');
-                    const newName = name.replace(/Choices\[\d+\]/, `Choices[${newIndex}]`);
-                    element.setAttribute('name', newName);
+                // fallback: remove nth child from list
+                const list = document.getElementById(`choices-list-${qIndex}`);
+                if (list && list.children[cIndex]) {
+                    list.children[cIndex].remove();
+                    reindexChoices(qIndex);
+                }
+            }
+
+            function reindexQuestions() {
+                const cards = Array.from(document.querySelectorAll('.question-card'));
+                questionCount = cards.length;
+
+                cards.forEach((card, qIndex) => {
+                    // set data-index and header
+                    card.setAttribute('data-index', qIndex);
+                    const heading = card.querySelector('.card-header h6') || card.querySelector('.card-title') || card.querySelector('.card-header .mb-0');
+                    if (heading) heading.textContent = `Question ${qIndex + 1}`;
+
+                    // update all elements' names that include Questions[<num>]
+                    card.querySelectorAll('[name]').forEach(el => {
+                        el.name = el.name.replace(/Questions\[\d+\]/g, `Questions[${qIndex}]`);
+                    });
+
+                    // update ids for containers (if present)
+                    const choicesContainer = card.querySelector('.choices-container');
+                    if (choicesContainer) choicesContainer.id = `choices-${qIndex}`;
+                    const choicesList = card.querySelector('.choices-list');
+                    if (choicesList) choicesList.id = `choices-list-${qIndex}`;
+                    const correct = card.querySelector('.correct-answer-container');
+                    if (correct) correct.id = `correct-answer-${qIndex}`;
+                    const essay = card.querySelector('.essay-container');
+                    if (essay) essay.id = `essay-${qIndex}`;
+
+                    // update inline handlers to point to the new index (if your markup uses inline onclicks)
+                    const rmBtn = card.querySelector('.card-header .btn-danger');
+                    if (rmBtn) rmBtn.setAttribute('onclick', `removeQuestion(${qIndex})`);
+
+                    const addChoiceBtn = card.querySelector('button[onclick*="addChoice"]');
+                    if (addChoiceBtn) addChoiceBtn.setAttribute('onclick', `addChoice(${qIndex})`);
+
+                    const typeSelect = card.querySelector('.question-type, select[name*="QuestionType"]');
+                    if (typeSelect) typeSelect.setAttribute('onchange', `toggleChoices(${qIndex})`);
+
+                    // reindex internal choices for this question
+                    reindexChoices(qIndex);
+                });
+            }
+
+            function reindexChoices(questionIndex) {
+                const list = document.getElementById(`choices-list-${questionIndex}`);
+                if (!list) {
+                    // try locate relative to question card
+                    const card = document.querySelector(`.question-card[data-index="${questionIndex}"]`);
+                    if (!card) return;
+                    const altList = card.querySelector('.choices-list');
+                    if (!altList) return;
+                    altList.id = `choices-list-${questionIndex}`;
+                }
+                const choices = (document.getElementById(`choices-list-${questionIndex}`) || document.querySelector(`.question-card[data-index="${questionIndex}"] .choices-list`));
+                if (!choices) return;
+
+                const items = Array.from(choices.querySelectorAll('.choice-item'));
+                items.forEach((item, cIndex) => {
+                    // update names for inputs inside this choice item
+                    item.querySelectorAll('[name]').forEach(el => {
+                        el.name = el.name.replace(/Choices\[\d+\]/g, `Choices[${cIndex}]`)
+                                         .replace(/Questions\[\d+\]/g, `Questions[${questionIndex}]`);
+                    });
+
+                    // update remove button onclick if present
+                    const btn = item.querySelector('button');
+                    if (btn) btn.setAttribute('onclick', `removeChoice(${questionIndex}, ${cIndex})`);
+                });
+            }
+
+            function toggleChoices(questionIndex) {
+                // find select by name (safer than using ids)
+                const sel = document.querySelector(`[name="Questions[${questionIndex}].QuestionType"]`)
+                            || document.querySelector(`.question-card[data-index="${questionIndex}"] select.question-type`);
+                if (!sel) return;
+                const val = parseInt(sel.value);
+
+                const choices = document.getElementById(`choices-${questionIndex}`)
+                                || document.querySelector(`.question-card[data-index="${questionIndex}"] .choices-container`);
+                const correct = document.getElementById(`correct-answer-${questionIndex}`)
+                                || document.querySelector(`.question-card[data-index="${questionIndex}"] .correct-answer-container`);
+                const essay = document.getElementById(`essay-${questionIndex}`)
+                                || document.querySelector(`.question-card[data-index="${questionIndex}"] .essay-container`);
+
+                if (choices) choices.style.display = 'none';
+                if (correct) correct.style.display = 'none';
+                if (essay) essay.style.display = 'none';
+
+                if (val === 0 || val === 1) {
+                    if (choices) choices.style.display = '';
+                    if (val === 1) {
+                        // True/False - ensure two options present
+                        addTrueFalseChoices(questionIndex);
+                    }
+                } else if (val === 2) {
+                    if (correct) correct.style.display = '';
+                } else if (val === 3) {
+                    if (essay) essay.style.display = '';
+                }
+            }
+
+            function addTrueFalseChoices(questionIndex) {
+                const list = document.getElementById(`choices-list-${questionIndex}`)
+                    || document.querySelector(`.question-card[data-index="${questionIndex}"] .choices-list`);
+                if (!list) return;
+
+                // If already have items, keep them (do not duplicate)
+                if (list.children.length > 0) return;
+
+                const options = [
+                    { text: "True", isCorrect: true },
+                    { text: "False", isCorrect: false }
+                ];
+
+                options.forEach((opt, idx) => {
+                    const html = `
+                        <div class="choice-item input-group mb-2">
+                            <div class="input-group-text">
+                                <input name="Questions[${questionIndex}].Choices[${idx}].IsCorrect" type="checkbox" class="form-check-input" ${opt.isCorrect ? "checked" : ""} />
+                            </div>
+                            <input name="Questions[${questionIndex}].Choices[${idx}].Text" type="text" class="form-control" value="${opt.text}" readonly />
+                            <button type="button" class="btn btn-outline-danger" onclick="removeChoice(${questionIndex}, ${idx})">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>`;
+                    list.insertAdjacentHTML('beforeend', html);
                 });
 
-                const removeBtn = choice.querySelector('button');
-                removeBtn.setAttribute('onclick', `removeChoice(${questionIndex}, ${newIndex})`);
-            });
-        }
+                reindexChoices(questionIndex);
+            }
 
-        // Initialize question types on page load
-        document.addEventListener('DOMContentLoaded', function() {
-            document.querySelectorAll('.question-type').forEach((select, index) => {
-                toggleChoices(index);
-            });
-        });
+            // Initialize UI for all questions: show/hide containers depending on type
+            (function initPerQuestion() {
+                const cards = Array.from(document.querySelectorAll('.question-card'));
+                cards.forEach((card, idx) => {
+                    // ensure dataset index exists
+                    if (!card.hasAttribute('data-index')) card.setAttribute('data-index', idx);
+
+                    // ensure containers exist ids
+                    const choices = card.querySelector('.choices-list');
+                    if (choices && !choices.id) choices.id = `choices-list-${idx}`;
+                    const choicesContainer = card.querySelector('.choices-container');
+                    if (choicesContainer && !choicesContainer.id) choicesContainer.id = `choices-${idx}`;
+                    const correct = card.querySelector('.correct-answer-container');
+                    if (correct && !correct.id) correct.id = `correct-answer-${idx}`;
+                    const essay = card.querySelector('.essay-container');
+                    if (essay && !essay.id) essay.id = `essay-${idx}`;
+
+                    // attach onchange handler (if select exists)
+                    const typeSel = card.querySelector('.question-type, select[name*="QuestionType"]');
+                    if (typeSel) {
+                        typeSel.setAttribute('onchange', `toggleChoices(${idx})`);
+                        // call toggle to set initial visibility
+                        toggleChoices(idx);
+                    }
+
+                    // attach addChoice onclick if button present
+                    const addBtn = card.querySelector('button[onclick*="addChoice"], .choices-container button');
+                    if (addBtn) addBtn.setAttribute('onclick', `addChoice(${idx})`);
+
+                    // attach removeQuestion onclick
+                    const rmBtn = card.querySelector('.card-header .btn-danger');
+                    if (rmBtn) rmBtn.setAttribute('onclick', `removeQuestion(${idx})`);
+
+                    // ensure choice remove buttons are wired and names are well formed
+                    reindexChoices(idx);
+                });
+            })();
+        }); // DOMContentLoaded
     </script>
+}
+
 }

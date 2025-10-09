@@ -35,7 +35,8 @@ namespace Quizzly.Business.Services.Interfaces
         /// Returns a distribution of student scores for a quiz (histogram data).
         /// </summary>
         Task<List<StudentScoreDistributionDto>> GetStudentPerformanceDistributionAsync(int quizId , int numberOfRanges);
-
+        Task<List<TopPreformingStudentDto>> GetTopPreformingStudentAsync(int InstructorId);
+        Task<List<QuizPerformanceDto>> GetQuizPerformanceAsync(int instructorId);
     }
 
 
