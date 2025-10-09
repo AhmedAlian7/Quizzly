@@ -161,7 +161,7 @@ namespace Quizzly.Business.Services
                           .Average(qa => (decimal?)qa.Score) ?? 0,
 
                 StudentName = s.User.FirstName + s.User.LastName,
-                Rank = 0 // Will be set later
+                Rank = 0
                 
 
             }).ToList();
@@ -169,6 +169,7 @@ namespace Quizzly.Business.Services
             {
                 topStudents[i].Rank = i + 1;
             }
+
             return topStudents ;
         }
 

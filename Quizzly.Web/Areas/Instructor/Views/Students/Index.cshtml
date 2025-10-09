@@ -1,0 +1,324 @@
+﻿@using Quizzly.Business.ViewModels.Student
+@model List<StudentsTableDto>
+@{
+    ViewData["Title"] = "Students";
+}
+
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 fw-bold text-primary">Students</h1>
+        <div class="d-flex gap-2">
+            <button class="btn btn-outline-secondary" id="exportBtn">
+                <i class="fas fa-download me-2"></i>Export
+            </button>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Total Students
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.Count</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-users fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Active Students
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                @Model.Count(s => s.QuizzesTaken > 0)
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-user-check fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                Average Score
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                @{
+                                    var avgScore = Model.Where(s => s.AverageScore.HasValue && s.AverageScore > 0)
+                                    .Select(s => s.AverageScore.Value)
+                                    .DefaultIfEmpty(0)
+                                    .Average();
+                                }
+                                @avgScore.ToString("F1")%
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-chart-line fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                Total Quizzes Taken
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                @Model.Sum(s => s.QuizzesTaken)
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-clipboard-list fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Students Table -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 d-flex justify-content-between align-items-center">
+            <h6 class="m-0 font-weight-bold text-primary">Student Performance</h6>
+            <div class="d-flex gap-2">
+                <div class="input-group input-group-sm" style="width: 250px;">
+                    <input type="text" class="form-control" placeholder="Search students..." id="searchInput">
+                    <button class="btn btn-outline-secondary" type="button" id="searchBtn">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover" id="studentsTable" width="100%" cellspacing="0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="sort" data-sort="fullName">Student Name</th>
+                            <th class="sort" data-sort="email">Email</th>
+                            <th class="sort text-center" data-sort="quizzesTaken">Quizzes Taken</th>
+                            <th class="sort text-center" data-sort="averageScore">Average Score</th>
+                            <th class="text-center">Performance</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var student in Model)
+                        {
+                            <tr>
+                                <td class="fw-semibold">@student.FullName</td>
+                                <td>@student.Email</td>
+                                <td class="text-center">
+                                    <span class="badge bg-primary rounded-pill">@student.QuizzesTaken</span>
+                                </td>
+                                <td class="text-center">
+                                    @if (student.AverageScore.HasValue && student.QuizzesTaken > 0)
+                                    {
+                                        <span class="fw-bold @GetScoreColor(student.AverageScore.Value)">
+                                            @student.AverageScore.Value.ToString("F1")%
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">No attempts</span>
+                                    }
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        @if (student.QuizzesTaken > 0 && student.AverageScore.HasValue)
+                                        {
+                                            <div class="progress flex-grow-1 me-2" style="height: 8px;">
+                                                <div class="progress-bar @GetScoreColor(student.AverageScore.Value, "bg-")"
+                                                     role="progressbar"
+                                                     style="width: @student.AverageScore.Value%;"
+                                                     aria-valuenow="@student.AverageScore.Value"
+                                                     aria-valuemin="0"
+                                                     aria-valuemax="100">
+                                                </div>
+                                            </div>
+                                            <small class="text-muted">@student.AverageScore.Value.ToString("F0")%</small>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted small">No data</span>
+                                        }
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+
+                        @if (!Model.Any())
+                        {
+                            <tr>
+                                <td colspan="5" class="text-center py-4">
+                                    <div class="text-muted">
+                                        <i class="fas fa-users fa-2x mb-3"></i>
+                                        <p class="mb-0">No students found</p>
+                                        <small>Students will appear here once they start taking your quizzes</small>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.getElementById('searchInput');
+            const searchBtn = document.getElementById('searchBtn');
+            const table = document.getElementById('studentsTable');
+            const rows = table.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
+            const exportBtn = document.getElementById('exportBtn');
+
+            // Search functionality
+            function performSearch() {
+                const searchTerm = searchInput.value.toLowerCase().trim();
+
+                for (let row of rows) {
+                    const fullName = row.cells[0].textContent.toLowerCase();
+                    const email = row.cells[1].textContent.toLowerCase();
+
+                    if (fullName.includes(searchTerm) || email.includes(searchTerm)) {
+                        row.style.display = '';
+                    } else {
+                        row.style.display = 'none';
+                    }
+                }
+            }
+
+            searchBtn.addEventListener('click', performSearch);
+            searchInput.addEventListener('keyup', function(e) {
+                if (e.key === 'Enter') {
+                    performSearch();
+                }
+            });
+
+            // Sort functionality
+            const sortHeaders = document.querySelectorAll('th.sort');
+            sortHeaders.forEach(header => {
+                header.style.cursor = 'pointer';
+                header.addEventListener('click', function() {
+                    const sortType = this.dataset.sort;
+                    sortTable(sortType);
+                });
+            });
+
+            function sortTable(sortType) {
+                const tbody = table.querySelector('tbody');
+                const rowsArray = Array.from(rows);
+
+                rowsArray.sort((a, b) => {
+                    let aValue, bValue;
+
+                    switch (sortType) {
+                        case 'fullName':
+                            aValue = a.cells[0].textContent;
+                            bValue = b.cells[0].textContent;
+                            return aValue.localeCompare(bValue);
+
+                        case 'email':
+                            aValue = a.cells[1].textContent;
+                            bValue = b.cells[1].textContent;
+                            return aValue.localeCompare(bValue);
+
+                        case 'quizzesTaken':
+                            aValue = parseInt(a.cells[2].querySelector('.badge').textContent);
+                            bValue = parseInt(b.cells[2].querySelector('.badge').textContent);
+                            return bValue - aValue;
+
+                        case 'averageScore':
+                            aValue = getScoreValue(a.cells[3]);
+                            bValue = getScoreValue(b.cells[3]);
+                            return bValue - aValue;
+                    }
+                });
+
+                // Clear and re-append sorted rows
+                while (tbody.firstChild) {
+                    tbody.removeChild(tbody.firstChild);
+                }
+
+                rowsArray.forEach(row => tbody.appendChild(row));
+            }
+
+            function getScoreValue(cell) {
+                const scoreText = cell.textContent.trim();
+                if (scoreText === 'No attempts') return -1;
+                return parseFloat(scoreText);
+            }
+
+            // Export functionality
+            exportBtn.addEventListener('click', function() {
+                // Simple CSV export
+                const headers = ['Student Name', 'Email', 'Quizzes Taken', 'Average Score'];
+                const csvContent = [
+                    headers.join(','),
+                    ...Array.from(rows).map(row => {
+                        if (row.style.display !== 'none') {
+                            const cells = row.cells;
+                            return [
+                                `"${cells[0].textContent}"`,
+                                `"${cells[1].textContent}"`,
+                                cells[2].querySelector('.badge').textContent,
+                                cells[3].textContent.replace('%', '')
+                            ].join(',');
+                        }
+                    }).filter(Boolean)
+                ].join('\n');
+
+                const blob = new Blob([csvContent], { type: 'text/csv' });
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `students-${new Date().toISOString().split('T')[0]}.csv`;
+                a.click();
+                window.URL.revokeObjectURL(url);
+            });
+        });
+    </script>
+}
+
+@functions {
+    private string GetScoreColor(decimal score)
+    {
+        return score >= 80 ? "text-success" :
+               score >= 60 ? "text-warning" :
+               "text-danger";
+    }
+
+    private string GetScoreColor(decimal score, string prefix)
+    {
+        return score >= 80 ? $"{prefix}success" :
+               score >= 60 ? $"{prefix}warning" :
+               $"{prefix}danger";
+    }
+}

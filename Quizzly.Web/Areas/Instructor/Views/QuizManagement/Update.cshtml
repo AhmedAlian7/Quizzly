@@ -51,12 +51,12 @@
             </div>
 
             <div class="col-md-4">
-                <div class="form-group mb-3">
-                    <label asp-for="CategoryId" class="form-label fw-semibold">Category *</label>
+                <div class="mb-3">
+                    <label asp-for="CategoryId" class="form-label">Category</label>
                     <select asp-for="CategoryId" asp-items="Model.Categories" class="form-select">
-                        <option value="">Select Category</option>
+                        <option value="">-- Select Category --</option>
                     </select>
-                    <span asp-validation-for="CategoryId" class="text-danger small"></span>
+                    <span asp-validation-for="CategoryId" class="text-danger"></span>
                 </div>
 
                 <div class="form-group mb-3">

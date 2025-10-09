@@ -26,7 +26,7 @@ namespace Quizzly.Business.ViewModels.Question
         [Required]
         public QuestionType QuestionType { get; set; }
 
-        [MaxLength(500)]
+        [MaxLength(1000)]
         public string? CorrectAnswer { get; set; }
         public List<AddChoiceDto> Choices { get; set; } = new List<AddChoiceDto>();
 

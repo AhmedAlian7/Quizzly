@@ -11,8 +11,9 @@ namespace Quizzly.DataAccess.Repositories.Implementions
 
         public async Task<Instructor?> GetByUserIdAsync(string userId)
         {
-            return await _dbSet.
-                FirstOrDefaultAsync(i => i.UserId == userId);
+            return await _dbSet
+                .Include(i => i.QuizCategories)
+                .FirstOrDefaultAsync(i => i.UserId == userId);
         }
 
     }

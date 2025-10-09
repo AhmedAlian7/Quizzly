@@ -39,6 +39,16 @@ namespace Quizzly.DataAccess.Repositories.Implementions
                  .Select(s => s.Student)
                  .ToListAsync();
         }
+
+        public async Task<IEnumerable<Student>> GetStudentsByInstructorId(int InstructorId)
+        {
+           return await _context.Students
+                .Include(s => s.User)
+                .Include(s => s.QuizAttempts)
+                    .ThenInclude(qa => qa.Quiz)
+                .Where(s => s.QuizAttempts.Any(qa => qa.Quiz.InstructorId == InstructorId))
+                .ToListAsync();
+        }
     }
 }
 

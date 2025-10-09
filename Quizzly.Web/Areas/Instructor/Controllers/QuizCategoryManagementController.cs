@@ -4,12 +4,13 @@ using Microsoft.AspNetCore.Mvc;
 using Quizzly.Business.Services.Interfaces;
 using Quizzly.Business.ViewModels.Quiz;
 using Quizzly.Business.ViewModels.QuizCategories;
+using Quizzly.DataAccess.Constants;
 using Quizzly.DataAccess.Entities;
 
 namespace Quizzly.Web.Areas.Instructor.Controllers
 {
     [Area("Instructor")]
-    [Authorize(Roles = "Instructor")]
+    [Authorize(Roles = AppRoles.Instructor)]
     public class QuizCategoryManagementController : Controller
     {
         private readonly IInstructorManagementService _instructorManagementService;

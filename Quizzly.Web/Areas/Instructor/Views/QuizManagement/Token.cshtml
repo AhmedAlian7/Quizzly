@@ -13,9 +13,40 @@
 				<button class="btn btn-outline-secondary" type="button" id="copyButton" onclick="copyToken()">
 					<i class="bi bi-clipboard"></i> Copy
 				</button>
+				<button class="btn btn-outline-secondary" type="button" id="shareQuiz" onclick="shareQuiz()">
+					<i class="bi bg-info"></i> ⤴ Share
+				</button>
 			</div>
 			<a asp-action="Index" class="btn btn-outline-secondary">
 				<i class="bi bi-arrow-left"></i> Back to Quiz Management
 			</a>
 		</div>
 	</div>
+
+@section Scripts {
+        <script>
+            function shareQuiz() {
+                const token = document.getElementById("quizToken").value;
+                const quizLink = `${window.location.origin}/Student/Access/Link?token=${token}`;
+
+                if (navigator.share) {
+                    navigator.share({
+                        title: 'Join this quiz!',
+                        text: 'Use this link to access the quiz:',
+                        url: quizLink
+                    });
+                } else {
+                    navigator.clipboard.writeText(quizLink);
+                    alert('Quiz link copied to clipboard!\n' + quizLink);
+                }
+            }
+
+            function copyToken() {
+                var tokenInput = document.getElementById("quizToken");
+                tokenInput.select();
+                tokenInput.setSelectionRange(0, 99999); // For mobile devices
+                document.execCommand("copy");
+                alert("Token copied to clipboard: " + tokenInput.value);
+            }
+        </script>
+}

@@ -86,7 +86,8 @@ namespace Quizzly.Business.Services.Implementions
         public async Task UpdateQuizAsync(QuizDetailsDto dto)
         {
             var quiz = await _unitOfWork.Quizzes
-                .GetByIdAsync(dto.Id, "Questions,Questions.Choices");
+                .GetByIdAsync(dto.Id, "Questions,Questions.Choices,QuizCategory");
+
 
             if (quiz == null)
                 throw new KeyNotFoundException("Quiz not found");
@@ -94,12 +95,12 @@ namespace Quizzly.Business.Services.Implementions
             quiz.Title = dto.Title;
             quiz.Description = dto.Description;
             quiz.DurationMintes = dto.TimeLimit;
+            quiz.QuizCategoryId = dto.CategoryId;
             quiz.ShuffleQuestions = dto.ShuffleQuestions;
             quiz.ShuffleChoices = dto.ShuffleChoices;
             quiz.ShowCorrectAnswers = dto.ShowCorrectAnswers;
             quiz.ShowScoreImmediatlely = dto.ShowScoreImmediatlely;
             quiz.UpdatedAt = DateTime.UtcNow;
-            quiz.QuizCategoryId = dto.CategoryId;
             quiz.AllowMultipleAttempts = dto.AllowMultipleAttempts;
             quiz.IsAutoGraded = dto.IsAutoGraded;
             quiz.IsPublished = dto.IsPublished;

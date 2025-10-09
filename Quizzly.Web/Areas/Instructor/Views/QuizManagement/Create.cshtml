@@ -277,10 +277,11 @@
                 `;
                 addBtn.style.display = 'none';
             } else { // Essay
-                container.innerHTML = `
-                    <div class="alert alert-info mb-0">
-                        <small><strong>Essay Question:</strong> Students will write their answer in a text area. Manual grading required.</small>
-                    </div>
+                  container.innerHTML = `
+                     <div class="mb-2">
+                         <label class="form-label">Model Answer *</label>
+                         <textarea name="addQuestionDtos[${qId - 1}].CorrectAnswer" class="form-control" rows="4" placeholder="Enter the correct answer" required></textarea>
+                     </div>
                 `;
                 addBtn.style.display = 'none';
             }

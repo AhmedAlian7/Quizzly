@@ -6,6 +6,7 @@ namespace Quizzly.DataAccess.Repositories.Interfaces
     {
         Task<Student?> GetByUserIdAsync(string userId, string includes = "");
         Task<IEnumerable<Student>> GetTopStudentsByInstructorIdAsync(int InstructorId);
+        Task<IEnumerable<Student>> GetStudentsByInstructorId(int InstructorId);
     }
 }
 

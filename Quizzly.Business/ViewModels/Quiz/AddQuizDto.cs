@@ -23,7 +23,7 @@ namespace Quizzly.Business.ViewModels.Quiz
         public bool AllowMultipleAttempts { get; set; } = false;
         public bool IsAutoGraded { get; set; }
 
-        [Range(1,5)]
+        [Range(1,100)]
         public int? MaxAttempts { get; set; }
         public bool ShowCorrectAnswers { get; set; }
         public bool ShowScoreImmediatlely { get; set; }

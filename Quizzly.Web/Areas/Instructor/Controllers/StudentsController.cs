@@ -5,20 +5,20 @@ using Quizzly.Business.Services.Implementions;
 using Quizzly.Business.Services.Interfaces;
 using Quizzly.DataAccess.Constants;
 using Quizzly.DataAccess.Entities;
-using System.Threading.Tasks;
 
 namespace Quizzly.Web.Areas.Instructor.Controllers
 {
-
     [Area("Instructor")]
     [Authorize(Roles = AppRoles.Instructor)]
-    public class DashboardController : Controller
+    public class StudentsController : Controller
     {
+        private readonly IStudentInstructorService _studentInstructorService;
         private readonly IInstructorManagementService _instructorManagementService;
         private readonly UserManager<ApplicationUser> _userManager;
 
-        public DashboardController(IInstructorManagementService instructorManagementService, UserManager<ApplicationUser> userManager)
+        public StudentsController(IStudentInstructorService studentInstructorService, IInstructorManagementService instructorManagementService, UserManager<ApplicationUser> userManager)
         {
+            _studentInstructorService = studentInstructorService;
             _instructorManagementService = instructorManagementService;
             _userManager = userManager;
         }
@@ -26,14 +26,13 @@ namespace Quizzly.Web.Areas.Instructor.Controllers
         public async Task<IActionResult> Index()
         {
             var user = await _userManager.GetUserAsync(User);
-            var instructor = await _instructorManagementService.GetInstructorByUserIdAsync(user.Id);
+            var instructor = await _instructorManagementService
+                 .GetInstructorByUserIdAsync(user.Id);
 
-            if (instructor == null)
-                return NotFound("Instructor profile not found.");
+            var model = await _studentInstructorService
+                .studentsTableDtos(instructor.Id);
 
-            var models = await _instructorManagementService
-                .GetInstructorDashboardAsync(instructor.Id);
-            return View(models);
+            return View(model);
         }
     }
 }

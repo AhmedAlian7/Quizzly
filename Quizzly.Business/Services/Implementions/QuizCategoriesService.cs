@@ -19,6 +19,7 @@ namespace Quizzly.Business.Services.Implementions
             return await _unitOfWork.QuizCategories
                 .GetAllAsync("");
         }
+
         public async Task<IEnumerable<AddQuizCategoryDto>> GetAllByInstructorIdAsync(int InstructorId)
         {
             var categories = await _unitOfWork.QuizCategories

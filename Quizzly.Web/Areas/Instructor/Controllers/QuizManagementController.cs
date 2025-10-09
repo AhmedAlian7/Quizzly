@@ -4,13 +4,14 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Quizzly.Business.Services.Interfaces;
 using Quizzly.Business.ViewModels.Quiz;
+using Quizzly.DataAccess.Constants;
 using Quizzly.DataAccess.Entities;
 using System;
 
 namespace Quizzly.Web.Areas.Instructor.Controllers
 {
     [Area("Instructor")]
-    [Authorize(Roles = "Instructor")]
+    [Authorize(Roles = AppRoles.Instructor)]
     public class QuizManagementController : Controller
     {
         private readonly IInstructorManagementService _instructorManagementService;
@@ -43,7 +44,13 @@ namespace Quizzly.Web.Areas.Instructor.Controllers
         [HttpGet]
         public async Task<IActionResult> Create()
         {
-            var categories = await _quizCategoriesService.GetAllAsync();
+            var user = await _userManager.GetUserAsync(User);
+            var instructor = await _instructorManagementService
+                   .GetInstructorByUserIdAsync(user.Id);
+
+
+            var categories = await _quizCategoriesService
+                .GetAllByInstructorIdAsync(instructor.Id);
 
             if (!categories.Any())
             {
@@ -68,42 +75,43 @@ namespace Quizzly.Web.Areas.Instructor.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(AddQuizDto addQuizDto , string formAction)
         {
-                if (!ModelState.IsValid)
-                {
-                    var errors = ModelState.Values
-                        .SelectMany(v => v.Errors)
-                        .Select(e => e.ErrorMessage)
-                        .ToList();
-                
-                    // Reload categories
-                    addQuizDto.Categories = (await _quizCategoriesService.GetAllAsync())
-                        .Select(c => new SelectListItem
-                        {
-                            Value = c.Id.ToString(),
-                            Text = c.Name
-                        });
-
-                    return Json(new { success = false, errors = errors });
-                }
-
-                var user = await _userManager.GetUserAsync(User);
-
-                var instructor = await _instructorManagementService
+             var user = await _userManager.GetUserAsync(User);
+             var instructor = await _instructorManagementService
                     .GetInstructorByUserIdAsync(user.Id);
 
-                if (instructor == null)
-                    return Json(new { success = false, error = "Instructor profile not found." });
+             if (!ModelState.IsValid)
+             {
+                 var errors = ModelState.Values
+                     .SelectMany(v => v.Errors)
+                     .Select(e => e.ErrorMessage)
+                     .ToList();
+             
+                 // Reload categories
+                 addQuizDto.Categories = (await _quizCategoriesService.GetAllByInstructorIdAsync(instructor.Id))
+                     .Select(c => new SelectListItem
+                     {
+                         Value = c.Id.ToString(),
+                         Text = c.Name
+                     });
 
-                var quizId = await _instructorManagementService
-                    .AddQuizAsync(instructor.Id, addQuizDto);
+                 return Json(new { success = false, errors = errors });
+             }
 
-            if (formAction == "publish")
-            {
+            
+
+             if (instructor == null)
+                 return Json(new { success = false, error = "Instructor profile not found." });
+
+             var quizId = await _instructorManagementService
+                 .AddQuizAsync(instructor.Id, addQuizDto);
+
+             if (formAction == "publish")
+             {
                 var token = await _quizService.PublishQuizAsync(quizId);
                 return View("Token", token);
-            }
+             }
 
-            return RedirectToAction("Index", "QuizCategoryManagement", new { area = "Instructor" });
+             return RedirectToAction("Index", "QuizCategoryManagement", new { area = "Instructor" });
 
         }
 
@@ -129,18 +137,23 @@ namespace Quizzly.Web.Areas.Instructor.Controllers
         [HttpGet]
         public async Task<IActionResult> Update(int id)
         {
-            var quizDto = await _quizService
-                .GetQuizByIdAsync(id);
+            var user = await _userManager.GetUserAsync(User);
+            var instructor = await _instructorManagementService
+                .GetInstructorByUserIdAsync(user.Id);
+
+            var quizDto = await _quizService.GetQuizByIdAsync(id);
 
             if (quizDto == null)
                 return NotFound("Quiz not found.");
 
-            quizDto.Categories = (await _quizCategoriesService.GetAllAsync())
-                .Select(c => new SelectListItem
-                {
-                    Value = c.Id.ToString(),
-                    Text = c.Name
-                });
+            var categories = await _quizCategoriesService.GetAllByInstructorIdAsync(instructor.Id);
+
+            quizDto.Categories = categories.Select(c => new SelectListItem
+            {
+                Value = c.Id.ToString(),
+                Text = c.Name,
+                Selected = (c.Id == quizDto.CategoryId)
+            });
 
             return View(quizDto);
         }
@@ -148,19 +161,25 @@ namespace Quizzly.Web.Areas.Instructor.Controllers
         [HttpPost]
         public async Task<IActionResult> Update(QuizDetailsDto quizDetailsDto)
         {
+            var user = await _userManager.GetUserAsync(User);
+            var instructor = await _instructorManagementService
+                 .GetInstructorByUserIdAsync(user.Id);
+
+            quizDetailsDto.Categories = (await _quizCategoriesService.GetAllByInstructorIdAsync(instructor.Id))
+                .Select(c => new SelectListItem
+                {
+                    Value = c.Id.ToString(),
+                    Text = c.Name
+                });
+
             if (!ModelState.IsValid)
             {
-                // Reload categories when validation fails
-                quizDetailsDto.Categories = (await _quizCategoriesService.GetAllAsync())
-                    .Select(c => new SelectListItem
-                    {
-                        Value = c.Id.ToString(),
-                        Text = c.Name
-                    });
                 return View(quizDetailsDto);
             }
 
-            var existingQuiz = await _quizService.GetQuizByIdAsync(quizDetailsDto.Id);
+            var existingQuiz = await _quizService
+                .GetQuizByIdAsync(quizDetailsDto.Id);
+
             if (existingQuiz == null)
                 return NotFound("Quiz not found.");
 
