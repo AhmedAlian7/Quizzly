@@ -233,21 +233,64 @@
                             </div>
                         }
 
+                        <!-- ✅ New Chart.js Score Distribution -->
                         @if (Model.StudentScoreDistributions?.Any() == true)
                         {
                             <div>
                                 <strong>Score Distribution:</strong>
-                                <div class="mt-2">
-                                    @foreach (var dist in Model.StudentScoreDistributions)
-                                    {
-                                        <div class="d-flex justify-content-between align-items-center mb-1">
-                                            <small>@dist.RangeStart - @dist.RangeEnd</small>
-                                            <small class="badge bg-primary">@dist.StudentCount</small>
-                                        </div>
-                                    }
+                                <div class="mt-3">
+                                    <canvas id="scoreDistributionChart" height="180"></canvas>
                                 </div>
-                            </div>
-                        }
+
+                                <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+                                <script>
+                                    document.addEventListener("DOMContentLoaded", function () {
+                                        const ctx = document.getElementById('scoreDistributionChart');
+
+                                        const labels = @Html.Raw(JsonSerializer.Serialize(
+                                                                                Model.StudentScoreDistributions.Select(d => $"{d.RangeStart}-{d.RangeEnd}")
+                                                                        ));
+
+                                const data = @Html.Raw(JsonSerializer.Serialize(
+                                                                        Model.StudentScoreDistributions.Select(d => d.StudentCount)
+                                                                ));
+
+                                new Chart(ctx, {
+                                    type: 'bar',
+                                    data: {
+                                        labels: labels,
+                                        datasets: [{
+                                            label: 'Students',
+                                            data: data,
+                                            borderWidth: 1,
+                                            backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                                            borderColor: 'rgba(54, 162, 235, 1)',
+                                            borderRadius: 6
+                                        }]
+                                    },
+                                    options: {
+                                        responsive: true,
+                                        maintainAspectRatio: false,
+                                        plugins: {
+                                            legend: { display: false }
+                                        },
+                                        scales: {
+                                            x: {
+                                                grid: { display: false },
+                                                title: { display: true, text: 'Score Range' }
+                                            },
+                                            y: {
+                                                beginAtZero: true,
+                                                ticks: { stepSize: 1 },
+                                                title: { display: true, text: 'Number of Students' }
+                                            }
+                                        }
+                                    }
+                                });
+                            });
+                        </script>
+                    </div>
+                                        }
 
                         @if ((Model.QuestionPerformances?.Any() != true) && (Model.StudentScoreDistributions?.Any() != true))
                         {
@@ -267,7 +310,6 @@
         function copyAccessCode() {
             const accessCode = '@Model.AccessCode';
             navigator.clipboard.writeText(accessCode).then(function() {
-                // Show success message
                 const originalText = event.target.innerHTML;
                 event.target.innerHTML = '<i class="fas fa-check"></i> Copied!';
                 event.target.classList.remove('btn-outline-primary');

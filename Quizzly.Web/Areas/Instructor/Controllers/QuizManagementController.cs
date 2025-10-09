@@ -161,6 +161,16 @@ namespace Quizzly.Web.Areas.Instructor.Controllers
             return RedirectToAction("Index");
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Delete(int quizId)
+        {
+
+            await _quizService.DeleteQuizAsync(quizId);
+            TempData["SuccessMessage"] = "Quiz deleted successfully.";
+            return RedirectToAction("Index");
+        }
+
 
     }
 }

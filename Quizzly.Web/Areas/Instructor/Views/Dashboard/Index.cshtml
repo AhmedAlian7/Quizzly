@@ -16,7 +16,6 @@
                 <div class="card-body">
                     <h6 class="text-muted">Total Quizzes</h6>
                     <h3>@Model.TotalQuizzes</h3>
-                    <small class="text-success">+3 this week</small>
                 </div>
             </div>
         </div>
@@ -27,7 +26,6 @@
                 <div class="card-body">
                     <h6 class="text-muted">Average Score</h6>
                     <h3>@(Model.AvgScore.HasValue ? $"{Model.AvgScore.Value:F1}%" : "N/A")</h3>
-                    <small class="text-success">+2.3% this month</small>
                 </div>
             </div>
         </div>
@@ -38,7 +36,6 @@
                 <div class="card-body">
                     <h6 class="text-muted">Active Students</h6>
                     <h3>@Model.TotalStudents</h3>
-                    <small class="text-success">+8 this week</small>
                 </div>
             </div>
         </div>
