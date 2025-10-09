@@ -142,15 +142,20 @@ namespace Quizzly.Web.Areas.Instructor.Controllers
         public async Task<IActionResult> Update(QuizDetailsDto quizDetailsDto)
         {
             if (!ModelState.IsValid)
+            {
+                // Reload categories when validation fails
+                quizDetailsDto.Categories = (await _quizCategoriesService.GetAllAsync())
+                    .Select(c => new SelectListItem
+                    {
+                        Value = c.Id.ToString(),
+                        Text = c.Name
+                    });
                 return View(quizDetailsDto);
+            }
 
-            var existingQuiz = await _quizService
-                .GetQuizByIdAsync(quizDetailsDto.Id);
-
+            var existingQuiz = await _quizService.GetQuizByIdAsync(quizDetailsDto.Id);
             if (existingQuiz == null)
                 return NotFound("Quiz not found.");
-
-          
 
             await _quizService.UpdateQuizAsync(quizDetailsDto);
             return RedirectToAction("Index");

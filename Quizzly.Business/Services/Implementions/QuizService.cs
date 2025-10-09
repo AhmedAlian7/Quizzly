@@ -4,7 +4,6 @@ using Quizzly.Business.ViewModels.Question;
 using Quizzly.Business.ViewModels.Quiz;
 using Quizzly.DataAccess.Entities;
 using Quizzly.DataAccess.Repositories.Interfaces;
-
 namespace Quizzly.Business.Services.Implementions
 {
     public class QuizService : IQuizService
@@ -22,6 +21,8 @@ namespace Quizzly.Business.Services.Implementions
             var quiz = await _unitOfWork.Quizzes
                 .GetByIdAsync(quizId, "Questions,QuizCategory,Questions.Choices");
 
+            if (quiz == null) return null;
+
             var dto = new QuizDetailsDto
             {
                 Id = quiz.Id,
@@ -36,28 +37,30 @@ namespace Quizzly.Business.Services.Implementions
                 PassingScore = quiz.PassingScore,
                 ShowCorrectAnswers = quiz.ShowCorrectAnswers,
                 ShowScoreImmediatlely = quiz.ShowScoreImmediatlely,
+                ShuffleChoices = quiz.ShuffleChoices,
+                ShuffleQuestions = quiz.ShuffleQuestions,
                 StartAt = quiz.StartAt,
                 EndAt = quiz.EndAt,
                 AccessCode = quiz.AccessToken,
                 QuestionPerformances = await _instructorAnalyticsService.GetQuestionLevelPerformanceAsync(quizId),
                 CommonIncorrectAnswers = await _instructorAnalyticsService.GetCommonIncorrectAnswersAsync(quizId),
                 AverageQuizTime = await _instructorAnalyticsService.GetAverageQuizTimeAsync(quizId),
-                StudentScoreDistributions = await _instructorAnalyticsService.GetStudentPerformanceDistributionAsync(quizId , 5),
+                StudentScoreDistributions = await _instructorAnalyticsService.GetStudentPerformanceDistributionAsync(quizId, 5),
 
                 Questions = quiz.Questions.Select(q => new QuestionDetailsDto
                 {
+                    Id = q.Id, // ADD THIS
                     Text = q.Text,
                     QuestionType = q.QuestionType,
                     Points = q.Points,
+                    ImageUrl = q.ImageUrl, // ADD THIS
                     Choices = q.Choices.Select(c => new AddChoiceDto
                     {
+                        Id = c.Id, // ADD THIS
                         Text = c.Text,
                         IsCorrect = c.IsCorrect
                     }).ToList()
                 }).ToList()
-               
-
-
             };
 
             return dto;
@@ -83,19 +86,22 @@ namespace Quizzly.Business.Services.Implementions
         public async Task UpdateQuizAsync(QuizDetailsDto dto)
         {
             var quiz = await _unitOfWork.Quizzes
-                .GetByIdAsync(dto.Id , "Questions,QuizCategory,Questions.Choices");
+                .GetByIdAsync(dto.Id, "Questions,QuizCategory,Questions.Choices");
 
-           
             if (quiz == null)
             {
                 throw new KeyNotFoundException("Quiz not found");
             }
+
+            bool wasOriginallyPublished = quiz.IsPublished;
 
             quiz.Title = dto.Title;
             quiz.Description = dto.Description;
             quiz.DurationMintes = dto.TimeLimit;
             quiz.ShuffleQuestions = dto.ShuffleQuestions;
             quiz.ShuffleChoices = dto.ShuffleChoices;
+            quiz.ShowCorrectAnswers = dto.ShowCorrectAnswers;
+            quiz.ShowScoreImmediatlely = dto.ShowScoreImmediatlely;
             quiz.UpdatedAt = DateTime.UtcNow;
             quiz.QuizCategoryId = dto.CategoryId;
             quiz.AllowMultipleAttempts = dto.AllowMultipleAttempts;
@@ -106,21 +112,10 @@ namespace Quizzly.Business.Services.Implementions
             quiz.StartAt = dto.StartAt;
             quiz.EndAt = dto.EndAt;
 
-            quiz.Questions = dto.Questions.Select(q => new Question
-            {
-                Text = q.Text,
-                QuestionType = q.QuestionType,
-                Points = q.Points,
-                Choices = q.Choices.Select(c => new Choice
-                {
-                    Text = c.Text,
-                    IsCorrect = c.IsCorrect
-                }).ToList()
-            }).ToList();
+      
 
             _unitOfWork.Quizzes.Update(quiz);
             await _unitOfWork.SaveAsync();
-
         }
     }
 }

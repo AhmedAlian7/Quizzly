@@ -9,7 +9,7 @@ namespace Quizzly.Business.ViewModels.Quiz
     {
         public int Id { get; set; }
         public string Title { get; set; }
-        public string Description { get; set; }
+        public string? Description { get; set; }
         public int TimeLimit { get; set; }
         public bool ShuffleQuestions { get; set; }
         public bool ShuffleChoices { get; set; }
