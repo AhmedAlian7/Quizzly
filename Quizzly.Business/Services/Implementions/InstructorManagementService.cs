@@ -120,7 +120,6 @@ namespace Quizzly.Business.Services.Implementions
                         throw new InvalidOperationException("Error uploading image: " + ex.Message);
                     }
                 }
-
                 var question = new Question
                 {
                     Text = q.Text,
@@ -130,11 +129,10 @@ namespace Quizzly.Business.Services.Implementions
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow
                 };
+                
 
-                // Handle different question types
                 if (q.QuestionType == QuestionType.ShortAnswer)
                 {
-                    // For short answer, create a single choice with the correct answer
                     var choice = new Choice
                     {
                         Text = q.CorrectAnswer ?? string.Empty,
@@ -143,6 +141,21 @@ namespace Quizzly.Business.Services.Implementions
                         UpdatedAt = DateTime.UtcNow
                     };
                     question.Choices.Add(choice);
+                }
+                else if (q.QuestionType == QuestionType.Essay)
+                {
+                   
+                    if (!string.IsNullOrEmpty(q.CorrectAnswer))
+                    {
+                        var choice = new Choice
+                        {
+                            Text = q.CorrectAnswer,
+                            IsCorrect = true,
+                            CreatedAt = DateTime.UtcNow,
+                            UpdatedAt = DateTime.UtcNow
+                        };
+                        question.Choices.Add(choice);
+                    }
                 }
                 else
                 {
