@@ -11,6 +11,7 @@ namespace Quizzly.Business.Services.Interfaces
         Task<StudentAccessViewModel> GetAccessLinkAsync(string token, string userId);
         Task<List<DataAccess.Entities.QuizAttempt>> GetRecentAttemptsForStudentAsync(int studentId, int take);
         Task<List<DataAccess.Entities.QuizAttempt>> GetRecentAttemptsForUserAsync(string userId, int take);
+        Task<StudentResultsOverviewViewModel> GetResultsOverviewAsync(string userId, int recentTake = 10);
     }
 }
 

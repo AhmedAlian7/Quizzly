@@ -4,6 +4,7 @@ using Quizzly.DataAccess.Entities;
 using Quizzly.DataAccess.Enums;
 using Quizzly.DataAccess.Repositories.Interfaces;
 using System.Text.Json;
+using Microsoft.EntityFrameworkCore;
 
 namespace Quizzly.Business.Services.Implementions
 {
@@ -298,6 +299,69 @@ namespace Quizzly.Business.Services.Implementions
             var student = await _uow.Students.GetByUserIdAsync(userId);
             if (student == null) return new List<QuizAttempt>();
             return await _uow.QuizAttempts.GetRecentAttemptsForStudentAsync(student.Id, take, includes: "Quiz");
+        }
+
+        public async Task<StudentResultsOverviewViewModel> GetResultsOverviewAsync(string userId, int recentTake = 10)
+        {
+            var student = await _uow.Students.GetByUserIdAsync(userId);
+            if (student == null)
+            {
+                return new StudentResultsOverviewViewModel();
+            }
+
+            var query = _uow.QuizAttempts
+                .GetQueryable(includes: "Quiz,Answers")
+                .Where(a => a.StudentId == student.Id);
+
+            var completed = await query.Where(a => a.IsCompleted && a.FinishedAt != null).ToListAsync();
+
+            decimal average = 0m;
+            decimal? best = null;
+            TimeSpan totalTime = TimeSpan.Zero;
+
+            if (completed.Count > 0)
+            {
+                var percentages = completed.Where(a => a.Percentage.HasValue).Select(a => a.Percentage!.Value).ToList();
+                if (percentages.Count > 0)
+                {
+                    average = Math.Round(percentages.Average(), 2);
+                    best = percentages.Max();
+                }
+
+                foreach (var a in completed)
+                {
+                    if (!a.FinishedAt.HasValue) continue;
+                    var end = a.FinishedAt.Value;
+                    var duration = end - a.StartedAt;
+                    if (duration > TimeSpan.Zero)
+                        totalTime += duration;
+                }
+            }
+
+            var recent = await query
+                .OrderByDescending(a => a.FinishedAt ?? a.StartedAt)
+                .Take(recentTake)
+                .Select(a => new StudentResultsOverviewViewModel.RecentAttemptItem
+                {
+                    AttemptId = a.Id,
+                    QuizId = a.QuizId,
+                    QuizTitle = a.Quiz.Title,
+                    Percentage = a.Percentage,
+                    QuestionsCount = a.Quiz.Questions.Count,
+                    Duration = (a.FinishedAt ?? a.StartedAt) - a.StartedAt,
+                    FinishedAt = a.FinishedAt,
+                    IsCompleted = a.IsCompleted
+                })
+                .ToListAsync();
+
+            return new StudentResultsOverviewViewModel
+            {
+                AverageScorePercentage = average,
+                CompletedQuizzesCount = completed.Count,
+                BestScorePercentage = best,
+                TotalTimeSpent = totalTime,
+                RecentAttempts = recent
+            };
         }
 
         private class ClientAnswerDto
