@@ -21,6 +21,24 @@ namespace Quizzly.DataAccess.Repositories.Implementions
             }
             return await query.FirstOrDefaultAsync(s => s.UserId == userId);
         }
+
+        public async Task<IEnumerable<Student>> GetTopStudentsByInstructorIdAsync(int instructorId)
+        {
+            return await _context.Students
+                 .Include(s => s.User)
+                 .Where(s => s.QuizAttempts.Any(qa => qa.Quiz.InstructorId == instructorId))
+                 .Select(s => new
+                 {
+                     Student = s,
+                     AverageScore = s.QuizAttempts
+                         .Where(qa => qa.Quiz.InstructorId == instructorId)
+                         .Average(qa => (decimal?)qa.Score) ?? 0
+                 })
+                 .OrderByDescending(s => s.AverageScore)
+                 .Take(5)
+                 .Select(s => s.Student)
+                 .ToListAsync();
+        }
     }
 }
 

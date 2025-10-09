@@ -55,9 +55,20 @@ namespace Quizzly.Business.Services.Implementions
             return (new InstructorDashboardDto
             {
                 instructorRecentQuizDtos = await GetRecentQuizzesAsync(InstructorId),
+
                 AvgScore = await GetAvgScoreAsync(InstructorId),
-                TotalQuizzes = await _instructorAnalyticsService.GetTotalQuizzesAuthoredAsync(InstructorId),
+
+                TotalQuizzes = await _instructorAnalyticsService
+                .GetTotalQuizzesAuthoredAsync(InstructorId),
+
                 TotalStudents = await GetTotalStudentsCountAsync(InstructorId),
+
+                topPreformingStudentDtos = await _instructorAnalyticsService
+                .GetTopPreformingStudentAsync(InstructorId),
+
+                quizPerformanceDtos = await _instructorAnalyticsService
+                .GetQuizPerformanceAsync(InstructorId)
+
             });
 
         }

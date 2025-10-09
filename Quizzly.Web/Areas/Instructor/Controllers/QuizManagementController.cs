@@ -116,6 +116,13 @@ namespace Quizzly.Web.Areas.Instructor.Controllers
             if (quizDto == null)
                 return NotFound("Quiz not found.");
 
+            quizDto.Categories = (await _quizCategoriesService.GetAllAsync())
+               .Select(c => new SelectListItem
+               {
+                   Value = c.Id.ToString(),
+                   Text = c.Name
+               });
+
             return View(quizDto);
         }
 

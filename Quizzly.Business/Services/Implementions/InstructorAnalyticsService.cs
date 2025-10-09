@@ -27,6 +27,26 @@ namespace Quizzly.Business.Services
                 .GetAvgScorePerInstructor(instructorId);
         }
 
+        public async Task<List<QuizPerformanceDto>> GetQuizPerformanceAsync(int instructorId)
+        {
+            var quizzes = await _unitOfWork.Quizzes
+                .GetAllByInstructorId(instructorId);
+
+            var performanceList = quizzes.Select(q => new QuizPerformanceDto
+            {
+                QuizTitle = q.Title,
+                AvgScore = q.QuizAttempts.Any()
+                    ? Math.Round(q.QuizAttempts.Average(a => (decimal?)a.Score) ?? 0, 2)
+                    : 0,
+
+                TotalAttempts = q.QuizAttempts.Count,
+                HighestScore = q.QuizAttempts.Any() ? q.QuizAttempts.Max(a => a.Score) : 0,
+                LowestScore = q.QuizAttempts.Any() ? q.QuizAttempts.Min(a => a.Score) : 0,
+            }).ToList();
+
+            return performanceList;
+        }
+
         public async Task<List<QuestionPerformanceDto>> GetQuestionLevelPerformanceAsync(int quizId)
         {
             // GetQueryable => build query on data coming from database before actually executing
@@ -128,5 +148,29 @@ namespace Quizzly.Business.Services
             }
             return distribution;
         }
+
+        public async Task<List<TopPreformingStudentDto>> GetTopPreformingStudentAsync(int InstructorId)
+        {
+           var students = await _unitOfWork.Students
+                .GetTopStudentsByInstructorIdAsync(InstructorId);
+
+            var topStudents = students.Select(s => new TopPreformingStudentDto
+            {
+                AvgScore = s.QuizAttempts
+                          .Where(qa => qa.Quiz.InstructorId == InstructorId)
+                          .Average(qa => (decimal?)qa.Score) ?? 0,
+
+                StudentName = s.User.FirstName + s.User.LastName,
+                Rank = 0 // Will be set later
+                
+
+            }).ToList();
+            for (int i = 0; i < topStudents.Count; i++)
+            {
+                topStudents[i].Rank = i + 1;
+            }
+            return topStudents ;
+        }
+
     }
 }

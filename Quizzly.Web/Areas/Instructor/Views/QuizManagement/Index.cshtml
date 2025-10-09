@@ -66,7 +66,7 @@
                                 <td>@quiz.CreatedAt.ToString("yyyy-MM-dd")</td>
                                 <td>@quiz.Questions</td>
                                 <td>@quiz.Attempts</td>
-                                <td>@(quiz.AvgScore.HasValue ? $"{quiz.AvgScore.Value}%" : "-")</td>
+                                <td>@(quiz.AvgScore.HasValue ? $"{quiz.AvgScore.Value:F3}%" : "-")</td>
                                 <td>
                                     <div class="dropdown">
                                         <button class="btn btn-sm btn-light" data-bs-toggle="dropdown">

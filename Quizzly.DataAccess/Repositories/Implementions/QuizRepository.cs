@@ -55,6 +55,7 @@ namespace Quizzly.DataAccess.Repositories.Implementions
         public async Task<IEnumerable<Quiz>> GetAllByInstructorId(int InstructorId)
         {
             return await _context.Quizzes
+                .Include(q => q.QuizAttempts)
                 .Include(q => q.Questions)
                 .ThenInclude(qn => qn.Choices)
                 .Where(q => q.InstructorId ==InstructorId & !q.IsDeleted)
@@ -64,6 +65,7 @@ namespace Quizzly.DataAccess.Repositories.Implementions
         public async Task<IEnumerable<Quiz>> GetRecentQuizzezPerInstructor(int InstructorId)
         {
             return await _context.Quizzes
+                 .Include(q => q.QuizAttempts)
                  .Where(q => q.InstructorId == InstructorId)
                  .OrderByDescending(q => q.CreatedAt)
                  .Take(5)
