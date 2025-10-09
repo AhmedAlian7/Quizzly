@@ -4,6 +4,7 @@ namespace Quizzly.DataAccess.Repositories.Interfaces
 {
     public interface IStudentRepository : IRepository<Student>
     {
+        Task<Student?> GetByUserIdAsync(string userId, string includes = "");
     }
 }
 

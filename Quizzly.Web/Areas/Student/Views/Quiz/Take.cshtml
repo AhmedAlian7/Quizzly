@@ -66,7 +66,7 @@
 
                         <!-- Action Buttons -->
                         <div class="d-flex justify-content-center gap-3 mt-4">
-                            <a href="@Url.Action("Index", "Dashboard", new { area = "Student" })" class="btn btn-secondary px-4">
+                            <a href="@Url.Action("Index", "Dashboard", new { area = "Student" })" class="btn btn-secondary px-4" id="exitQuizBtn">
                                 <span class="fw-medium">Exit Quiz</span>
                             </a>
                             <button type="button" class="btn btn-success px-4" id="submitQuizBtn">
@@ -350,6 +350,7 @@
             const submitBtn = document.getElementById('submitQuizBtn');
             const submitForm = document.getElementById('submitForm');
             const answersInput = document.getElementById('answersJsonInput');
+            const exitBtn = document.getElementById('exitQuizBtn');
 
             if (submitBtn && submitForm) {
                 submitBtn.addEventListener('click', async function(e) {
@@ -420,6 +421,31 @@
                             // Submit the form
                             submitForm.submit();
                         });
+                    }
+                });
+            }
+
+            // ============================================
+            // EXIT QUIZ CONFIRMATION
+            // ============================================
+            if (exitBtn) {
+                exitBtn.addEventListener('click', async function(e) {
+                    e.preventDefault();
+                    const targetHref = exitBtn.getAttribute('href');
+
+                    const result = await Swal.fire({
+                        icon: 'warning',
+                        title: 'Exit quiz?',
+                        text: 'Are you sure you want to exit? Your answers will not be submitted.',
+                        showCancelButton: true,
+                        confirmButtonText: 'Exit',
+                        cancelButtonText: 'Stay',
+                        confirmButtonColor: '#d33',
+                        cancelButtonColor: '#3085d6'
+                    });
+
+                    if (result.isConfirmed && targetHref) {
+                        window.location.href = targetHref;
                     }
                 });
             }

@@ -314,16 +314,16 @@ namespace Quizzly.Web.Areas.Authentication.Controllers
         [HttpGet]
         public IActionResult AccessDenied(string returnUrl = "")
         {
-            return View();
+            return View("~/Views/Shared/AccessDenied.cshtml");
         }
         public IActionResult PrivacyPolicy()
         {
-            return View();
+            return View("~/Views/Shared/PrivacyPolicy.cshtml");
         }
 
         public IActionResult DataDeletion()
         {
-            return View();
+            return View("~/Views/Shared/DataDeletion.cshtml");
         }
 
     }
