@@ -64,27 +64,22 @@ namespace Quizzly.DataAccess.Repositories.Implementions
         public async Task<IEnumerable<Quiz>> GetRecentQuizzezPerInstructor(int InstructorId)
         {
             return await _context.Quizzes
-                 .Include(q => q.QuizAttempts)
                  .Where(q => q.InstructorId == InstructorId)
                  .OrderByDescending(q => q.CreatedAt)
                  .Take(5)
                  .ToListAsync();
         }
 
-        public async Task<Quiz?> GetByAccessTokenAsync(string accessToken, bool includeRelations = true)
+        public async Task<Quiz?> GetByAccessTokenAsync(string accessToken, string includes = "")
         {
             var query = _context.Quizzes.AsQueryable();
-            if (includeRelations)
+            if (!string.IsNullOrWhiteSpace(includes))
             {
-                query = query
-                    .Include(q => q.Instructor)
-                    .Include(q => q.QuizCategory)
-                    .Include(q => q.Questions)
-                        .ThenInclude(qn => qn.Choices)
-                    .Include(q => q.StudentInfoFields)
-                    .Include(q => q.QuizAttempts);
+                foreach (var include in includes.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
+                {
+                    query = query.Include(include.Trim());
+                }
             }
-
             return await query.FirstOrDefaultAsync(q => q.AccessToken == accessToken);
         }
     }

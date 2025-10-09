@@ -32,8 +32,8 @@
                     else
                     {
                         <div class="d-flex gap-2">
-                            <a class="btn btn-primary" href="@Url.Action("Start","Quiz", new { area = "Student", token = Model.AccessToken })" onclick="return confirm('Are you ready to begin? The timer will start immediately.');">Start Quiz</a>
-                            <a class="btn btn-outline-secondary" href="@Url.Action("Index","Home", new { area = "Instructor" })">Cancel</a>
+                            <a class="btn btn-primary" href="#" id="startQuizBtn" data-url="@Url.Action("Start", "Quiz", new { area = "Student", token = Model.AccessToken })">Start Quiz</a>
+                            <a class="btn btn-outline-secondary" href="@Url.Action("Index", "Home", new { area = "Instructor" })">Cancel</a>
                         </div>
                     }
                 </div>
@@ -43,3 +43,43 @@
 </div>
 
 
+<script>
+    document.getElementById('startQuizBtn').addEventListener('click', function(e) {
+        e.preventDefault();
+        const url = this.getAttribute('data-url');
+
+        Swal.fire({
+            icon: 'info',
+            title: 'Ready to Begin?',
+            html: '<p class="mb-2">The timer will start immediately</p><p class="text-muted small">Make sure you\'re ready before proceeding</p>',
+            showCancelButton: true,
+            confirmButtonText: '<i class="bi bi-play-fill"></i> Start Quiz',
+            cancelButtonText: 'Not Yet',
+            confirmButtonColor: '#0d6efd',
+            cancelButtonColor: '#6c757d',
+            reverseButtons: true,
+            backdrop: true,
+            allowOutsideClick: false,
+            customClass: {
+                confirmButton: 'btn btn-primary px-4',
+                cancelButton: 'btn btn-secondary px-4'
+            },
+            buttonsStyling: false
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Show loading while redirecting
+                Swal.fire({
+                    title: 'Starting Quiz...',
+                    text: 'Please wait',
+                    allowOutsideClick: false,
+                    allowEscapeKey: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+
+                window.location.href = url;
+            }
+        });
+    });
+</script>

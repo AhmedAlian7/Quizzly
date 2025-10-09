@@ -13,7 +13,7 @@ namespace Quizzly.Business.ViewModels.Student
         public DateTime? QuizStartAtUtc { get; set; }
         public DateTime? QuizEndAtUtc { get; set; }
 
-
+        public int DurationIsSeconds { get; set; }
         public int CurrentIndex { get; set; }
         public int TotalQuestions { get; set; }
         public List<QuestionVm> Questions { get; set; } = new();
@@ -23,6 +23,7 @@ namespace Quizzly.Business.ViewModels.Student
             public int QuestionId { get; set; }
             public int OrderIndex { get; set; }
             public string Text { get; set; }
+            public string? ImageUrl { get; set; }
             public QuestionType QuestionType { get; set; }
             public bool IsRequired { get; set; }
             public decimal Points { get; set; }
