@@ -11,6 +11,10 @@ namespace Quizzly.Business.ViewModels.Student
         public TimeSpan TotalTimeSpent { get; set; }
 
         public List<RecentAttemptItem> RecentAttempts { get; set; } = new();
+        public int CurrentPage { get; set; }
+        public int PageSize { get; set; }
+        public int TotalItems { get; set; }
+        public int TotalPages => (int)Math.Ceiling((double)TotalItems / PageSize);
 
         public class RecentAttemptItem
         {
@@ -22,6 +26,9 @@ namespace Quizzly.Business.ViewModels.Student
             public TimeSpan Duration { get; set; }
             public DateTime? FinishedAt { get; set; }
             public bool IsCompleted { get; set; }
+            public string Status { get; set; }
+            public DateTime DisplayAt { get; set; }
+            public bool ShowScoreImmediately { get; set; }
         }
     }
 }

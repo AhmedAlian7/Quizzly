@@ -21,10 +21,10 @@ namespace Quizzly.Web.Areas.Student.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int page = 1)
         {
             var user = await _userManager.GetUserAsync(User);
-            var vm = await _studentQuizService.GetResultsOverviewAsync(user!.Id, 10);
+            var vm = await _studentQuizService.GetResultsOverviewAsync(user!.Id, page, Numbers.DefaultPageSize);
             return View(vm);
         }
     }

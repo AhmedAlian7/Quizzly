@@ -21,8 +21,9 @@ namespace Quizzly.Web.Areas.Student.Controllers
         public async Task<IActionResult> Index()
         {
             var user = await _userManager.GetUserAsync(User);
-            var recent = await _studentQuizService.GetRecentAttemptsForUserAsync(user!.Id, 5);
-            return View(recent);
+            ViewBag.FullName = $"{user?.FirstName} {user?.LastName}";
+            var dashboardData = await _studentQuizService.GetStudentDashboardAsync(user!.Id);
+            return View(dashboardData);
         }
     }
 }

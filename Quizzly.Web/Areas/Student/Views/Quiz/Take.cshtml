@@ -66,9 +66,9 @@
 
                         <!-- Action Buttons -->
                         <div class="d-flex justify-content-center gap-3 mt-4">
-                            <a href="@Url.Action("Index", "Dashboard", new { area = "Student" })" class="btn btn-secondary px-4" id="exitQuizBtn">
+                            <button type="button" class="btn btn-secondary px-4" id="exitQuizBtn">
                                 <span class="fw-medium">Exit Quiz</span>
-                            </a>
+                            </button>
                             <button type="button" class="btn btn-success px-4" id="submitQuizBtn">
                                 <i class="bi bi-check-circle me-2"></i>
                                 <span class="fw-medium">Submit Quiz</span>
@@ -127,6 +127,11 @@
 <form method="post" asp-action="Submit" asp-route-attemptId="@Model.AttemptId" id="submitForm" style="display: none;">
     <input type="hidden" name="answersJson" id="answersJsonInput" />
 </form>
+
+<form method="post" asp-action="Exit" asp-route-attemptId="@Model.AttemptId" id="exitForm" style="display: none;">
+    <input type="hidden" name="answersJson" id="exitAnswersJsonInput" />
+    @Html.AntiForgeryToken()
+    </form>
 
 @section Scripts {
     <script>
@@ -351,6 +356,8 @@
             const submitForm = document.getElementById('submitForm');
             const answersInput = document.getElementById('answersJsonInput');
             const exitBtn = document.getElementById('exitQuizBtn');
+            const exitForm = document.getElementById('exitForm');
+            const exitAnswersInput = document.getElementById('exitAnswersJsonInput');
 
             if (submitBtn && submitForm) {
                 submitBtn.addEventListener('click', async function(e) {
@@ -428,10 +435,9 @@
             // ============================================
             // EXIT QUIZ CONFIRMATION
             // ============================================
-            if (exitBtn) {
+            if (exitBtn && exitForm) {
                 exitBtn.addEventListener('click', async function(e) {
                     e.preventDefault();
-                    const targetHref = exitBtn.getAttribute('href');
 
                     const result = await Swal.fire({
                         icon: 'warning',
@@ -444,8 +450,16 @@
                         cancelButtonColor: '#3085d6'
                     });
 
-                    if (result.isConfirmed && targetHref) {
-                        window.location.href = targetHref;
+                    if (result.isConfirmed) {
+                        // Save current answer to local storage cache
+                        saveCurrentAnswer();
+                        const answersArray = readAll();
+                        // Attach to hidden form and submit exit
+                        exitAnswersInput.value = JSON.stringify(answersArray);
+                        // Clear local cache timer for this attempt
+                        localStorage.removeItem(STORAGE_KEY);
+                        localStorage.removeItem('quizzly_timer_' + ATTEMPT_ID);
+                        exitForm.submit();
                     }
                 });
             }

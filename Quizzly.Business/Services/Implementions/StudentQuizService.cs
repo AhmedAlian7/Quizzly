@@ -166,7 +166,7 @@ namespace Quizzly.Business.Services.Implementions
             attempt.IsCompleted = true;
 
             decimal score = 0m;
-            foreach (var q in attempt.Quiz.Questions)
+            foreach (var q in attempt.Quiz!.Questions)
             {
                 if (q.QuestionType == QuestionType.MCQ || q.QuestionType == QuestionType.TrueFalse)
                 {
@@ -206,6 +206,53 @@ namespace Quizzly.Business.Services.Implementions
             return attempt.Id;
         }
 
+        public async Task ExitAsync(int attemptId, string? answersJson)
+        {
+            var attempt = await _uow.QuizAttempts.GetAttemptByIdAsync(
+                attemptId,
+                includes: "Quiz,Quiz.Questions,Quiz.Questions.Choices,Answers,Answers.Question,Answers.Choice");
+            if (attempt == null)
+                throw new KeyNotFoundException("Attempt not found");
+
+            if (attempt.IsCompleted)
+                return;
+
+            if (!string.IsNullOrWhiteSpace(answersJson))
+            {
+                try
+                {
+                    var payload = JsonSerializer.Deserialize<List<ClientAnswerDto>>(answersJson) ?? new();
+                    foreach (var existing in attempt.Answers.ToList())
+                    {
+                        await _uow.Answers.DeleteAsync(existing.Id);
+                    }
+                    foreach (var p in payload)
+                    {
+                        if (p == null) continue;
+                        if (p.choiceId.HasValue)
+                        {
+                            await _uow.Answers.AddAsync(new Answer { QuizAttemptId = attempt.Id, QuestionId = p.questionId, ChoiceId = p.choiceId, IsCorrect = null, IsGraded = false });
+                        }
+                        else if (!string.IsNullOrWhiteSpace(p.textAnswer))
+                        {
+                            await _uow.Answers.AddAsync(new Answer { QuizAttemptId = attempt.Id, QuestionId = p.questionId, TextAnswer = p.textAnswer, IsCorrect = null, IsGraded = false });
+                        }
+                    }
+                }
+                catch
+                {
+                    // ignore bad payload and continue
+                }
+            }
+
+            // Keep attempt open and update timestamp
+            attempt.IsCompleted = false;
+            attempt.FinishedAt = null;
+            attempt.UpdatedAt = DateTime.UtcNow;
+            _uow.QuizAttempts.Update(attempt);
+            await _uow.SaveAsync();
+        }
+
         public async Task<QuizResultViewModel> GetResultAsync(int attemptId)
         {
             var attempt = await _uow.QuizAttempts.GetAttemptByIdAsync(
@@ -213,6 +260,13 @@ namespace Quizzly.Business.Services.Implementions
                 includes: "Quiz,Quiz.Questions,Quiz.Questions.Choices,Answers,Answers.Question,Answers.Choice");
             if (attempt == null)
                 throw new KeyNotFoundException("Attempt not found");
+
+            var autoGradedQuestions = attempt.Quiz.Questions
+                .Where(q => q.QuestionType == QuestionType.MCQ || q.QuestionType == QuestionType.TrueFalse)
+                .ToList();
+            var autoMax = autoGradedQuestions.Sum(q => q.Points);
+            var autoScore = attempt.Score ?? 0m; // attempt.Score is computed only from auto-graded questions
+            var autoPct = autoMax > 0 ? Math.Round((autoScore / autoMax) * 100m, 2) : (decimal?)0;
 
             var vm = new QuizResultViewModel
             {
@@ -225,8 +279,12 @@ namespace Quizzly.Business.Services.Implementions
                 TimeTaken = (attempt.FinishedAt ?? DateTime.UtcNow) - attempt.StartedAt,
                 IsAutoGraded = attempt.IsAutoGraded,
                 ShowCorrectAnswers = attempt.Quiz.ShowCorrectAnswers,
+                ShowScoreImmediately = attempt.Quiz.ShowScoreImmediatlely,
                 Passed = attempt.Quiz.PassingScore.HasValue ? (attempt.Score ?? 0) >= attempt.Quiz.PassingScore.Value : false,
-                AwaitingManualGrading = attempt.Answers.Any(a => a.Question.QuestionType == QuestionType.Essay || a.Question.QuestionType == QuestionType.ShortAnswer)
+                AwaitingManualGrading = attempt.Answers.Any(a => a.Question.QuestionType == QuestionType.Essay || a.Question.QuestionType == QuestionType.ShortAnswer),
+                AutoGradedMaxScore = autoMax,
+                AutoGradedScore = autoScore,
+                AutoGradedPercentage = autoPct
             };
 
             vm.Questions = attempt.Quiz.Questions.OrderBy(q => q.OrderIndex).Select(q => new QuizResultViewModel.QuestionResultVm
@@ -301,7 +359,7 @@ namespace Quizzly.Business.Services.Implementions
             return await _uow.QuizAttempts.GetRecentAttemptsForStudentAsync(student.Id, take, includes: "Quiz");
         }
 
-        public async Task<StudentResultsOverviewViewModel> GetResultsOverviewAsync(string userId, int recentTake = 10)
+        public async Task<StudentResultsOverviewViewModel> GetResultsOverviewAsync(string userId, int page = 1, int pageSize = 10)
         {
             var student = await _uow.Students.GetByUserIdAsync(userId);
             if (student == null)
@@ -313,6 +371,7 @@ namespace Quizzly.Business.Services.Implementions
                 .GetQueryable(includes: "Quiz,Answers")
                 .Where(a => a.StudentId == student.Id);
 
+            var totalItems = await query.CountAsync();
             var completed = await query.Where(a => a.IsCompleted && a.FinishedAt != null).ToListAsync();
 
             decimal average = 0m;
@@ -340,17 +399,34 @@ namespace Quizzly.Business.Services.Implementions
 
             var recent = await query
                 .OrderByDescending(a => a.FinishedAt ?? a.StartedAt)
-                .Take(recentTake)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
                 .Select(a => new StudentResultsOverviewViewModel.RecentAttemptItem
                 {
                     AttemptId = a.Id,
                     QuizId = a.QuizId,
                     QuizTitle = a.Quiz.Title,
-                    Percentage = a.Percentage,
+                    Percentage = a.Quiz.ShowScoreImmediatlely
+                        ? (
+                            (
+                                (a.Quiz.Questions.Where(q => q.QuestionType == QuestionType.MCQ || q.QuestionType == QuestionType.TrueFalse).Sum(q => (decimal?)q.Points) ?? 0) > 0
+                            )
+                                ? Math.Round(
+                                    (((a.Score ?? 0) / (a.Quiz.Questions.Where(q => q.QuestionType == QuestionType.MCQ || q.QuestionType == QuestionType.TrueFalse).Sum(q => (decimal?)q.Points) ?? 0)) * 100m)
+                                  , 2)
+                                : (decimal?)0
+                          )
+                        : null,
                     QuestionsCount = a.Quiz.Questions.Count,
-                    Duration = (a.FinishedAt ?? a.StartedAt) - a.StartedAt,
+                    Duration = (a.FinishedAt ?? a.UpdatedAt) - a.StartedAt,
                     FinishedAt = a.FinishedAt,
-                    IsCompleted = a.IsCompleted
+                    IsCompleted = a.IsCompleted,
+                    Status = a.IsCompleted
+                        ? (a.Answers.Any(ans => (ans.Question.QuestionType == QuestionType.Essay || ans.Question.QuestionType == QuestionType.ShortAnswer) && !ans.IsGraded)
+                            ? "Pending Grading" : "Completed")
+                        : "Exited",
+                    DisplayAt = (a.FinishedAt ?? a.UpdatedAt),
+                    ShowScoreImmediately = a.Quiz.ShowScoreImmediatlely
                 })
                 .ToListAsync();
 
@@ -360,8 +436,178 @@ namespace Quizzly.Business.Services.Implementions
                 CompletedQuizzesCount = completed.Count,
                 BestScorePercentage = best,
                 TotalTimeSpent = totalTime,
-                RecentAttempts = recent
+                RecentAttempts = recent,
+                CurrentPage = page,
+                PageSize = pageSize,
+                TotalItems = totalItems
             };
+        }
+
+        public async Task<StudentDashboardDto> GetStudentDashboardAsync(string userId)
+        {
+            var student = await _uow.Students.GetByUserIdAsync(userId);
+            if (student == null)
+            {
+                return new StudentDashboardDto();
+            }
+
+            var allAttempts = await _uow.QuizAttempts
+                .GetQueryable(includes: "Quiz,Quiz.QuizCategory,Quiz.Instructor.User,Answers,Answers.Question")
+                .Where(a => a.StudentId == student.Id)
+                .OrderByDescending(a => a.StartedAt)
+                .ToListAsync();
+
+            var completedAttempts = allAttempts.Where(a => a.IsCompleted && a.FinishedAt.HasValue).ToList();
+            var exitedAttempts = allAttempts.Where(a => !a.IsCompleted).ToList();
+            var pendingGrading = completedAttempts.Where(a => a.Answers.Any(ans => 
+                (ans.Question.QuestionType == QuestionType.Essay || ans.Question.QuestionType == QuestionType.ShortAnswer) 
+                && !ans.IsGraded)).ToList();
+
+            // Calculate statistics
+            var totalQuizzesAttempted = allAttempts.Count;
+            var completedQuizzes = completedAttempts.Count;
+            var exitedQuizzes = exitedAttempts.Count;
+            var pendingGradingCount = pendingGrading.Count;
+
+            var scores = completedAttempts.Where(a => a.Percentage.HasValue).Select(a => a.Percentage!.Value).ToList();
+            var averageScore = scores.Any() ? Math.Round(scores.Average(), 2) : (decimal?)null;
+            var bestScore = scores.Any() ? scores.Max() : (decimal?)null;
+
+            var totalTimeSpent = completedAttempts
+                .Where(a => a.FinishedAt.HasValue)
+                .Aggregate(TimeSpan.Zero, (total, attempt) => total + (attempt.FinishedAt!.Value - attempt.StartedAt));
+
+
+            // Performance over time (last 10 completed attempts)
+            var performanceOverTime = completedAttempts
+                .Take(10)
+                .Select(a => new StudentPerformanceDto
+                {
+                    Date = a.FinishedAt!.Value,
+                    Score = a.Percentage,
+                    QuizTitle = a.Quiz.Title,
+                    QuizId = a.QuizId
+                })
+                .ToList();
+
+            // Category performance
+            var categoryPerformance = allAttempts
+                .Where(a => a.IsCompleted && a.Quiz.QuizCategory != null)
+                .GroupBy(a => a.Quiz.QuizCategory.Name)
+                .Select(g => new QuizCategoryPerformanceDto
+                {
+                    CategoryName = g.Key,
+                    Attempts = g.Count(),
+                    AverageScore = g.Where(a => a.Percentage.HasValue).Any() 
+                        ? Math.Round(g.Where(a => a.Percentage.HasValue).Average(a => a.Percentage!.Value), 2) 
+                        : (decimal?)null,
+                    BestScore = g.Where(a => a.Percentage.HasValue).Any() 
+                        ? g.Where(a => a.Percentage.HasValue).Max(a => a.Percentage!.Value) 
+                        : (decimal?)null
+                })
+                .ToList();
+
+            // Question type performance
+            var questionTypePerformance = CalculateQuestionTypePerformance(completedAttempts);
+
+            // Recent attempts (last 5)
+            var recentAttempts = allAttempts
+                .Take(5)
+                .Select(a => new StudentRecentAttemptDto
+                {
+                    AttemptId = a.Id,
+                    QuizTitle = a.Quiz.Title,
+                    Score = a.Percentage,
+                    Status = a.IsCompleted 
+                        ? (a.Answers.Any(ans => (ans.Question.QuestionType == QuestionType.Essay || ans.Question.QuestionType == QuestionType.ShortAnswer) && !ans.IsGraded)
+                            ? "Pending Grading" : "Completed")
+                        : "Exited",
+                    AttemptDate = a.FinishedAt ?? a.UpdatedAt,
+                    Duration = (a.FinishedAt ?? a.UpdatedAt) - a.StartedAt,
+                    ShowScore = a.Quiz.ShowScoreImmediatlely
+                })
+                .ToList();
+
+
+            // Achievement data
+            var improvementData = CalculateImprovementData(completedAttempts);
+
+            return new StudentDashboardDto
+            {
+                TotalQuizzesAttempted = totalQuizzesAttempted,
+                CompletedQuizzes = completedQuizzes,
+                ExitedQuizzes = exitedQuizzes,
+                PendingGrading = pendingGradingCount,
+                AverageScore = averageScore,
+                BestScore = bestScore,
+                TotalTimeSpent = totalTimeSpent,
+                PerformanceOverTime = performanceOverTime,
+                CategoryPerformance = categoryPerformance,
+                QuestionTypePerformance = questionTypePerformance,
+                RecentAttempts = recentAttempts,
+                ImprovementCount = improvementData.ImprovementCount,
+                AverageImprovement = improvementData.AverageImprovement
+            };
+        }
+
+
+        private List<QuestionTypePerformanceDto> CalculateQuestionTypePerformance(List<QuizAttempt> completedAttempts)
+        {
+            var questionTypeStats = new Dictionary<QuestionType, (int total, int correct)>();
+
+            foreach (var attempt in completedAttempts)
+            {
+                foreach (var answer in attempt.Answers)
+                {
+                    var questionType = answer.Question.QuestionType;
+                    if (!questionTypeStats.ContainsKey(questionType))
+                        questionTypeStats[questionType] = (0, 0);
+
+                    questionTypeStats[questionType] = (
+                        questionTypeStats[questionType].total + 1,
+                        questionTypeStats[questionType].correct + (answer.IsCorrect == true ? 1 : 0)
+                    );
+                }
+            }
+
+            return questionTypeStats.Select(kvp => new QuestionTypePerformanceDto
+            {
+                QuestionType = kvp.Key.ToString(),
+                TotalQuestions = kvp.Value.total,
+                CorrectAnswers = kvp.Value.correct,
+                Accuracy = kvp.Value.total > 0 ? Math.Round((decimal)kvp.Value.correct / kvp.Value.total * 100, 2) : 0
+            }).ToList();
+        }
+
+
+        private (int ImprovementCount, decimal? AverageImprovement) CalculateImprovementData(List<QuizAttempt> completedAttempts)
+        {
+            var quizGroups = completedAttempts
+                .Where(a => a.Percentage.HasValue)
+                .GroupBy(a => a.QuizId)
+                .Where(g => g.Count() > 1)
+                .ToList();
+
+            var improvements = new List<decimal>();
+
+            foreach (var group in quizGroups)
+            {
+                var attempts = group.OrderBy(a => a.StartedAt).ToList();
+                for (int i = 1; i < attempts.Count; i++)
+                {
+                    var previousScore = attempts[i - 1].Percentage!.Value;
+                    var currentScore = attempts[i].Percentage!.Value;
+                    if (currentScore > previousScore)
+                    {
+                        improvements.Add(currentScore - previousScore);
+                    }
+                }
+            }
+
+            return (
+                improvements.Count,
+                improvements.Any() ? Math.Round(improvements.Average(), 2) : (decimal?)null
+            );
         }
 
         private class ClientAnswerDto
