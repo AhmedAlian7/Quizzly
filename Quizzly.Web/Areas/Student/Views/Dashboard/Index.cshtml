@@ -1,44 +1,315 @@
-@model IEnumerable<Quizzly.DataAccess.Entities.QuizAttempt>
+@using System.Text.Json
+@model Quizzly.Business.ViewModels.Student.StudentDashboardDto
 @{
     ViewData["Title"] = "Student Dashboard";
 }
 
-<div class="container py-5">
-    <h2 class="mb-4">Welcome, @ViewBag.FullName</h2>
+<div class="container py-4">
+    <h2 class="fw-bold mb-2">Student Dashboard</h2>
+    <p class="text-muted mb-4">Welcome back, @ViewBag.FullName! Track your learning progress and performance.</p>
 
-    <div class="card shadow-sm mb-4">
-        <div class="card-body">
-            <form class="row g-2" method="get" action="@Url.Action("Link","Access", new { area = "Student" })">
-                <div class="col-sm-9">
-                    <input type="text" name="token" class="form-control" placeholder="Enter quiz access token" />
+    <!-- Stats Cards -->
+    <div class="row g-3 mb-4">
+        <!-- Total Quizzes Attempted -->
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 rounded-3">
+                <div class="card-body text-center">
+                    <h6 class="text-muted">Quizzes Attempted</h6>
+                    <h3 class="fw-bold text-primary">@Model.TotalQuizzesAttempted</h3>
                 </div>
-                <div class="col-sm-3 d-grid">
-                    <button class="btn btn-primary">Access Quiz</button>
+            </div>
+        </div>
+
+        <!-- Average Score -->
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 rounded-3">
+                <div class="card-body text-center">
+                    <h6 class="text-muted">Average Score</h6>
+                    <h3 class="fw-bold text-success">
+                        @(Model.AverageScore.HasValue ? $"{Model.AverageScore.Value:F1}%" : "N/A")
+                    </h3>
                 </div>
-            </form>
+            </div>
+        </div>
+
+        <!-- Best Score -->
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 rounded-3">
+                <div class="card-body text-center">
+                    <h6 class="text-muted">Best Score</h6>
+                    <h3 class="fw-bold text-warning">
+                        @(Model.BestScore.HasValue ? $"{Model.BestScore.Value:F1}%" : "N/A")
+                    </h3>
+                </div>
+            </div>
+        </div>
+
+        <!-- Total Time -->
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 rounded-3">
+                <div class="card-body text-center">
+                    <h6 class="text-muted">Total Time</h6>
+                    <h3 class="fw-bold text-info">@((Model.TotalTimeSpent.TotalHours).ToString("0.#"))h</h3>
+                </div>
+            </div>
         </div>
     </div>
 
-    <h5 class="mb-3">Recent Attempts</h5>
-    @if (!Model.Any())
-    {
-        <div class="alert alert-light">No attempts yet.</div>
-    }
-    else
-    {
-        <div class="list-group">
-            @foreach (var a in Model)
-            {
-                <a class="list-group-item list-group-item-action d-flex justify-content-between align-items-center" href="@Url.Action("Result","Quiz", new { area = "Student", attemptId = a.Id })">
-                    <div>
-                        <div class="fw-semibold">@a.Quiz.Title</div>
-                        <div class="small text-muted">@a.StartedAt.ToLocalTime().ToString("g")</div>
-                    </div>
-                    <div class="badge bg-light text-dark">@((a.Percentage ?? 0).ToString("0.##"))%</div>
-                </a>
-            }
+    <!-- Additional Stats Row -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 rounded-3">
+                <div class="card-body text-center">
+                    <h6 class="text-muted">Completed</h6>
+                    <h4 class="fw-bold text-success">@Model.CompletedQuizzes</h4>
+                </div>
+            </div>
         </div>
-    }
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 rounded-3">
+                <div class="card-body text-center">
+                    <h6 class="text-muted">Pending Grading</h6>
+                    <h4 class="fw-bold text-warning">@Model.PendingGrading</h4>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 rounded-3">
+                <div class="card-body text-center">
+                    <h6 class="text-muted">Exited</h6>
+                    <h4 class="fw-bold text-secondary">@Model.ExitedQuizzes</h4>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Performance Over Time Chart -->
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-0 rounded-3">
+                <div class="card-body">
+                    <h5 class="mb-3">Performance Over Time</h5>
+                    <div style="height: 300px;">
+                        <canvas id="performanceChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Question Type Performance -->
+        <div class="col-lg-4">
+            <div class="card shadow-sm border-0 rounded-3">
+                <div class="card-body">
+                    <h5 class="mb-3">Question Type Accuracy</h5>
+                    <div style="height: 300px;">
+                        <canvas id="questionTypeChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4 mt-2">
+        <!-- Category Performance -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm border-0 rounded-3">
+                <div class="card-body">
+                    <h5 class="mb-3">Category Performance</h5>
+                    @if (Model.CategoryPerformance.Any())
+                    {
+                        <div style="height: 250px;">
+                            <canvas id="categoryChart"></canvas>
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-muted text-center">No category data available yet.</p>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Attempts -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm border-0 rounded-3">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="mb-0">Recent Attempts</h5>
+                        <a href="@Url.Action("Index", "Results", new { area = "Student" })" class="btn btn-sm btn-outline-secondary">View All</a>
+                    </div>
+
+                    @if (Model.RecentAttempts.Any())
+                    {
+                        @foreach (var attempt in Model.RecentAttempts)
+                        {
+                            <div class="border-bottom pb-2 mb-2">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <strong>@attempt.QuizTitle</strong>
+                                        <div>
+                                            <span class="badge @(attempt.Status == "Completed" ? "bg-success" : attempt.Status == "Pending Grading" ? "bg-warning" : "bg-secondary")">@attempt.Status</span>
+                                            @if (attempt.ShowScore && attempt.Score.HasValue)
+                                            {
+                                                <span class="text-muted ms-2">@attempt.Score.Value.ToString("F1")%</span>
+                                            }
+                                            <span class="text-muted ms-1">@((int)attempt.Duration.TotalMinutes) min</span>
+                                        </div>
+                                    </div>
+                                    <small class="text-muted">@attempt.AttemptDate.ToString("MMM dd")</small>
+                                </div>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <p class="text-muted">No recent attempts found.</p>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
 </div>
 
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Performance Over Time Chart - Based on actual student attempts
+        const performanceData = @Html.Raw(Json.Serialize(Model.PerformanceOverTime.Select(p => new { 
+            date = p.Date.ToString("MMM dd"), 
+            score = p.Score,
+            quizTitle = p.QuizTitle
+        })));
 
+        const performanceCtx = document.getElementById('performanceChart').getContext('2d');
+        new Chart(performanceCtx, {
+            type: 'line',
+            data: {
+                labels: performanceData.map(p => p.date),
+                datasets: [{
+                    label: 'Score (%)',
+                    data: performanceData.map(p => p.score),
+                    borderColor: 'rgb(75, 192, 192)',
+                    backgroundColor: 'rgba(75, 192, 192, 0.1)',
+                    tension: 0.1,
+                    fill: true,
+                    pointRadius: 6,
+                    pointHoverRadius: 8
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100,
+                        ticks: {
+                            callback: function(value) {
+                                return value + '%';
+                            }
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        callbacks: {
+                            afterLabel: function(context) {
+                                const index = context.dataIndex;
+                                return performanceData[index].quizTitle;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // Question Type Performance Chart
+        const questionTypeData = @Html.Raw(Json.Serialize(Model.QuestionTypePerformance.Select(q => new { 
+            type = q.QuestionType, 
+            accuracy = q.Accuracy 
+        })));
+
+        const questionTypeCtx = document.getElementById('questionTypeChart').getContext('2d');
+        new Chart(questionTypeCtx, {
+            type: 'doughnut',
+            data: {
+                labels: questionTypeData.map(q => q.type),
+                datasets: [{
+                    data: questionTypeData.map(q => q.accuracy),
+                    backgroundColor: [
+                        'rgba(255, 99, 132, 0.8)',
+                        'rgba(54, 162, 235, 0.8)',
+                        'rgba(255, 205, 86, 0.8)',
+                        'rgba(75, 192, 192, 0.8)'
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+
+        // Category Performance Chart
+        @if (Model.CategoryPerformance.Any())
+        {
+            <text>
+            const categoryData = @Html.Raw(Json.Serialize(Model.CategoryPerformance.Select(c => new { 
+                category = c.CategoryName, 
+                average = c.AverageScore 
+            })));
+
+            const categoryCtx = document.getElementById('categoryChart').getContext('2d');
+            new Chart(categoryCtx, {
+                type: 'bar',
+                data: {
+                    labels: categoryData.map(c => c.category),
+                    datasets: [{
+                        label: 'Average Score (%)',
+                        data: categoryData.map(c => c.average),
+                        backgroundColor: 'rgba(54, 162, 235, 0.8)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+            </text>
+        }
+    </script>
+}
+
+<style>
+    .card {
+        transition: transform 0.2s ease-in-out;
+    }
+    
+    .card:hover {
+        transform: translateY(-2px);
+    }
+    
+    .badge {
+        font-size: 0.75rem;
+    }
+</style>

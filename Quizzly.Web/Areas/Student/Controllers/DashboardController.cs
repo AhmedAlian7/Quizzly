@@ -22,8 +22,8 @@ namespace Quizzly.Web.Areas.Student.Controllers
         {
             var user = await _userManager.GetUserAsync(User);
             ViewBag.FullName = $"{user?.FirstName} {user?.LastName}";
-            var recent = await _studentQuizService.GetRecentAttemptsForUserAsync(user!.Id, 5);
-            return View(recent);
+            var dashboardData = await _studentQuizService.GetStudentDashboardAsync(user!.Id);
+            return View(dashboardData);
         }
     }
 }

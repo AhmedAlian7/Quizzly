@@ -64,6 +64,10 @@
         <div class="card-body">
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <h2 class="h5 fw-semibold mb-0">Recent Attempts</h2>
+                <div class="d-flex align-items-center gap-2">
+                    <span class="text-muted small">Page @Model.CurrentPage of @Model.TotalPages</span>
+                    <span class="text-muted small">(@Model.TotalItems total)</span>
+                </div>
             </div>
 
             <div class="table-responsive">
@@ -132,6 +136,70 @@
                     </tbody>
                 </table>
             </div>
+
+            <!-- Pagination -->
+            @if (Model.TotalPages > 1)
+            {
+                <nav aria-label="Results pagination" class="mt-4">
+                    <ul class="pagination justify-content-center">
+                        @if (Model.CurrentPage > 1)
+                        {
+                            <li class="page-item">
+                                <a class="page-link" href="@Url.Action("Index", new { page = Model.CurrentPage - 1, pageSize = Model.PageSize })" aria-label="Previous">
+                                    <span aria-hidden="true">&laquo;</span>
+                                </a>
+                            </li>
+                        }
+
+                        @{
+                            var startPage = Math.Max(1, Model.CurrentPage - 2);
+                            var endPage = Math.Min(Model.TotalPages, Model.CurrentPage + 2);
+                        }
+
+                        @if (startPage > 1)
+                        {
+                            <li class="page-item">
+                                <a class="page-link" href="@Url.Action("Index", new { page = 1, pageSize = Model.PageSize })">1</a>
+                            </li>
+                            @if (startPage > 2)
+                            {
+                                <li class="page-item disabled">
+                                    <span class="page-link">...</span>
+                                </li>
+                            }
+                        }
+
+                        @for (int i = startPage; i <= endPage; i++)
+                        {
+                            <li class="page-item @(i == Model.CurrentPage ? "active" : "")">
+                                <a class="page-link" href="@Url.Action("Index", new { page = i, pageSize = Model.PageSize })">@i</a>
+                            </li>
+                        }
+
+                        @if (endPage < Model.TotalPages)
+                        {
+                            @if (endPage < Model.TotalPages - 1)
+                            {
+                                <li class="page-item disabled">
+                                    <span class="page-link">...</span>
+                                </li>
+                            }
+                            <li class="page-item">
+                                <a class="page-link" href="@Url.Action("Index", new { page = Model.TotalPages, pageSize = Model.PageSize })">@Model.TotalPages</a>
+                            </li>
+                        }
+
+                        @if (Model.CurrentPage < Model.TotalPages)
+                        {
+                            <li class="page-item">
+                                <a class="page-link" href="@Url.Action("Index", new { page = Model.CurrentPage + 1, pageSize = Model.PageSize })" aria-label="Next">
+                                    <span aria-hidden="true">&raquo;</span>
+                                </a>
+                            </li>
+                        }
+                    </ul>
+                </nav>
+            }
         </div>
     </div>
 </div>
