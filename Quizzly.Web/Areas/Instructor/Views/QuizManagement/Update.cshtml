@@ -77,19 +77,16 @@
                     </div>
                     <div class="card-body">
                         <div class="form-check form-switch mb-3">
-                            <input type="hidden" asp-for="ShuffleQuestions" value="false" />
                             <input asp-for="ShuffleQuestions" class="form-check-input" value="true" />
                             <label asp-for="ShuffleQuestions" class="form-check-label">Shuffle Questions</label>
                         </div>
 
                         <div class="form-check form-switch mb-3">
-                            <input type="hidden" asp-for="ShuffleChoices" value="false" />
                             <input asp-for="ShuffleChoices" class="form-check-input" value="true" />
                             <label asp-for="ShuffleChoices" class="form-check-label">Shuffle Choices</label>
                         </div>
 
                         <div class="form-check form-switch mb-3">
-                            <input type="hidden" asp-for="AllowMultipleAttempts" value="false" />
                             <input asp-for="AllowMultipleAttempts" class="form-check-input" value="true" id="AllowMultipleAttempts" />
                             <label asp-for="AllowMultipleAttempts" class="form-check-label">Allow Multiple Attempts</label>
                         </div>
@@ -110,19 +107,16 @@
                     </div>
                     <div class="card-body">
                         <div class="form-check form-switch mb-3">
-                            <input type="hidden" asp-for="IsAutoGraded" value="false" />
                             <input asp-for="IsAutoGraded" class="form-check-input" value="true" />
                             <label asp-for="IsAutoGraded" class="form-check-label">Auto Grade Quiz</label>
                         </div>
 
                         <div class="form-check form-switch mb-3">
-                            <input type="hidden" asp-for="ShowCorrectAnswers" value="false" />
                             <input asp-for="ShowCorrectAnswers" class="form-check-input" value="true" />
                             <label asp-for="ShowCorrectAnswers" class="form-check-label">Show Correct Answers</label>
                         </div>
 
                         <div class="form-check form-switch mb-3">
-                            <input type="hidden" asp-for="ShowScoreImmediatlely" value="false" />
                             <input asp-for="ShowScoreImmediatlely" class="form-check-input" value="true" />
                             <label asp-for="ShowScoreImmediatlely" class="form-check-label">Show Score Immediately</label>
                         </div>
@@ -227,7 +221,6 @@
                                         var choice = question.Choices[j];
                                         <div class="choice-item input-group mb-2">
                                             <div class="input-group-text">
-                                                <input type="hidden" name="Questions[@i].Choices[@j].IsCorrect" value="false" />
                                                 <input name="Questions[@i].Choices[@j].IsCorrect" value="true"
                                                        type="checkbox" class="form-check-input"
                                                        @(choice.IsCorrect ? "checked" : "") />

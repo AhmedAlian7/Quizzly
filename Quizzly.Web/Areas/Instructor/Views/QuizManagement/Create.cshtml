@@ -199,7 +199,6 @@
             return `
                 <div class="input-group mb-2 choice-row" id="choice-${qId}-${cIndex}">
                     <div class="input-group-text">
-                        <input type="hidden" name="addQuestionDtos[${qId - 1}].Choices[${cIndex}].IsCorrect" value="false" />
                         <input type="checkbox" name="addQuestionDtos[${qId - 1}].Choices[${cIndex}].IsCorrect" value="true" class="form-check-input mt-0" />
                     </div>
                     <input name="addQuestionDtos[${qId - 1}].Choices[${cIndex}].Text" class="form-control" placeholder="Choice ${cIndex + 1}" required />
@@ -255,14 +254,12 @@
                     <div id="choices-list-${qId}">
                         <div class="input-group mb-2 choice-row">
                             <div class="input-group-text">
-                                <input type="hidden" name="addQuestionDtos[${qId - 1}].Choices[0].IsCorrect" value="false" />
                                 <input type="checkbox" name="addQuestionDtos[${qId - 1}].Choices[0].IsCorrect" value="true" class="form-check-input mt-0" checked />
                             </div>
                             <input name="addQuestionDtos[${qId - 1}].Choices[0].Text" class="form-control" value="True" readonly />
                         </div>
                         <div class="input-group mb-2 choice-row">
                             <div class="input-group-text">
-                                <input type="hidden" name="addQuestionDtos[${qId - 1}].Choices[1].IsCorrect" value="false" />
                                 <input type="checkbox" name="addQuestionDtos[${qId - 1}].Choices[1].IsCorrect" value="true" class="form-check-input mt-0" />
                             </div>
                             <input name="addQuestionDtos[${qId - 1}].Choices[1].Text" class="form-control" value="False" readonly />

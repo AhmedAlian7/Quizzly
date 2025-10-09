@@ -57,7 +57,7 @@ namespace Quizzly.DataAccess.Repositories.Implementions
             return await _context.Quizzes
                 .Include(q => q.Questions)
                 .ThenInclude(qn => qn.Choices)
-                .Where(q => q.InstructorId ==InstructorId)
+                .Where(q => q.InstructorId ==InstructorId & !q.IsDeleted)
                 .ToListAsync();
                 
         }

@@ -49,14 +49,14 @@ namespace Quizzly.Business.Services.Implementions
 
                 Questions = quiz.Questions.Select(q => new QuestionDetailsDto
                 {
-                    Id = q.Id, // ADD THIS
+                    Id = q.Id, 
                     Text = q.Text,
                     QuestionType = q.QuestionType,
                     Points = q.Points,
-                    ImageUrl = q.ImageUrl, // ADD THIS
+                    ImageUrl = q.ImageUrl, 
                     Choices = q.Choices.Select(c => new AddChoiceDto
                     {
-                        Id = c.Id, // ADD THIS
+                        Id = c.Id, 
                         Text = c.Text,
                         IsCorrect = c.IsCorrect
                     }).ToList()
@@ -95,6 +95,7 @@ namespace Quizzly.Business.Services.Implementions
 
             bool wasOriginallyPublished = quiz.IsPublished;
 
+            quiz.Id = dto.Id;
             quiz.Title = dto.Title;
             quiz.Description = dto.Description;
             quiz.DurationMintes = dto.TimeLimit;
@@ -116,6 +117,16 @@ namespace Quizzly.Business.Services.Implementions
 
             _unitOfWork.Quizzes.Update(quiz);
             await _unitOfWork.SaveAsync();
+        }
+        public async Task DeleteQuizAsync(int quizId)
+        {
+            var quiz = await _unitOfWork.Quizzes
+                .GetByIdAsync(quizId);
+
+            quiz.IsDeleted = true;
+
+            await _unitOfWork.SaveAsync();
+
         }
     }
 }

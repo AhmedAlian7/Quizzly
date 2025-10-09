@@ -74,6 +74,7 @@ namespace Quizzly.Business.Services.Implementions
                 Attempts = q.QuizAttempts.Count(),
                 Questions = q.Questions.Count(),
                 IsPublished = q.IsPublished,
+                Category = q.QuizCategory,
                 TimeLimit = q.DurationMintes,
                 CreatedAt = q.CreatedAt,
                 AvgScore = q.QuizAttempts
