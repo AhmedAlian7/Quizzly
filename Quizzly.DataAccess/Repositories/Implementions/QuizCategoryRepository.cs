@@ -13,8 +13,16 @@ namespace Quizzly.DataAccess.Repositories.Implementions
         public async Task<IEnumerable<QuizCategory>> GetAllByInstructorIdAsync(int instructorId)
         {
             return await _context.QuizCategories
+                .Include(qc => qc.Quizzes)
                 .Where(qc => qc.InstructorId == instructorId)
                 .ToListAsync();
+        }
+
+        public async Task<int> GetTotalByInstructorIdAsync(int instructorId)
+        {
+            return await _context.QuizCategories
+                .Where(qc => qc.InstructorId == instructorId)
+                .CountAsync();
         }
 
     }

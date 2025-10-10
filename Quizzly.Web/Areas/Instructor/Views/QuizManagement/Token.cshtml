@@ -1,52 +1,58 @@
 ﻿@model string
 @{
-	ViewData["Title"] = "Quiz Token";
+    ViewData["Title"] = "Quiz Token";
 }
 
 <div class="container mt-5">
-	<div class="card shadow-sm border-0">
-		<div class="card-body p-4">
-			<h2 class="fw-bold text-primary mb-3">Quiz Token</h2>
-			<p class="text-muted mb-4">Use the token below to share access to your quiz.</p>
-			<div class="input-group mb-3">
-				<input type="text" class="form-control" value="@Model" id="quizToken" readonly />
-				<button class="btn btn-outline-secondary" type="button" id="copyButton" onclick="copyToken()">
-					<i class="bi bi-clipboard"></i> Copy
-				</button>
-				<button class="btn btn-outline-secondary" type="button" id="shareQuiz" onclick="shareQuiz()">
-					<i class="bi bg-info"></i> ⤴ Share
-				</button>
-			</div>
-			<a asp-action="Index" class="btn btn-outline-secondary">
-				<i class="bi bi-arrow-left"></i> Back to Quiz Management
-			</a>
-		</div>
-	</div>
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-4">
+            <h2 class="fw-bold text-primary mb-3">Quiz Token</h2>
+            <p class="text-muted mb-4">
+                Use the token below to share access to your quiz.
+            </p>
+
+            <div class="input-group mb-3">
+                <input type="text" class="form-control" value="@Model" id="quizToken" readonly />
+
+                <button class="btn btn-outline-primary" type="button" onclick="copyToken()">
+                    <i class="bi bi-clipboard"></i> Copy
+                </button>
+
+                <button class="btn btn-outline-success" type="button" onclick="shareQuiz()">
+                    <i class="bi bi-share"></i> Share
+                </button>
+            </div>
+
+            <a asp-action="Index" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Back to Quiz Management
+            </a>
+        </div>
+    </div>
+</div>
 
 @section Scripts {
-        <script>
-            function shareQuiz() {
-                const token = document.getElementById("quizToken").value;
-                const quizLink = `${window.location.origin}/Student/Access/Link?token=${token}`;
+    <script>
+        function copyToken() {
+            const tokenInput = document.getElementById("quizToken");
+            navigator.clipboard.writeText(tokenInput.value)
+                .then(() => alert("Token copied to clipboard: " + tokenInput.value))
+                .catch(() => alert("Failed to copy token."));
+        }
 
-                if (navigator.share) {
-                    navigator.share({
-                        title: 'Join this quiz!',
-                        text: 'Use this link to access the quiz:',
-                        url: quizLink
-                    });
-                } else {
-                    navigator.clipboard.writeText(quizLink);
-                    alert('Quiz link copied to clipboard!\n' + quizLink);
-                }
-            }
+        function shareQuiz() {
+            const token = document.getElementById("quizToken").value;
+            const quizLink = `${window.location.origin}/Student/Access/Link?token=${token}`;
 
-            function copyToken() {
-                var tokenInput = document.getElementById("quizToken");
-                tokenInput.select();
-                tokenInput.setSelectionRange(0, 99999); // For mobile devices
-                document.execCommand("copy");
-                alert("Token copied to clipboard: " + tokenInput.value);
+            if (navigator.share) {
+                navigator.share({
+                    title: 'Join this quiz!',
+                    text: 'Use this link to access the quiz:',
+                    url: quizLink
+                }).catch(err => console.log('Share cancelled or failed:', err));
+            } else {
+                navigator.clipboard.writeText(quizLink);
+                alert('Quiz link copied to clipboard!\n' + quizLink);
             }
-        </script>
+        }
+    </script>
 }

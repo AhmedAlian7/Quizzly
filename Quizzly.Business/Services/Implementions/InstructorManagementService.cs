@@ -52,6 +52,11 @@ namespace Quizzly.Business.Services.Implementions
 
         public async Task<InstructorDashboardDto> GetInstructorDashboardAsync(int InstructorId)
         {
+            var quizCategories = await _unitOfWork.QuizCategories
+                .GetAllByInstructorIdAsync(InstructorId);
+
+
+
             return (new InstructorDashboardDto
             {
                 instructorRecentQuizDtos = await GetRecentQuizzesAsync(InstructorId),
@@ -67,7 +72,18 @@ namespace Quizzly.Business.Services.Implementions
                 .GetTopPreformingStudentAsync(InstructorId),
 
                 quizPerformanceDtos = await _instructorAnalyticsService
-                .GetQuizPerformanceAsync(InstructorId)
+                .GetQuizPerformanceAsync(InstructorId),
+
+                TotalCategories = await _instructorAnalyticsService
+                .GetTotalCategoriesByInstructorAsync(InstructorId),
+
+                quizCategoryStatsDtos = quizCategories.Select(c => new QuizCategoryStatsDto
+                {
+                    CategoryName = c.Name,
+                    TotalQuizzes = c.Quizzes.Count(),
+
+                }).ToList()
+
 
             });
 

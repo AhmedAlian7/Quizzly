@@ -190,5 +190,11 @@ namespace Quizzly.Business.Services
             return topStudents ;
         }
 
+        public async Task<int> GetTotalCategoriesByInstructorAsync(int instructorId)
+        {
+           return await _unitOfWork.QuizCategories
+                .GetTotalByInstructorIdAsync(instructorId);
+        }
+
     }
 }
