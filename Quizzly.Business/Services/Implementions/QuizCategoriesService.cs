@@ -27,6 +27,7 @@ namespace Quizzly.Business.Services.Implementions
 
             return categories.Select(c => new AddQuizCategoryDto
             {
+                Id = c.Id,
                 Name = c.Name,
                 Description = c.Description
             });

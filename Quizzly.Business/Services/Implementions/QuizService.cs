@@ -1,5 +1,6 @@
 ﻿using Quizzly.Business.Services.Interfaces;
 using Quizzly.Business.ViewModels.Choice;
+using Quizzly.Business.ViewModels.Instructor;
 using Quizzly.Business.ViewModels.Question;
 using Quizzly.Business.ViewModels.Quiz;
 using Quizzly.DataAccess.Entities;
@@ -49,14 +50,14 @@ namespace Quizzly.Business.Services.Implementions
 
                 Questions = quiz.Questions.Select(q => new QuestionDetailsDto
                 {
-                    Id = q.Id, 
+                    Id = q.Id,
                     Text = q.Text,
                     QuestionType = q.QuestionType,
                     Points = q.Points,
-                    ImageUrl = q.ImageUrl, 
+                    ImageUrl = q.ImageUrl,
                     Choices = q.Choices.Select(c => new AddChoiceDto
                     {
-                        Id = c.Id, 
+                        Id = c.Id,
                         Text = c.Text,
                         IsCorrect = c.IsCorrect
                     }).ToList()
@@ -185,5 +186,26 @@ namespace Quizzly.Business.Services.Implementions
 
         }
 
+        public async Task<List<InstructorAllQuizzesDto>> GetQuizzesByCategory(int categoryId, int instructorId)
+        {
+            var quizzes = await _unitOfWork.Quizzes
+                .GetQuizzesByCategoryIdAsync(categoryId, instructorId);
+
+            var quizDtos = quizzes.Select(q => new InstructorAllQuizzesDto
+            {
+                Id = q.Id,
+                Title = q.Title,
+                IsPublished = q.IsPublished,
+                CreatedAt = q.CreatedAt,
+                Attempts = q.QuizAttempts.Count,
+                Questions = q.Questions.Count,
+                Category = q.QuizCategory,
+                AvgScore = q.QuizAttempts.Any() ? q.QuizAttempts.Average(qa => qa.Score) : (decimal?)null,
+                TimeLimit = q.DurationMintes
+
+            }).ToList();
+
+            return quizDtos;
+        }
     }
 }

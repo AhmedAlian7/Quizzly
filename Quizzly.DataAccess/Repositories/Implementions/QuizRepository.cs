@@ -72,6 +72,16 @@ namespace Quizzly.DataAccess.Repositories.Implementions
                  .ToListAsync();
         }
 
+        public async Task<IEnumerable<Quiz>> GetQuizzesByCategoryIdAsync (int categoryId , int InstructorId)
+        {
+            return await _context.Quizzes
+                .Include(q => q.QuizCategory)
+                .Include(q => q.Questions)
+                .Include(q => q.QuizAttempts)
+                .Where(q => q.QuizCategoryId == categoryId && q.InstructorId == InstructorId && !q.IsDeleted)
+                .ToListAsync();
+        }
+
         public async Task<Quiz?> GetByAccessTokenAsync(string accessToken, string includes = "")
         {
             var query = _context.Quizzes.AsQueryable();

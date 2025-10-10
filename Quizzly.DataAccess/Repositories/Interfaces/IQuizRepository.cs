@@ -12,5 +12,6 @@ namespace Quizzly.DataAccess.Repositories.Interfaces
         Task<decimal?> GetAvgScorePerInstructor(int InstructorId);
         Task<int> GetTotalStudentsCountPerInstructor(int InstructorId);
         Task<Quiz?> GetByAccessTokenAsync(string accessToken, string includes = "");
+        Task<IEnumerable<Quiz>> GetQuizzesByCategoryIdAsync(int categoryId, int InstructorId);
     }
 }

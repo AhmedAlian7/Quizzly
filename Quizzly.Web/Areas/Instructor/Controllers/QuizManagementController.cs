@@ -37,7 +37,24 @@ namespace Quizzly.Web.Areas.Instructor.Controllers
             if (instructor == null)
                 return NotFound("Instructor profile not found.");
 
-            var models = await _instructorManagementService.GetAllQuizzesAsync(instructor.Id);
+            var models = await _quizCategoriesService
+                .GetAllByInstructorIdAsync(instructor.Id);
+
+            return View(models);
+        }
+
+        public async Task<IActionResult> QuizzesByCategory(int CategoryId)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            var instructor = await _instructorManagementService
+                .GetInstructorByUserIdAsync(user.Id);
+
+            if (instructor == null)
+                return NotFound("Instructor profile not found.");
+
+            var models = await _quizService
+                .GetQuizzesByCategory(CategoryId, instructor.Id);
+
             return View(models);
         }
 
