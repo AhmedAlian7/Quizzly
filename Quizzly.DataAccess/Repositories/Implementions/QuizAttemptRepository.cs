@@ -2,6 +2,7 @@
 using Quizzly.DataAccess.Data;
 using Quizzly.DataAccess.Entities;
 using Quizzly.DataAccess.Repositories.Interfaces;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace Quizzly.DataAccess.Repositories.Implementions
 {
@@ -37,6 +38,19 @@ namespace Quizzly.DataAccess.Repositories.Implementions
                 .Take(take);
             return await query.ToListAsync();
         }
+
+        public async Task<List<QuizAttempt>?> GetPending()
+        {
+            return await _context.QuizAttempts
+                .Include(a => a.Quiz)
+                .Include(a => a.Student)
+                    .ThenInclude(s => s.User)
+                .Include(a => a.Answers)
+                    .ThenInclude(ans => ans.Question)
+                .Where(a => a.Answers.Any(ans => ans.PointsAwarded == null))
+                .ToListAsync();
+        }
+
 
         public async Task<QuizAttempt?> GetAttemptByIdAsync(int attemptId, string includes = "")
         {

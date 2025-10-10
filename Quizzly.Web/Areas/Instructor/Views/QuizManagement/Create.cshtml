@@ -177,6 +177,8 @@
                         <label class="form-check-label fw-semibold">Is Required</label>
                     </div>
 
+                    <div class="autograde-container" id="autograde-container-${questionCount}"></div>
+
                     <div class="choices-container" id="choices-${questionCount}">
                         ${getChoiceInputs(questionCount)}
                     </div>
@@ -231,14 +233,9 @@
             const rows = document.querySelectorAll(`#choices-list-${qId} .choice-row`);
             rows.forEach((row, i) => {
                 row.id = `choice-${qId}-${i}`;
-                const hidden = row.querySelector('input[type="hidden"]');
                 const checkbox = row.querySelector('input[type="checkbox"]');
                 const text = row.querySelector('input.form-control');
 
-                if (hidden) {
-                    hidden.name = `addQuestionDtos[${qId - 1}].Choices[${i}].IsCorrect`;
-                    hidden.value = "false";
-                }
                 checkbox.name = `addQuestionDtos[${qId - 1}].Choices[${i}].IsCorrect`;
                 checkbox.value = "true";
                 text.name = `addQuestionDtos[${qId - 1}].Choices[${i}].Text`;
@@ -249,11 +246,11 @@
         function toggleChoices(select, qId) {
             const container = document.getElementById(`choices-${qId}`);
             const addBtn = document.getElementById(`addChoiceBtn-${qId}`);
+            const autoGradeContainer = document.getElementById(`autograde-container-${qId}`);
 
-            // Remove any existing autograde checkbox
-            const existingAutoGrade = document.getElementById(`autograde-${qId}`);
-            if (existingAutoGrade) {
-                existingAutoGrade.remove();
+            // Clear auto grade container first
+            if (autoGradeContainer) {
+                autoGradeContainer.innerHTML = '';
             }
 
             const questionType = parseInt(select.value);
@@ -280,11 +277,8 @@
                 `;
                 addBtn.style.display = 'none';
             } else if (questionType === 2) { // Short Answer
-                container.innerHTML = '';
-                addBtn.style.display = 'none';
-
-                // Insert Auto Grade checkbox before the container
-                const autoGradeHtml = `
+                // Add Auto Grade checkbox to dedicated container
+                autoGradeContainer.innerHTML = `
                     <div class="d-inline-flex align-items-center gap-2 border border-2 border-primary rounded-pill p-2 pe-3 mb-2">
                         <img src="https://uxwing.com/wp-content/themes/uxwing/download/brands-and-social-media/grok-icon.svg"
                              alt="Grok"
@@ -304,35 +298,46 @@
                         </div>
                     </div>
                 `;
-                container.insertAdjacentHTML('beforebegin', autoGradeHtml);
 
-                // Add correct answer field inside container
+                // Add correct answer field
                 container.innerHTML = `
                     <div class="mb-2">
                         <label class="form-label">Correct Answer *</label>
                         <input name="addQuestionDtos[${qId - 1}].CorrectAnswer" class="form-control" placeholder="Enter the correct answer" required />
                     </div>
                 `;
-            } else { // Essay
-                container.innerHTML = '';
                 addBtn.style.display = 'none';
-
-                // Insert Auto Grade checkbox before the container
-                const autoGradeHtml = `
-                    <div class="mb-2 form-check form-switch" id="autograde-${qId}">
-                        <input name="addQuestionDtos[${qId - 1}].AutoGrade" class="form-check-input" type="checkbox" value="true" />
-                        <label class="form-check-label fw-semibold">Auto Grade</label>
+            } else { // Essay
+                // Add Auto Grade checkbox to dedicated container
+                autoGradeContainer.innerHTML = `
+                   <div class="d-inline-flex align-items-center gap-2 border border-2 border-primary rounded-pill p-2 pe-3 mb-2">
+                        <img src="https://uxwing.com/wp-content/themes/uxwing/download/brands-and-social-media/grok-icon.svg"
+                             alt="Grok"
+                             width="32"
+                             height="32"
+                             class="grok-icon-${qId}">
+                        <div class="form-check form-switch mb-0">
+                            <input class="form-check-input"
+                                   type="checkbox"
+                                   role="switch"
+                                   id="grokToggle${qId}"
+                                   name="addQuestionDtos[${qId - 1}].AutoGrade"
+                                   value="true">
+                            <label class="form-check-label fw-semibold" for="grokToggle${qId}">
+                                Grok Auto Grade
+                            </label>
+                        </div>
                     </div>
                 `;
-                container.insertAdjacentHTML('beforebegin', autoGradeHtml);
 
-                // Add model answer field inside container
+                // Add model answer field
                 container.innerHTML = `
                     <div class="mb-2">
                         <label class="form-label">Model Answer *</label>
-                        <textarea name="addQuestionDtos[${qId - 1}].CorrectAnswer" class="form-control" rows="4" placeholder="Enter the correct answer" required></textarea>
+                        <textarea name="addQuestionDtos[${qId - 1}].CorrectAnswer" class="form-control" rows="4" placeholder="Enter the model answer" required></textarea>
                     </div>
                 `;
+                addBtn.style.display = 'none';
             }
         }
 
@@ -364,6 +369,9 @@
                         input.name = input.name.replace(/addQuestionDtos\[\d+\]/g, `addQuestionDtos[${i}]`);
                     }
                 });
+
+                const autoGradeContainer = q.querySelector('.autograde-container');
+                if (autoGradeContainer) autoGradeContainer.id = `autograde-container-${newIndex}`;
 
                 const choicesContainer = q.querySelector('.choices-container');
                 if (choicesContainer) choicesContainer.id = `choices-${newIndex}`;

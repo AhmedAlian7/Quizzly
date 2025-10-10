@@ -47,6 +47,20 @@
             </div>
         </div>
 
+        <!-- Start and End Date/Time -->
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <label asp-for="StartAt" class="form-label fw-semibold">Start Date & Time</label>
+                <input asp-for="StartAt" type="datetime-local" class="form-control" />
+                <small class="text-muted d-block mt-1">When the quiz becomes available</small>
+            </div>
+            <div class="col-md-6">
+                <label asp-for="EndAt" class="form-label fw-semibold">End Date & Time</label>
+                <input asp-for="EndAt" type="datetime-local" class="form-control" />
+                <small class="text-muted d-block mt-1">When the quiz closes</small>
+            </div>
+        </div>
+
         <!-- Quiz Settings -->
         <div class="row mb-4">
             <div class="col-md-6">
