@@ -12,13 +12,6 @@
         <div>
             <a href="@Url.Action("Index")" class="btn btn-secondary">Back to List</a>
             <a href="@Url.Action("Update", new { id = Model.Id })" class="btn btn-primary">Edit Quiz</a>
-
-            @if (Model.IsPublished && !string.IsNullOrEmpty(Model.AccessCode))
-            {
-                <a href="/Instructor/QuizManagement/Token?token=@Model.AccessCode" class="btn btn-success ms-2">
-                    <i class="fas fa-external-link-alt"></i> Go to Quiz
-                </a>
-            }
         </div>
     </div>
 
@@ -34,6 +27,10 @@
                         <code class="fs-5 mx-2">@Model.AccessCode</code>
                         <button type="button" class="btn btn-sm btn-outline-primary" onclick="copyAccessCode(event)">
                             <i class="fas fa-copy"></i> Copy
+                        </button>
+
+                        <button type="button" class="btn btn-sm btn-outline-primary" onclick="shareQuiz()">
+                            <i class="bi bi-share"></i> Share
                         </button>
                     </span>
                 }
@@ -339,6 +336,28 @@
                 console.error('Failed to copy access code:', err);
                 alert('Copy failed. Please copy manually.');
             });
+        }
+
+        function shareQuiz() {
+            const token = @Html.Raw(JsonSerializer.Serialize(Model.AccessCode)); // safely inject string
+            if (!token || token.trim() === "") {
+                alert("No access code found for this quiz.");
+                return;
+            }
+
+            const quizLink = `${window.location.origin}/Instructor/QuizManagement/Token?token=${encodeURIComponent(token)}`;
+
+            if (navigator.share) {
+                navigator.share({
+                    title: 'Join this Quiz!',
+                    text: 'Use this link to access the quiz:',
+                    url: quizLink
+                }).catch(err => console.log('Share cancelled or failed:', err));
+            } else {
+                navigator.clipboard.writeText(quizLink)
+                    .then(() => alert('Quiz link copied to clipboard!\n' + quizLink))
+                    .catch(() => alert('Failed to copy link. Please copy manually.'));
+            }
         }
     </script>
 }
