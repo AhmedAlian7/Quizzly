@@ -14,6 +14,11 @@ namespace Quizzly.Business.Services.Implementions
             _unitOfWork = unitOfWork;
         }
 
+        public async Task<QuizAttempt?> GetAttemptByIdAsync(int attemptId , string Include = "")
+        {
+            return await _unitOfWork.QuizAttempts.GetAttemptByIdAsync(attemptId, Include);
+        }
+
         // Get answers that need manual grading => ShortAnswer & Essay
         public async Task<List<Answer>> GetAnswersNeedingManualGradingAsync(int attemptId)
         {

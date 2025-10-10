@@ -32,6 +32,7 @@ namespace Quizzly.Web
             builder.Services.AddScoped<IQuizService, QuizService>();
             builder.Services.AddScoped<IStudentInstructorService, StudentInstructorService>();
             builder.Services.AddScoped<IStudentQuizService, StudentQuizService>();
+            builder.Services.AddScoped<IManualGradingService, ManualGradingService>();
 
             // Add Identity
             builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
