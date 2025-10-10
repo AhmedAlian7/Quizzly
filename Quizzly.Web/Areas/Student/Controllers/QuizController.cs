@@ -21,6 +21,38 @@ namespace Quizzly.Web.Areas.Student.Controllers
         }
 
         [HttpGet]
+        public IActionResult JoinQuiz()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> JoinQuiz(string accessToken)
+        {
+            if (string.IsNullOrWhiteSpace(accessToken))
+            {
+                TempData["ErrorMessage"] = "Please enter a valid access token.";
+                return View();
+            }
+
+            var user = await _userManager.GetUserAsync(User);
+            try
+            {
+                // Validate the access token by trying to get the access link
+                var accessViewModel = await _studentQuizService.GetAccessLinkAsync(accessToken, user!.Id);
+                
+                // If successful, redirect to the access link view
+                return RedirectToAction("Link", "Access", new { area = "Student", token = accessToken });
+            }
+            catch (Exception)
+            {
+                TempData["ErrorMessage"] = "Invalid access token. Please check the token and try again.";
+                return View();
+            }
+        }
+
+        [HttpGet]
         public async Task<IActionResult> Start(string token)
         {
             var user = await _userManager.GetUserAsync(User);
