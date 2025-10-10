@@ -26,12 +26,16 @@ namespace Quizzly.Business.Services.Implementions
                 
                 QuizzesTaken = s.QuizAttempts?
                 .Count(qa => qa.Quiz?.InstructorId == instructorId) ?? 0,
-                
+
                 AverageScore = s.QuizAttempts?
-                .Where(qa => qa.Quiz?.InstructorId == instructorId && qa.Score.HasValue)
-                .Select(qa => qa.Score.Value)
-                .DefaultIfEmpty(0)
-                .Average() ?? 0
+                 .Where(qa => qa.Quiz?.InstructorId == instructorId
+                              && qa.Score.HasValue
+                              && qa.Quiz.Questions.Any())
+                 .Select(qa =>
+                     (qa.Score.Value / (decimal)qa.Quiz.Questions.Sum(q => q.Points)) * 100
+                 )
+                 .DefaultIfEmpty(0)
+                 .Average() ?? 0
 
             }).ToList();
 

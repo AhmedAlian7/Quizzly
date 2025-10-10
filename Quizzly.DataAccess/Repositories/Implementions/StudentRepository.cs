@@ -26,6 +26,9 @@ namespace Quizzly.DataAccess.Repositories.Implementions
         {
             return await _context.Students
                  .Include(s => s.User)
+                 .Include(s => s.QuizAttempts)
+                     .ThenInclude(qa => qa.Quiz)
+                       .ThenInclude(q => q.Questions)
                  .Where(s => s.QuizAttempts.Any(qa => qa.Quiz.InstructorId == instructorId))
                  .Select(s => new
                  {
@@ -46,6 +49,7 @@ namespace Quizzly.DataAccess.Repositories.Implementions
                 .Include(s => s.User)
                 .Include(s => s.QuizAttempts)
                     .ThenInclude(qa => qa.Quiz)
+                     .ThenInclude(q => q.Questions) 
                 .Where(s => s.QuizAttempts.Any(qa => qa.Quiz.InstructorId == InstructorId))
                 .ToListAsync();
         }

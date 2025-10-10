@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Quizzly.Business.Services.Interfaces;
 using Quizzly.Business.ViewModels.Analytics;
+using Quizzly.DataAccess.Entities;
 using Quizzly.DataAccess.Repositories.Interfaces;
 
 namespace Quizzly.Business.Services
@@ -35,9 +36,15 @@ namespace Quizzly.Business.Services
             var performanceList = quizzes.Select(q => new QuizPerformanceDto
             {
                 QuizTitle = q.Title,
-                AvgScore = q.QuizAttempts.Any()
-                    ? Math.Round(q.QuizAttempts.Average(a => (decimal?)a.Score) ?? 0, 2)
-                    : 0,
+                AvgScore = q.QuizAttempts?
+                 .Where(qa => qa.Quiz?.InstructorId == instructorId
+                              && qa.Score.HasValue
+                              && qa.Quiz.Questions.Any())
+                 .Select(qa =>
+                     (qa.Score.Value / (decimal)qa.Quiz.Questions.Sum(q => q.Points)) * 100
+                 )
+                 .DefaultIfEmpty(0)
+                 .Average() ?? 0,
 
                 TotalAttempts = q.QuizAttempts.Count,
                 HighestScore = q.QuizAttempts.Any() ? q.QuizAttempts.Max(a => a.Score) : 0,
@@ -156,9 +163,19 @@ namespace Quizzly.Business.Services
 
             var topStudents = students.Select(s => new TopPreformingStudentDto
             {
-                AvgScore = s.QuizAttempts
-                          .Where(qa => qa.Quiz.InstructorId == InstructorId)
-                          .Average(qa => (decimal?)qa.Score) ?? 0,
+               AvgScore = s.QuizAttempts?
+                     .Where(qa => qa.Quiz?.InstructorId == InstructorId
+                                  && qa.Score.HasValue
+                                  && qa.Quiz.Questions.Any())
+                     .Select(qa =>
+                     {
+                         var totalPoints = qa.Quiz.Questions.Sum(q => q.Points);
+                         return totalPoints > 0
+                             ? (qa.Score.Value / (decimal)totalPoints) * 100
+                             : 0;
+                     })
+                     .DefaultIfEmpty(0)
+                     .Average() ?? 0,
 
                 StudentName = s.User.FirstName + s.User.LastName,
                 Rank = 0
