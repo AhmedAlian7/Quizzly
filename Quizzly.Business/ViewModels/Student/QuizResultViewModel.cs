@@ -30,6 +30,7 @@ namespace Quizzly.Business.ViewModels.Student
             public decimal? PointsAwarded { get; set; }
             public bool? IsCorrect { get; set; }
             public string? Explanation { get; set; }
+            public string? Feedback { get; set; } // AI grading feedback
             public List<ChoiceResultVm> Choices { get; set; } = new();
             public List<int> SelectedChoiceIds { get; set; } = new();
             public string? TextAnswer { get; set; }
