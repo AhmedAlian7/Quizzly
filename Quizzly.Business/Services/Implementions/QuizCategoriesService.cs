@@ -34,5 +34,46 @@ namespace Quizzly.Business.Services.Implementions
 
         }
 
+        public async Task<AddQuizCategoryDto> GetDtoByIdAsync(int categoryId)
+        {
+            var category = await _unitOfWork.QuizCategories
+                .GetByIdAsync(categoryId);
+            
+            if (category == null)
+                return null;
+            
+            return new AddQuizCategoryDto
+            {
+                Id = category.Id,
+                Name = category.Name,
+                Description = category.Description
+            };
+        }
+
+        public async Task UpdateQuizCategoryAsync(AddQuizCategoryDto addQuizCategoryDto)
+        {
+           var category = await _unitOfWork.QuizCategories
+                .GetByIdAsync(addQuizCategoryDto.Id);
+
+            category.Name = addQuizCategoryDto.Name;
+            category.Description = addQuizCategoryDto.Description;
+            category.UpdatedAt = DateTime.UtcNow;
+            
+
+            await _unitOfWork.SaveAsync();
+        }
+
+
+        public async Task DeleteQuizCategoryAsync(int categoryId)
+        {
+            var category = await _unitOfWork.QuizCategories
+                .GetByIdAsync(categoryId);
+
+            category.IsDeleted = true;
+
+            await _unitOfWork.SaveAsync();
+
+        }
+
     }
 }

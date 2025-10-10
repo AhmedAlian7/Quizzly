@@ -8,6 +8,9 @@ namespace Quizzly.Business.Services.Interfaces
 
         Task<IEnumerable<QuizCategory>> GetAllAsync();
         Task<IEnumerable<AddQuizCategoryDto>> GetAllByInstructorIdAsync(int InstructorId);
+        Task<AddQuizCategoryDto> GetDtoByIdAsync(int categoryId);
+        Task DeleteQuizCategoryAsync(int categoryId);
+        Task UpdateQuizCategoryAsync(AddQuizCategoryDto addQuizCategoryDto);
 
     }
 }

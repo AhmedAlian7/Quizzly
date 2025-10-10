@@ -55,12 +55,12 @@
                                         </button>
                                         <ul class="dropdown-menu dropdown-menu-end">
                                             <li>
-                                                <a class="dropdown-item" asp-action="Edit" asp-route-name="@category.Name">Edit</a>
+                                                <a class="dropdown-item" asp-controller="QuizCategoryManagement" asp-action="Update" asp-route-id="@category.Id">Edit</a>
                                             </li>
                                             <li>
-                                                <form asp-action="Delete" asp-route-name="@category.Name" method="post" onsubmit="return confirm('Are you sure you want to delete this category?');">
-                                                    <button type="submit" class="dropdown-item text-danger">Delete</button>
-                                                </form>
+                                                <button type="button" class="dropdown-item text-danger" onclick="confirmDelete(@category.Id, '@category.Name')">
+                                                    Delete
+                                                </button>
                                             </li>
                                         </ul>
                                     </div>
@@ -82,6 +82,31 @@
     </div>
 </div>
 
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">Confirm Delete</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="deleteModalBody">
+                Are you sure you want to delete this category?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form id="deleteForm" method="post" asp-action="Delete" asp-controller="QuizCategoryManagement" asp-area="Instructor">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" id="categoryIdToDelete" name="categoryId" />
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-trash"></i> Delete Quiz Category
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
 @section Scripts {
     <script>
         // Simple search filter for categories
@@ -93,5 +118,14 @@
                 row.style.display = name.includes(filter) ? '' : 'none';
             });
         });
+
+        // Confirm delete modal
+        function confirmDelete(categoryId, categoryName) {
+            document.getElementById('categoryIdToDelete').value = categoryId;
+            document.getElementById('deleteModalBody').innerHTML =
+                `Are you sure you want to delete the category <strong>${categoryName}</strong>? This action cannot be undone.`;
+            const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
+            modal.show();
+        }
     </script>
 }

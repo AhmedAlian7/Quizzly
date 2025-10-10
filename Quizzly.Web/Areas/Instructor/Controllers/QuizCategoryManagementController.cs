@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Quizzly.Business.Services.Implementions;
 using Quizzly.Business.Services.Interfaces;
 using Quizzly.Business.ViewModels.Quiz;
 using Quizzly.Business.ViewModels.QuizCategories;
@@ -62,6 +64,38 @@ namespace Quizzly.Web.Areas.Instructor.Controllers
                 return NotFound("Instructor profile not found.");
 
             await _instructorManagementService.AddQuizCategoryAsync(instructor.Id, addQuizCategoryDto);
+            return RedirectToAction("Index");
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Update(int id)
+        {
+            var categoryDto = await _QuizCategoriesService
+                .GetDtoByIdAsync(id);
+
+            return View(categoryDto);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Update(AddQuizCategoryDto quizCategoryDto)
+        {
+            if (!ModelState.IsValid)
+                return View(quizCategoryDto);
+
+            await _QuizCategoriesService.UpdateQuizCategoryAsync(quizCategoryDto);
+            return RedirectToAction("Index");
+
+        }
+
+
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Delete(int categoryId)
+        {
+
+            await _QuizCategoriesService.DeleteQuizCategoryAsync(categoryId);
+            TempData["SuccessMessage"] = "Quiz deleted successfully.";
             return RedirectToAction("Index");
         }
     }
