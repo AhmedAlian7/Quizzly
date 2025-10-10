@@ -13,6 +13,7 @@ namespace Quizzly.DataAccess.Entities
         public bool ShuffleChoices { get; set; }
         public bool ShowFeedback { get; set; }
         public bool IsRequired { get; set; } = true;
+        public bool AutoGrade { get; set; } = false;
         public string? Explanation { get; set; }
 
         //Navigation

@@ -158,7 +158,8 @@ namespace Quizzly.Web.Areas.Instructor.Controllers
             var instructor = await _instructorManagementService
                 .GetInstructorByUserIdAsync(user.Id);
 
-            var quizDto = await _quizService.GetQuizByIdAsync(id);
+            var quizDto = await _quizService
+                .GetQuizByIdAsync(id);
 
             if (quizDto == null)
                 return NotFound("Quiz not found.");
