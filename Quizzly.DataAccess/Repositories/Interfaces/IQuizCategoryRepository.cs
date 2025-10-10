@@ -6,6 +6,7 @@ namespace Quizzly.DataAccess.Repositories.Interfaces
     {
 
         Task<IEnumerable<QuizCategory>> GetAllByInstructorIdAsync(int instructorId);
+        Task<int> GetTotalByInstructorIdAsync(int instructorId);
 
     }
 }

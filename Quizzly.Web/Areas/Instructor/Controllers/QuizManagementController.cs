@@ -125,7 +125,7 @@ namespace Quizzly.Web.Areas.Instructor.Controllers
              if (formAction == "publish")
              {
                 var token = await _quizService.PublishQuizAsync(quizId);
-                return View("Token", token);
+                return View("Token",token);
              }
 
              return RedirectToAction("Index", "QuizCategoryManagement", new { area = "Instructor" });

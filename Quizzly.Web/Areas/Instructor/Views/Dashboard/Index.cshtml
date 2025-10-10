@@ -1,5 +1,6 @@
 ﻿@using System.Text.Json
 @using Quizzly.Business.ViewModels.Instructor
+@using Quizzly.Business.ViewModels.QuizCategories
 @model InstructorDashboardDto
 @{
     ViewData["Title"] = "Instructor Dashboard";
@@ -11,20 +12,18 @@
 
     <!-- Stats Cards -->
     <div class="row g-3 mb-4">
-        <!-- Total Quizzes -->
-        <div class="col-md-3">
-            <div class="card shadow-sm border-0 rounded-3">
-                <div class="card-body text-center">
+        <div class="col-md-3 col-sm-6">
+            <div class="card shadow-sm border-0 rounded-3 h-100 text-center">
+                <div class="card-body">
                     <h6 class="text-muted">Total Quizzes</h6>
                     <h3 class="fw-bold">@Model.TotalQuizzes</h3>
                 </div>
             </div>
         </div>
 
-        <!-- Average Score -->
-        <div class="col-md-3">
-            <div class="card shadow-sm border-0 rounded-3">
-                <div class="card-body text-center">
+        <div class="col-md-3 col-sm-6">
+            <div class="card shadow-sm border-0 rounded-3 h-100 text-center">
+                <div class="card-body">
                     <h6 class="text-muted">Average Score</h6>
                     <h3 class="fw-bold text-primary">
                         @(Model.AvgScore.HasValue ? $"{Model.AvgScore.Value:F1}%" : "N/A")
@@ -33,54 +32,74 @@
             </div>
         </div>
 
-        <!-- Active Students -->
-        <div class="col-md-3">
-            <div class="card shadow-sm border-0 rounded-3">
-                <div class="card-body text-center">
+        <div class="col-md-3 col-sm-6">
+            <div class="card shadow-sm border-0 rounded-3 h-100 text-center">
+                <div class="card-body">
                     <h6 class="text-muted">Active Students</h6>
                     <h3 class="fw-bold text-success">@Model.TotalStudents</h3>
                 </div>
             </div>
         </div>
+
+        <div class="col-md-3 col-sm-6">
+            <div class="card shadow-sm border-0 rounded-3 h-100 text-center">
+                <div class="card-body">
+                    <h6 class="text-muted">Total Categories</h6>
+                    <h3 class="fw-bold text-info">@Model.TotalCategories</h3>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <div class="row g-4">
-        <!-- Quiz Performance Chart -->
-        <div class="col-md-8">
-            <div class="card shadow-sm border-0 rounded-3">
+    <!-- Charts Row -->
+    <div class="row g-4 align-items-stretch">
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-0 rounded-3 h-100">
                 <div class="card-body">
-                    <h5 class="mb-3">Quiz Performance</h5>
+                    <h5 class="mb-3">
+                        <i class="bi bi-graph-up"></i> Quiz Performance
+                    </h5>
                     <canvas id="quizPerformanceChart" height="180"></canvas>
                 </div>
             </div>
         </div>
 
-        <!-- Recent Quizzes -->
-        <div class="col-md-4">
-            <div class="card shadow-sm border-0 rounded-3">
+        <div class="col-lg-4">
+            <div class="card shadow-sm border-0 rounded-3 h-100 text-center">
+                <div class="card-body">
+                    <h5 class="mb-3">
+                        <i class="bi bi-bag-dash-fill"></i> Quiz Categories
+                    </h5>
+                    <canvas id="categoryChart" height="230"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Quizzes + Leaderboard -->
+    <div class="row g-4 mt-3">
+        <div class="col-md-6">
+            <div class="card shadow-sm border-0 rounded-3 h-100">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h5 class="mb-0">Recent Quizzes</h5>
+                        <h5 class="mb-0">
+                            <i class="bi bi-clock-history"></i> Recent Quizzes
+                        </h5>
                         <a asp-controller="QuizManagement" asp-action="Index" class="btn btn-sm btn-outline-secondary">View All</a>
                     </div>
 
-                    @if (Model.instructorRecentQuizDtos != null && Model.instructorRecentQuizDtos.Any())
+                    @if (Model.instructorRecentQuizDtos?.Any() == true)
                     {
-                        @foreach (var quiz in Model.instructorRecentQuizDtos)
+                        foreach (var quiz in Model.instructorRecentQuizDtos)
                         {
                             <div class="border-bottom pb-2 mb-2">
                                 <div class="d-flex justify-content-between align-items-center">
                                     <div>
                                         <strong>@quiz.Title</strong>
                                         <div>
-                                            @if (quiz.IsPublished)
-                                            {
-                                                <span class="badge bg-primary">Published</span>
-                                            }
-                                            else
-                                            {
-                                                <span class="badge bg-secondary">Draft</span>
-                                            }
+                                            <span class="badge @(quiz.IsPublished ? "bg-primary" : "bg-secondary")">
+                                                @(quiz.IsPublished ? "Published" : "Draft")
+                                            </span>
                                             <span class="text-muted ms-2">@quiz.Attempts attempts</span>
                                             @if (quiz.AvgScore.HasValue)
                                             {
@@ -100,16 +119,15 @@
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- Leaderboard Section -->
-    <div class="row g-4 mt-3">
         <div class="col-md-6">
-            <div class="card shadow-sm border-0 rounded-3">
+            <div class="card shadow-sm border-0 rounded-3 h-100">
                 <div class="card-body">
-                    <h5 class="mb-3">🏆 Top Performing Students</h5>
+                    <h5 class="mb-3">
+                        <i class="bi bi-trophy"></i> Top Performing Students
+                    </h5>
 
-                    @if (Model.topPreformingStudentDtos != null && Model.topPreformingStudentDtos.Any())
+                    @if (Model.topPreformingStudentDtos?.Any() == true)
                     {
                         <table class="table table-hover align-middle">
                             <thead class="table-light">
@@ -126,15 +144,21 @@
                                         <td>
                                             @if (student.Rank == 1)
                                             {
-                                                <span class="badge bg-warning text-dark">🥇 1</span>
+                                                <span class="badge bg-warning text-dark">
+                                                    <i class="bi bi-trophy-fill"></i> 1
+                                                </span>
                                             }
                                             else if (student.Rank == 2)
                                             {
-                                                <span class="badge bg-secondary">🥈 2</span>
+                                                <span class="badge bg-secondary">
+                                                    <i class="bi bi-award-fill"></i> 2
+                                                </span>
                                             }
                                             else if (student.Rank == 3)
                                             {
-                                                <span class="badge bg-info text-dark">🥉 3</span>
+                                                <span class="badge bg-info text-dark">
+                                                    <i class="bi bi-award"></i> 3
+                                                </span>
                                             }
                                             else
                                             {
@@ -160,89 +184,61 @@
 
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
     <script>
-        @{
-                // Build JSON safely on the server to avoid Razor parsing issues.
-                string labelsJson;
-                string scoresJson;
-                string attemptsJson;
+        // Serialize complete objects from backend
+        var quizPerformanceData = @Html.Raw(JsonSerializer.Serialize(Model.quizPerformanceDtos ?? new List<QuizPerformanceDto>()));
+        var categoryData = @Html.Raw(JsonSerializer.Serialize(Model.quizCategoryStatsDtos ?? new List<QuizCategoryStatsDto>()));
 
-                if (Model?.quizPerformanceDtos != null && Model.quizPerformanceDtos.Any())
-                {
-                        // Prepare arrays of primitives
-                        var labels = Model.quizPerformanceDtos.Select(q => q.QuizTitle ?? "").ToArray();
-                        var scores = Model.quizPerformanceDtos.Select(q => q.AvgScore).ToArray();
-                        var attempts = Model.quizPerformanceDtos.Select(q => q.TotalAttempts).ToArray();
+        // Extract data using JavaScript map
+        var performanceLabels = quizPerformanceData.map(function(q) { return q.QuizTitle; });
+        var performanceScores = quizPerformanceData.map(function(q) { return q.AvgScore || 0; });
+        var performanceAttempts = quizPerformanceData.map(function(q) { return q.TotalAttempts; });
 
-                        labelsJson = JsonSerializer.Serialize(labels);
-                        scoresJson = JsonSerializer.Serialize(scores);
-                        attemptsJson = JsonSerializer.Serialize(attempts);
-                }
-                else
-                {
-                        labelsJson = "[]";
-                        scoresJson = "[]";
-                        attemptsJson = "[]";
-                }
-        }
+        var categoryLabels = categoryData.map(function(c) { return c.CategoryName; });
+        var categoryCounts = categoryData.map(function(c) { return c.TotalQuizzes; });
 
-        const performanceLabels = @Html.Raw(labelsJson);
-        const performanceScores = @Html.Raw(scoresJson);
-        const performanceAttempts = @Html.Raw(attemptsJson);
-
-        // If Chart.js target exists
-        const canvas = document.getElementById('quizPerformanceChart');
-        if (canvas) {
-            const ctx = canvas.getContext('2d');
-
-            // Create dual dataset chart (scores + attempts)
-            const quizPerformanceChart = new Chart(ctx, {
+        // Initialize Quiz Performance Chart
+        if (document.getElementById("quizPerformanceChart")) {
+            new Chart(document.getElementById("quizPerformanceChart"), {
                 type: 'bar',
                 data: {
                     labels: performanceLabels,
-                    datasets: [
-                        {
-                            type: 'bar',
-                            label: 'Average Score (%)',
-                            data: performanceScores,
-                            backgroundColor: 'rgba(54, 162, 235, 0.85)',
-                            yAxisID: 'yScore',
-                            borderRadius: 6
-                        },
-                        {
-                            type: 'line',
-                            label: 'Attempts',
-                            data: performanceAttempts,
-                            borderColor: 'rgba(255, 159, 64, 0.9)',
-                            backgroundColor: 'rgba(255, 159, 64, 0.2)',
-                            yAxisID: 'yAttempts',
-                            tension: 0.3,
-                            pointRadius: 4
-                        }
-                    ]
+                    datasets: [{
+                        label: 'Average Score (%)',
+                        data: performanceScores,
+                        backgroundColor: '#36A2EB'
+                    }]
                 },
                 options: {
                     responsive: true,
-                    interaction: { mode: 'index', intersect: false },
                     scales: {
-                        yScore: {
-                            type: 'linear',
-                            position: 'left',
+                        y: {
                             beginAtZero: true,
-                            max: 100,
-                            title: { display: true, text: 'Average Score (%)' }
-                        },
-                        yAttempts: {
-                            type: 'linear',
-                            position: 'right',
-                            beginAtZero: true,
-                            grid: { drawOnChartArea: false },
-                            title: { display: true, text: 'Attempts' }
+                            title: { display: true, text: 'Score (%)' }
                         }
                     },
+                    plugins: { legend: { display: false } }
+                }
+            });
+        }
+
+        // Initialize Category Chart
+        if (document.getElementById("categoryChart")) {
+            new Chart(document.getElementById("categoryChart"), {
+                type: 'doughnut',
+                data: {
+                    labels: categoryLabels,
+                    datasets: [{
+                        data: categoryCounts,
+                        backgroundColor: ['#36A2EB', '#FFCE56', '#4BC0C0', '#FF6384', '#9966FF']
+                    }]
+                },
+                options: {
+                    responsive: true,
                     plugins: {
-                        legend: { display: true },
-                        tooltip: { enabled: true }
+                        legend: { position: 'bottom' },
+                        title: { display: true, text: 'Quizzes per Category' }
                     }
                 }
             });

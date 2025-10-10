@@ -12,6 +12,13 @@
         <div>
             <a href="@Url.Action("Index")" class="btn btn-secondary">Back to List</a>
             <a href="@Url.Action("Update", new { id = Model.Id })" class="btn btn-primary">Edit Quiz</a>
+
+            @if (Model.IsPublished && !string.IsNullOrEmpty(Model.AccessCode))
+            {
+                <a href="/Instructor/QuizManagement/Token?token=@Model.AccessCode" class="btn btn-success ms-2">
+                    <i class="fas fa-external-link-alt"></i> Go to Quiz
+                </a>
+            }
         </div>
     </div>
 
