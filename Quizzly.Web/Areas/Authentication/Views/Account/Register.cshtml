@@ -5,129 +5,416 @@
 }
 
 <style>
+    :root {
+        --primary-color: #4f46e5;
+        --primary-hover: #4338ca;
+        --text-dark: #1f2937;
+        --text-muted: #6b7280;
+        --border-color: #e5e7eb;
+        --bg-light: #f9fafb;
+    }
+
     .divider:after,
     .divider:before {
         content: "";
         flex: 1;
         height: 1px;
-        background: #eee;
+        background: linear-gradient(90deg, transparent, #e5e7eb, transparent);
     }
+
     .h-custom {
         height: calc(100% - 73px);
     }
+
+    .register-container {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        padding: 2rem 0;
+    }
+
+    .form-card {
+        background: white;
+        border-radius: 24px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+        padding: 3rem;
+        animation: fadeInUp 0.6s ease-out;
+    }
+
+    @@keyframes fadeInUp {
+        from
+
+    {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    }
+
+    .form-title {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--text-dark);
+        margin-bottom: 0.5rem;
+        text-align: center;
+    }
+
+    .form-subtitle {
+        color: var(--text-muted);
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+
+    .social-login-btn {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+        border: 2px solid var(--border-color);
+        background: white;
+        color: var(--text-dark);
+    }
+
+        .social-login-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+        }
+
+    .form-control, .form-select {
+        border: 2px solid var(--border-color);
+        border-radius: 12px;
+        padding: 0.75rem 1rem;
+        font-size: 0.95rem;
+        transition: all 0.3s ease;
+    }
+
+        .form-control:focus, .form-select:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
+            outline: none;
+        }
+
+    .form-label {
+        font-weight: 600;
+        color: var(--text-dark);
+        margin-bottom: 0.5rem;
+        font-size: 0.9rem;
+    }
+
+    .role-selection {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .role-card {
+        position: relative;
+        border: 2px solid var(--border-color);
+        border-radius: 16px;
+        padding: 1.5rem 1rem;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        background: white;
+    }
+
+        .role-card:hover {
+            border-color: var(--primary-color);
+            background: rgba(79, 70, 229, 0.02);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.1);
+        }
+
+        .role-card input[type="radio"] {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+            .role-card input[type="radio"]:checked + .role-content {
+                color: var(--primary-color);
+            }
+
+            .role-card input[type="radio"]:checked ~ .role-checkmark {
+                opacity: 1;
+                transform: scale(1);
+            }
+
+        .role-card.selected {
+            border-color: var(--primary-color);
+            background: linear-gradient(135deg, rgba(79, 70, 229, 0.05), rgba(79, 70, 229, 0.1));
+            box-shadow: 0 4px 16px rgba(79, 70, 229, 0.2);
+        }
+
+    .role-icon {
+        font-size: 2.5rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .role-title {
+        font-weight: 600;
+        font-size: 1.1rem;
+        color: var(--text-dark);
+        margin-bottom: 0.25rem;
+    }
+
+    .role-description {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+    }
+
+    .role-checkmark {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        width: 24px;
+        height: 24px;
+        background: var(--primary-color);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transform: scale(0);
+        transition: all 0.3s ease;
+    }
+
+        .role-checkmark::after {
+            content: "✓";
+            color: white;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+    .btn-primary {
+        background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
+        border: none;
+        border-radius: 12px;
+        padding: 0.875rem 3rem;
+        font-weight: 600;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+    }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(79, 70, 229, 0.4);
+            background: linear-gradient(135deg, var(--primary-hover), #3730a3);
+        }
+
+    .form-check-input:checked {
+        background-color: var(--primary-color);
+        border-color: var(--primary-color);
+    }
+
+    .illustration-side {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem;
+    }
+
+        .illustration-side img {
+            max-width: 100%;
+            filter: drop-shadow(0 10px 30px rgba(0, 0, 0, 0.1));
+            animation: float 3s ease-in-out infinite;
+        }
+
+    @@keyframes float {
+        0%, 100%
+
+    {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-20px);
+    }
+
+    }
+
+    .link-primary {
+        color: var(--primary-color);
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.2s ease;
+    }
+
+        .link-primary:hover {
+            color: var(--primary-hover);
+            text-decoration: underline;
+        }
+
+    .role-dependent-field {
+        animation: slideDown 0.4s ease-out;
+        overflow: hidden;
+    }
+
+    @@keyframes slideDown {
+        from
+
+    {
+        opacity: 0;
+        max-height: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        max-height: 200px;
+        transform: translateY(0);
+    }
+
+    }
+
+    @@media (max-width: 768px) {
+        .form-card
+
+    {
+        padding: 2rem 1.5rem;
+    }
+
+    .role-selection {
+        grid-template-columns: 1fr;
+    }
+
+    }
 </style>
 
-<section class="vh-100">
-    <div class="container-fluid h-custom">
-        <div class="row d-flex justify-content-center align-items-center h-100">
-            <div class="col-md-9 col-lg-6 col-xl-5">
+<section class="register-container">
+    <div class="container">
+        <div class="row justify-content-center align-items-center">
+            <div class="col-lg-5 col-md-6 d-none d-md-block illustration-side">
                 <img src="https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-login-form/draw2.webp"
-                     class="img-fluid" alt="Sample image">
+                     class="img-fluid" alt="Registration illustration">
             </div>
-            <div class="col-md-8 col-lg-6 col-xl-4 offset-xl-1">
-                <form asp-action="Register" asp-controller="Account" method="post" novalidate>
-                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
-                    <div class="d-flex flex-row align-items-center justify-content-center justify-content-lg-start">
-                        <p class="lead fw-normal mb-0 me-3">Sign in with</p>
-                        <a class="btn btn-primary btn-floating mx-1" href="@Url.Action("ExternalLogin","Account", new { provider = "Facebook", returnUrl = Url.Action("Index","Home") })" title="Continue with Facebook" aria-label="Continue with Facebook">
-                            <!-- Facebook SVG icon -->
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 320 512" fill="currentColor" role="img" aria-hidden="true">
-                                <path d="M279.14 288l14.22-92.66h-88.91V127.66c0-25.35 12.42-50.06 52.24-50.06H295V6.26S259.5 0 225.36 0c-73.22 0-121.08 44.38-121.08 124.72v70.62H22.89V288h81.39v224h100.17V288z"/>
-                            </svg>
-                        </a>
-                        <a class="btn btn-primary btn-floating mx-1" href="@Url.Action("ExternalLogin","Account", new { provider = "LinkedIn", returnUrl = Url.Action("Index","Home") })" title="Continue with LinkedIn" aria-label="Continue with LinkedIn">
-                            <!-- LinkedIn SVG icon -->
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 448 512" fill="currentColor" role="img" aria-hidden="true">
-                                <path d="M100.28 448H7.4V148.9h92.88zm-46.44-340C24.5 108 0 83.5 0 53.64A53.64 53.64 0 0 1 53.64 0 53.64 53.64 0 0 1 107.28 53.64c0 29.86-24.5 54.36-54.44 54.36zM447.9 448h-92.6V302.4c0-34.7-.7-79.2-48.2-79.2-48.3 0-55.7 37.7-55.7 76.6V448h-92.6V148.9h88.9v40.8h1.3c12.4-23.6 42.6-48.5 87.7-48.5 93.8 0 111.1 61.8 111.1 142.3V448z"/>
-                            </svg>
-                        </a>
-                    </div>
+            <div class="col-lg-6 col-md-8 col-sm-12">
+                <div class="form-card">
+                    <h1 class="form-title">Create Account</h1>
+                    <p class="form-subtitle">Join us and start your learning journey</p>
 
-                    <div class="divider d-flex align-items-center my-4">
-                        <p class="text-center fw-bold mx-3 mb-0">Or</p>
-                    </div>
+                    <form asp-action="Register" asp-controller="Account" method="post" novalidate>
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
 
-                    <!-- First Name input -->
-                    <div class="form-outline mb-4">
-                        <label asp-for="FirstName" class="form-label"></label>
-                        <input asp-for="FirstName" class="form-control form-control-lg" placeholder="Enter your first name" />
-                        <span asp-validation-for="FirstName" class="text-danger"></span>
-                    </div>
-
-                    <!-- Last Name input -->
-                    <div class="form-outline mb-4">
-                        <label asp-for="LastName" class="form-label"></label>
-                        <input asp-for="LastName" class="form-control form-control-lg" placeholder="Enter your last name" />
-                        <span asp-validation-for="LastName" class="text-danger"></span>
-                    </div>
-
-                    <!-- Email input -->
-                    <div class="form-outline mb-4">
-                        <label asp-for="Email" class="form-label"></label>
-                        <input asp-for="Email" class="form-control form-control-lg" placeholder="Enter a valid email address" />
-                        <span asp-validation-for="Email" class="text-danger"></span>
-                    </div>
-
-                    <!-- Password input -->
-                    <div class="form-outline mb-3">
-                        <label asp-for="Password" class="form-label"></label>
-                        <input asp-for="Password" class="form-control form-control-lg" placeholder="Enter password" />
-                        <span asp-validation-for="Password" class="text-danger"></span>
-                    </div>
-
-                    <!-- Confirm Password input -->
-                    <div class="form-outline mb-3">
-                        <label asp-for="ConfirmPassword" class="form-label"></label>
-                        <input asp-for="ConfirmPassword" class="form-control form-control-lg" placeholder="Confirm password" />
-                        <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
-                    </div>
-
-                    <!-- Role Selection for All Users -->
-                    <div class="aura-input-group mb-3">
-                        <label asp-for="Role" class="form-label">Select Role</label>
-                        <div class="position-relative">
-                            <span class="aura-input-icon icon-user"></span>
-                            <select asp-for="Role" asp-items="@Model.RolesList" class="form-select role-select" required>
-                                <option disabled selected>-- Select Role --</option>
-                            </select>
+                        <div class="d-flex flex-column align-items-center mb-4">
+                            <p class="text-muted mb-3">Sign up with</p>
+                            <div class="d-flex gap-3">
+                                <a class="social-login-btn"
+                                   href="@Url.Action("ExternalLogin", "Account", new { provider = "Google", returnUrl = Url.Action("Index", "Home") })"
+                                   title="Continue with Google"
+                                   aria-label="Continue with Google">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 488 512" fill="currentColor" role="img" aria-hidden="true">
+                                        <path d="M488 261.8C488 403.3 391.6 512 248 512 111 512 0 401 0 264S111 16 248 16c66.9 0 123 24.6 166.1 65L350 143.1C322.4 117.6 286.6 102.3 248 102.3 150.6 102.3 70.6 181.5 70.6 278S150.6 454 248 454c118.4 0 162.7-84.9 169.6-129.5H248v-103h240C487 235 488 248.4 488 261.8z" />
+                                    </svg>
+                                </a>
+                            </div>
                         </div>
-                        <span asp-validation-for="Role" class="text-danger"></span>
-                    </div>
 
-                    <!-- Instructor Title (if role is Instructor) -->
-                    <div class="form-outline mb-3" id="instructorTitleDiv" style="display:none;">
-                        <label asp-for="InstructorTitle" class="form-label"></label>
-                        <input asp-for="InstructorTitle" class="form-control form-control-lg" placeholder="Title (e.g., Professor, Lecturer)" />
-                        <span asp-validation-for="InstructorTitle" class="text-danger"></span>
-                    </div>
+                        <div class="divider d-flex align-items-center my-4">
+                            <p class="text-center text-muted mx-3 mb-0">or continue with email</p>
+                        </div>
 
-                    <!-- Student Number (if role is Student) -->
-                    <div class="form-outline mb-3" id="studentNumberDiv" style="display:none;">
-                        <label asp-for="StudentNumber" class="form-label"></label>
-                        <input asp-for="StudentNumber" class="form-control form-control-lg" placeholder="Student Number" />
-                        <span asp-validation-for="StudentNumber" class="text-danger"></span>
-                    </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="FirstName" class="form-label">First Name</label>
+                                <input asp-for="FirstName" class="form-control" placeholder="John" />
+                                <span asp-validation-for="FirstName" class="text-danger"></span>
+                            </div>
 
-                    <div class="form-check mb-3">
-                        <input asp-for="AcceptTerms" class="form-check-input me-2" />
-                        <label asp-for="AcceptTerms" class="form-check-label"></label>
-                        <span asp-validation-for="AcceptTerms" class="text-danger"></span>
-                    </div>
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="LastName" class="form-label">Last Name</label>
+                                <input asp-for="LastName" class="form-control" placeholder="Doe" />
+                                <span asp-validation-for="LastName" class="text-danger"></span>
+                            </div>
+                        </div>
 
-                    <div class="d-flex justify-content-between align-items-center">
-                        <a href="#!" class="text-body">Forgot password?</a>
-                    </div>
+                        <div class="mb-3">
+                            <label asp-for="Email" class="form-label">Email Address</label>
+                            <input asp-for="Email" class="form-control" placeholder="you@example.com" />
+                            <span asp-validation-for="Email" class="text-danger"></span>
+                        </div>
 
-                    <div class="text-center text-lg-start mt-4 pt-2">
-                        <button type="submit" class="btn btn-primary btn-lg"
-                                style="padding-left: 2.5rem; padding-right: 2.5rem;">
-                            Register
-                        </button>
-                        <p class="small fw-bold mt-2 pt-1 mb-0">
-                            Already have an account? <a href="/Authentication/Account/Login" class="link-danger">Login</a>
-                        </p>
-                    </div>
-                </form>
+                        <div class="mb-3">
+                            <label asp-for="Password" class="form-label">Password</label>
+                            <input asp-for="Password" class="form-control" placeholder="••••••••" />
+                            <span asp-validation-for="Password" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-4">
+                            <label asp-for="ConfirmPassword" class="form-label">Confirm Password</label>
+                            <input asp-for="ConfirmPassword" class="form-control" placeholder="••••••••" />
+                            <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Select Your Role</label>
+                            <div class="role-selection">
+                                <label class="role-card" for="roleInstructor">
+                                    <input type="radio" asp-for="Role" value="Instructor" id="roleInstructor" />
+                                    <div class="role-content">
+                                        <div class="role-icon">👨‍🏫</div>
+                                        <div class="role-title">Instructor</div>
+                                        <div class="role-description">Create and manage quizzes</div>
+                                    </div>
+                                    <div class="role-checkmark"></div>
+                                </label>
+
+                                <label class="role-card" for="roleStudent">
+                                    <input type="radio" asp-for="Role" value="Student" id="roleStudent" />
+                                    <div class="role-content">
+                                        <div class="role-icon">🎓</div>
+                                        <div class="role-title">Student</div>
+                                        <div class="role-description">Take and track your quizzes</div>
+                                    </div>
+                                    <div class="role-checkmark"></div>
+                                </label>
+                            </div>
+                            <span asp-validation-for="Role" class="text-danger"></span>
+                        </div>
+
+                        <div class="role-dependent-field mb-3" id="instructorTitleDiv" style="display:none;">
+                            <label asp-for="InstructorTitle" class="form-label">Title</label>
+                            <input asp-for="InstructorTitle" class="form-control" placeholder="e.g., Professor, Lecturer" />
+                            <span asp-validation-for="InstructorTitle" class="text-danger"></span>
+                        </div>
+
+                        <div class="role-dependent-field mb-3" id="studentNumberDiv" style="display:none;">
+                            <label asp-for="StudentNumber" class="form-label">Student Number</label>
+                            <input asp-for="StudentNumber" class="form-control" placeholder="Enter your student ID" />
+                            <span asp-validation-for="StudentNumber" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-check mb-4">
+                            <input asp-for="AcceptTerms" class="form-check-input" />
+                            <label asp-for="AcceptTerms" class="form-check-label">
+                                I agree to the <a href="#" class="link-primary">Terms & Conditions</a>
+                            </label>
+                            <span asp-validation-for="AcceptTerms" class="text-danger d-block"></span>
+                        </div>
+
+                        <div class="text-center">
+                            <button type="submit" class="btn btn-primary w-100 mb-3">
+                                Create Account
+                            </button>
+                            <p class="text-muted mb-0">
+                                Already have an account? <a href="/Authentication/Account/Login" class="link-primary">Sign in</a>
+                            </p>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
@@ -136,21 +423,33 @@
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
     <script>
-        // Show/hide InstructorTitle and StudentNumber fields based on Role selection
         document.addEventListener('DOMContentLoaded', function () {
-            var roleSelect = document.querySelector('[name="Role"]');
-            var instructorDiv = document.getElementById('instructorTitleDiv');
-            var studentDiv = document.getElementById('studentNumberDiv');
-            function toggleRoleFields() {
-                if (!roleSelect) return;
-                var value = roleSelect.value;
-                instructorDiv.style.display = value === 'Instructor' ? '' : 'none';
-                studentDiv.style.display = value === 'Student' ? '' : 'none';
+            const roleRadios = document.querySelectorAll('input[name="Role"]');
+            const instructorDiv = document.getElementById('instructorTitleDiv');
+            const studentDiv = document.getElementById('studentNumberDiv');
+            const roleCards = document.querySelectorAll('.role-card');
+
+            function updateRoleSelection() {
+                const selectedRole = document.querySelector('input[name="Role"]:checked');
+
+                // Update card styles
+                roleCards.forEach(card => card.classList.remove('selected'));
+                if (selectedRole) {
+                    selectedRole.closest('.role-card').classList.add('selected');
+                }
+
+                // Show/hide role-specific fields
+                const value = selectedRole ? selectedRole.value : '';
+                instructorDiv.style.display = value === 'Instructor' ? 'block' : 'none';
+                studentDiv.style.display = value === 'Student' ? 'block' : 'none';
             }
-            if (roleSelect) {
-                roleSelect.addEventListener('change', toggleRoleFields);
-                toggleRoleFields();
-            }
+
+            roleRadios.forEach(radio => {
+                radio.addEventListener('change', updateRoleSelection);
+            });
+
+            // Initialize on page load
+            updateRoleSelection();
         });
     </script>
 }
