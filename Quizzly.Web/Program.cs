@@ -34,6 +34,9 @@ namespace Quizzly.Web
             builder.Services.AddScoped<IStudentQuizService, StudentQuizService>();
             builder.Services.AddScoped<IManualGradingService, ManualGradingService>();
 
+            // 3amk Injection
+            builder.Services.AddScoped<IAIGradingService, AIGradingService>();
+
             // Add Identity
             builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
             {
@@ -94,7 +97,12 @@ namespace Quizzly.Web
             app.MapStaticAssets();
             app.MapControllerRoute(
                 name: "default",
-                pattern: "{area=Instructor}/{controller=Home}/{action=Index}/{id?}")
+                pattern: "{area=Instructor}/{controller=Dashboard}/{action=Index}/{id?}")
+                .WithStaticAssets();
+
+            app.MapControllerRoute(
+                name: "default",
+                pattern: "{controller=Home}/{action=Index}/{id?}")
                 .WithStaticAssets();
 
             app.Run();

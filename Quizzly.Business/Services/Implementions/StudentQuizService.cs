@@ -11,10 +11,12 @@ namespace Quizzly.Business.Services.Implementions
     public class StudentQuizService : IStudentQuizService
     {
         private readonly IUnitOfWork _uow;
+        private readonly IAIGradingService _aiGradingService;
 
-        public StudentQuizService(IUnitOfWork uow)
+        public StudentQuizService(IUnitOfWork uow, IAIGradingService aiGradingService)
         {
             _uow = uow;
+            _aiGradingService = aiGradingService;
         }
 
         public async Task<int> StartAttemptAsync(string token, string userId, string userEmail, string? ipAddress)
@@ -75,7 +77,15 @@ namespace Quizzly.Business.Services.Implementions
                 throw new InvalidOperationException("Quiz has expired.");
 
             var endsAt = attempt.StartedAt.AddMinutes(quiz.DurationMintes);
+            
+            // Apply question shuffling if enabled
             var orderedQuestions = quiz.Questions.OrderBy(q => q.OrderIndex).ToList();
+            if (quiz.ShuffleQuestions)
+            {
+                // Use a deterministic shuffle based on attempt ID to ensure consistency
+                var random = new Random(attempt.Id);
+                orderedQuestions = orderedQuestions.OrderBy(x => random.Next()).ToList();
+            }
 
             var resolvedIndex = Math.Clamp(index, 0, Math.Max(0, orderedQuestions.Count - 1));
             if (questionId.HasValue)
@@ -99,11 +109,12 @@ namespace Quizzly.Business.Services.Implementions
                     QuestionId = q.Id,
                     OrderIndex = q.OrderIndex,
                     Text = q.Text,
+                    ImageUrl = q.ImageUrl,
                     QuestionType = q.QuestionType,
                     IsRequired = q.IsRequired,
                     Points = q.Points,
                     Explanation = q.Explanation,
-                    Choices = q.Choices.OrderBy(c => c.OrderIndex).Select(c => new QuizTakingViewModel.ChoiceVm
+                    Choices = GetShuffledChoices(q, quiz.ShuffleChoices).Select(c => new QuizTakingViewModel.ChoiceVm
                     {
                         ChoiceId = c.Id,
                         Text = c.Text
@@ -196,6 +207,59 @@ namespace Quizzly.Business.Services.Implementions
                         }
                     }
                 }
+                else if ((q.QuestionType == QuestionType.Essay || q.QuestionType == QuestionType.ShortAnswer) && q.AutoGrade)
+                {
+                    // Handle AI grading for essay and short answer questions
+                    var studentAnswer = attempt.Answers.FirstOrDefault(a => a.QuestionId == q.Id)?.TextAnswer;
+                    var modelAnswer = q.Choices.FirstOrDefault()?.Text;
+                    
+                    if (!string.IsNullOrWhiteSpace(studentAnswer) && !string.IsNullOrWhiteSpace(modelAnswer))
+                    {
+                        try
+                        {
+                            var gradingResult = await _aiGradingService.AiGradeAnswerAsync(
+                                q.Text, 
+                                studentAnswer, 
+                                modelAnswer, 
+                                (int)q.Points
+                            );
+                            
+                            var pointsAwarded = (decimal)gradingResult.Score;
+                            score += pointsAwarded;
+                            
+                            foreach (var ans in attempt.Answers.Where(a => a.QuestionId == q.Id))
+                            {
+                                ans.IsCorrect = pointsAwarded > 0;
+                                ans.IsGraded = true;
+                                ans.PointsAwarded = pointsAwarded;
+                                ans.Feedback = gradingResult.Feedback;
+                                ans.GradedAt = DateTime.UtcNow;
+                            }
+                        }
+                        catch (Exception)
+                        {
+                            // If AI grading fails, mark as not graded and continue
+                            foreach (var ans in attempt.Answers.Where(a => a.QuestionId == q.Id))
+                            {
+                                ans.IsCorrect = null;
+                                ans.IsGraded = false;
+                                ans.PointsAwarded = null;
+                                ans.GradedAt = null;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        // No student answer or model answer, mark as not graded
+                        foreach (var ans in attempt.Answers.Where(a => a.QuestionId == q.Id))
+                        {
+                            ans.IsCorrect = null;
+                            ans.IsGraded = false;
+                            ans.PointsAwarded = null;
+                            ans.GradedAt = null;
+                        }
+                    }
+                }
             }
 
             attempt.Score = score;
@@ -262,10 +326,11 @@ namespace Quizzly.Business.Services.Implementions
                 throw new KeyNotFoundException("Attempt not found");
 
             var autoGradedQuestions = attempt.Quiz.Questions
-                .Where(q => q.QuestionType == QuestionType.MCQ || q.QuestionType == QuestionType.TrueFalse)
+                .Where(q => q.QuestionType == QuestionType.MCQ || q.QuestionType == QuestionType.TrueFalse || 
+                           (q.QuestionType == QuestionType.Essay || q.QuestionType == QuestionType.ShortAnswer) && q.AutoGrade)
                 .ToList();
             var autoMax = autoGradedQuestions.Sum(q => q.Points);
-            var autoScore = attempt.Score ?? 0m; // attempt.Score is computed only from auto-graded questions
+            var autoScore = attempt.Score ?? 0m; // attempt.Score is computed from all auto-graded questions (MCQ, True/False, and AI-graded Essay/ShortAnswer)
             var autoPct = autoMax > 0 ? Math.Round((autoScore / autoMax) * 100m, 2) : (decimal?)0;
 
             var vm = new QuizResultViewModel
@@ -280,8 +345,8 @@ namespace Quizzly.Business.Services.Implementions
                 IsAutoGraded = attempt.IsAutoGraded,
                 ShowCorrectAnswers = attempt.Quiz.ShowCorrectAnswers,
                 ShowScoreImmediately = attempt.Quiz.ShowScoreImmediatlely,
-                Passed = attempt.Quiz.PassingScore.HasValue ? (attempt.Score ?? 0) >= attempt.Quiz.PassingScore.Value : false,
-                AwaitingManualGrading = attempt.Answers.Any(a => a.Question.QuestionType == QuestionType.Essay || a.Question.QuestionType == QuestionType.ShortAnswer),
+                Passed = attempt.Quiz.PassingScore.HasValue ? (attempt.Percentage ?? 0) >= attempt.Quiz.PassingScore.Value : false,
+                AwaitingManualGrading = attempt.Answers.Any(a => (a.Question.QuestionType == QuestionType.Essay || a.Question.QuestionType == QuestionType.ShortAnswer) && !a.IsGraded),
                 AutoGradedMaxScore = autoMax,
                 AutoGradedScore = autoScore,
                 AutoGradedPercentage = autoPct
@@ -295,6 +360,7 @@ namespace Quizzly.Business.Services.Implementions
                 PointsAwarded = attempt.Answers.Where(a => a.QuestionId == q.Id).Select(a => a.PointsAwarded).FirstOrDefault(),
                 IsCorrect = attempt.Answers.Where(a => a.QuestionId == q.Id).Select(a => a.IsCorrect).FirstOrDefault(),
                 Explanation = q.Explanation,
+                Feedback = attempt.Answers.FirstOrDefault(a => a.QuestionId == q.Id)?.Feedback,
                 Choices = q.Choices.OrderBy(c => c.OrderIndex).Select(c => new QuizResultViewModel.ChoiceResultVm
                 {
                     ChoiceId = c.Id,
@@ -608,6 +674,20 @@ namespace Quizzly.Business.Services.Implementions
                 improvements.Count,
                 improvements.Any() ? Math.Round(improvements.Average(), 2) : (decimal?)null
             );
+        }
+
+        private List<Choice> GetShuffledChoices(Question question, bool shuffleChoices)
+        {
+            var choices = question.Choices.OrderBy(c => c.OrderIndex).ToList();
+            
+            if (shuffleChoices)
+            {
+                // Use a deterministic shuffle based on question ID to ensure consistency
+                var random = new Random(question.Id);
+                choices = choices.OrderBy(x => random.Next()).ToList();
+            }
+            
+            return choices;
         }
 
         private class ClientAnswerDto

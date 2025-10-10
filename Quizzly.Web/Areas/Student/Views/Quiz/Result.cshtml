@@ -1,107 +1,257 @@
-@model Quizzly.Business.ViewModels.Student.QuizResultViewModel
+@model QuizResultViewModel
 @{
     ViewData["Title"] = "Quiz Result";
 }
 
 <div class="container py-5">
     <div class="row justify-content-center">
-        <div class="col-lg-8">
-            <div class="card shadow-sm">
+        <div class="col-lg-10">
+            <!-- Header Section -->
+            <div class="card border-0 shadow-sm mb-4">
                 <div class="card-body p-4">
-                    <h3 class="mb-3">@Model.QuizTitle</h3>
-
-                    <div class="d-flex gap-3 flex-wrap mb-3">
-                        @if (Model.ShowScoreImmediately)
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            <h2 class="mb-2">@Model.QuizTitle</h2>
+                            <p class="text-muted mb-0">
+                                <i class="bi bi-clock"></i> Completed in @Model.TimeTaken.ToString("hh'h 'mm'm 'ss's'")
+                            </p>
+                        </div>
+                        @if (Model.ShowScoreImmediately && Model.Passed)
                         {
-                            <div class="badge bg-primary">Score: @(Model.AutoGradedScore)/@Model.AutoGradedMaxScore (@(Model.AutoGradedPercentage?.ToString("0.##") ?? "0")%)</div>
+                            <div class="text-end">
+                                <span class="badge bg-success fs-6 px-3 py-2">
+                                    <i class="bi bi-check-circle-fill"></i> Passed
+                                </span>
+                            </div>
                         }
-                        else
+                        else if (Model.ShowScoreImmediately && !Model.Passed)
                         {
-                            <div class="badge bg-secondary">Score hidden</div>
-                        }
-                        <div class="badge bg-light text-dark">Time Taken: @Model.TimeTaken.ToString("hh'h 'mm'm 'ss's'")</div>
-                        @if (Model.ShowScoreImmediately)
-                        {
-                            if (Model.Passed)
-                            {
-                                <div class="badge bg-success">Passed</div>
-                            }
-                            else
-                            {
-                                <div class="badge bg-danger">Failed</div>
-                            }
+                            <div class="text-end">
+                                <span class="badge bg-danger fs-6 px-3 py-2">
+                                    <i class="bi bi-x-circle-fill"></i> Failed
+                                </span>
+                            </div>
                         }
                     </div>
 
-                    @if (Model.AwaitingManualGrading)
+                    <!-- Score Display -->
+                    @if (Model.ShowScoreImmediately)
                     {
-                        <div class="alert alert-info">Your quiz is pending manual grading for short answer/essay questions. Final score may change after instructor review.</div>
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <div class="card bg-primary text-white border-0 h-100">
+                                    <div class="card-body text-center">
+                                        <h6 class="card-subtitle mb-2 opacity-75">Your Score</h6>
+                                        <h3 class="card-title mb-0">@Model.AutoGradedScore / @Model.AutoGradedMaxScore</h3>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card bg-info text-white border-0 h-100">
+                                    <div class="card-body text-center">
+                                        <h6 class="card-subtitle mb-2 opacity-75">Percentage</h6>
+                                        <h3 class="card-title mb-0">@(Model.AutoGradedPercentage?.ToString("0.##") ?? "0")%</h3>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card bg-secondary text-white border-0 h-100">
+                                    <div class="card-body text-center">
+                                        <h6 class="card-subtitle mb-2 opacity-75">Time Taken</h6>
+                                        <h3 class="card-title mb-0">@Model.TimeTaken.ToString("mm':'ss")</h3>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     }
-
-                    @if (Model.ShowCorrectAnswers)
+                    else
                     {
-                        <h5 class="mt-4">Feedback</h5>
-                        <hr />
+                        <div class="alert alert-secondary border-0 mb-0">
+                            <i class="bi bi-eye-slash"></i> Your score is currently hidden. The instructor will release results soon.
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Pending Manual Grading Alert -->
+            @if (Model.AwaitingManualGrading)
+            {
+                <div class="alert alert-info border-0 shadow-sm mb-4">
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-info-circle-fill fs-4 me-3"></i>
+                        <div>
+                            <strong>Manual Grading in Progress</strong>
+                            <p class="mb-0 small">Your quiz contains short answer or essay questions pending instructor review. Your final score may change after grading is complete.</p>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            <!-- Questions and Feedback -->
+            @if (Model.ShowCorrectAnswers)
+            {
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-white border-bottom py-3">
+                        <h4 class="mb-0">Detailed Feedback</h4>
+                    </div>
+                    <div class="card-body p-4">
                         @foreach (var q in Model.Questions)
                         {
-                            var isCorrect = q.IsCorrect == true;
-                            <div class="mb-4">
-                                <div class="d-flex align-items-center gap-2">
-                                    <span class="fw-semibold">@q.Text</span>
-                                    @if (q.PointsAwarded.HasValue)
-                                    {
-                                        <span class="badge @(isCorrect?"bg-success":"bg-danger")">@(isCorrect?"Correct":"Incorrect")</span>
-                                    }
-                                    else
-                                    {
-                                        <span class="badge bg-warning text-dark">Pending grading</span>
-                                    }
-                                </div>
-                                <div class="small text-muted">Points: @(q.PointsAwarded?.ToString() ?? "-")/@q.Points</div>
-                                @if (!string.IsNullOrWhiteSpace(q.Explanation)) { <div class="mt-2"><em>@q.Explanation</em></div> }
-                                <ul class="mt-2">
-                                    @foreach (var c in q.Choices)
-                                    {
-                                        var chosen = q.SelectedChoiceIds.Contains(c.ChoiceId);
-                                        var css = chosen
-                                            ? (c.IsCorrect ? "text-success fw-semibold" : "text-danger fw-semibold")
-                                            : (c.IsCorrect ? "text-success" : "text-muted");
-                                        <li class="@css">
-                                            @if (c.IsCorrect)
+                            var isCorrect = q.PointsAwarded.HasValue && q.PointsAwarded.Value > 0;
+                            var isFullyCorrect = q.PointsAwarded.HasValue && q.PointsAwarded.Value == q.Points;
+                            var isPartiallyCorrect = q.PointsAwarded.HasValue && q.PointsAwarded.Value > 0 && q.PointsAwarded.Value < q.Points;
+
+                            <div class="question-item mb-4 pb-4 border-bottom">
+                                <div class="d-flex justify-content-between align-items-start mb-3">
+                                    <div class="flex-grow-1">
+                                        <h5 class="mb-2">@q.Text</h5>
+                                        <div class="d-flex gap-2 flex-wrap">
+                                            @if (q.PointsAwarded.HasValue)
                                             {
-                                                <span>✅</span>
+                                                @if (isFullyCorrect)
+                                                {
+                                                    <span class="badge bg-success-subtle text-success border border-success">
+                                                        <i class="bi bi-check-circle-fill"></i> Correct
+                                                    </span>
+                                                }
+                                                else if (isPartiallyCorrect)
+                                                {
+                                                    <span class="badge bg-warning-subtle text-warning border border-warning">
+                                                        <i class="bi bi-dash-circle-fill"></i> Partially Correct
+                                                    </span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge bg-danger-subtle text-danger border border-danger">
+                                                        <i class="bi bi-x-circle-fill"></i> Incorrect
+                                                    </span>
+                                                }
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-warning-subtle text-warning border border-warning">
+                                                    <i class="bi bi-hourglass-split"></i> Pending Grading
+                                                </span>
+                                            }
+                                            <span class="badge bg-light text-dark border">
+                                                <i class="bi bi-star-fill"></i> @(q.PointsAwarded?.ToString() ?? "-") / @q.Points points
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                @if (!string.IsNullOrWhiteSpace(q.Feedback))
+                                {
+                                    <div class="alert alert-light border mb-3">
+                                        <strong><i class="bi bi-chat-left-text"></i> Instructor Feedback:</strong>
+                                        <p class="mb-0 mt-2">@q.Feedback</p>
+                                    </div>
+                                }
+
+                                <!-- Multiple Choice Options -->
+                                @if (q.Choices != null && q.Choices.Any())
+                                {
+                                    <div class="list-group list-group-flush">
+                                        @foreach (var c in q.Choices)
+                                        {
+                                            var chosen = q.SelectedChoiceIds.Contains(c.ChoiceId);
+                                            var itemClass = "list-group-item border rounded mb-2";
+
+                                            if (c.IsCorrect)
+                                            {
+                                                itemClass += " border-success bg-success-subtle";
                                             }
                                             else if (chosen)
                                             {
-                                                <span>❌</span>
+                                                itemClass += " border-danger bg-danger-subtle";
                                             }
-                                            <span>@c.Text</span>
-                                            @if (chosen && !c.IsCorrect)
+                                            else
                                             {
-                                                <span class="ms-2 small text-danger">(your choice)</span>
+                                                itemClass += " border-light";
                                             }
-                                            @if (chosen && c.IsCorrect)
-                                            {
-                                                <span class="ms-2 small text-success">(your choice)</span>
-                                            }
-                                        </li>
-                                    }
-                                </ul>
+
+                                            <div class="@itemClass">
+                                                <div class="d-flex align-items-center">
+                                                    <div class="me-3">
+                                                        @if (c.IsCorrect)
+                                                        {
+                                                            <i class="bi bi-check-circle-fill text-success fs-5"></i>
+                                                        }
+                                                        else if (chosen)
+                                                        {
+                                                            <i class="bi bi-x-circle-fill text-danger fs-5"></i>
+                                                        }
+                                                        else
+                                                        {
+                                                            <i class="bi bi-circle text-muted fs-5"></i>
+                                                        }
+                                                    </div>
+                                                    <div class="flex-grow-1">
+                                                        <span class="@(chosen ? "fw-semibold" : "")">@c.Text</span>
+                                                        @if (chosen && c.IsCorrect)
+                                                        {
+                                                            <span class="badge bg-success ms-2">Your Answer</span>
+                                                        }
+                                                        else if (chosen && !c.IsCorrect)
+                                                        {
+                                                            <span class="badge bg-danger ms-2">Your Answer</span>
+                                                        }
+                                                        else if (c.IsCorrect)
+                                                        {
+                                                            <span class="badge bg-success-subtle text-success ms-2">Correct Answer</span>
+                                                        }
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        }
+                                    </div>
+                                }
+
+                                <!-- Text Answer (Short Answer/Essay) -->
                                 @if (!string.IsNullOrWhiteSpace(q.TextAnswer))
                                 {
-                                    <div><strong>Your answer:</strong> @q.TextAnswer</div>
+                                    <div class="card bg-light border-0 mt-3">
+                                        <div class="card-body">
+                                            <h6 class="text-muted mb-2">Your Answer:</h6>
+                                            <p class="mb-0">@q.TextAnswer</p>
+                                        </div>
+                                    </div>
                                 }
                             </div>
                         }
-                    }
-
-                    <div class="d-flex gap-2 mt-3">
-                        <a class="btn btn-primary" href="@Url.Action("Link","Access", new { area = "Student" })">Back to Access</a>
                     </div>
                 </div>
+            }
+
+            <!-- Action Buttons -->
+            <div class="d-flex gap-2 mt-4">
+                <a class="btn btn-primary btn-lg" href="@Url.Action("Link", "Access", new { area = "Student" })">
+                    <i class="bi bi-arrow-left"></i> Back to Access
+                </a>
+                @if (Model.ShowCorrectAnswers)
+                {
+                    <button class="btn btn-outline-secondary btn-lg" onclick="window.print()">
+                        <i class="bi bi-printer"></i> Print Results
+                    </button>
+                }
             </div>
         </div>
     </div>
 </div>
 
+<style>
+    .question-item:last-child {
+        border-bottom: none !important;
+        padding-bottom: 0 !important;
+        margin-bottom: 0 !important;
+    }
 
+    @@media print {
+        .btn
+
+    {
+        display: none;
+    }
+
+    }
+</style>
