@@ -72,8 +72,6 @@ namespace Quizzly.Web
 
                 });
 
-
-
             var app = builder.Build();
 
             // Seed roles at startup

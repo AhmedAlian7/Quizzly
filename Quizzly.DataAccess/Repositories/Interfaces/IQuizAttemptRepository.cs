@@ -8,6 +8,7 @@ namespace Quizzly.DataAccess.Repositories.Interfaces
         Task<int> CountCompletedAttemptsForStudentAsync(int quizId, int studentId);
         Task<List<QuizAttempt>> GetRecentAttemptsForStudentAsync(int studentId, int take, string includes = "");
         Task<QuizAttempt?> GetAttemptByIdAsync(int attemptId, string includes = "");
+        Task<List<QuizAttempt>?> GetPending();
 
     }
 }
