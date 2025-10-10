@@ -1,5 +1,6 @@
-﻿﻿@using Quizzly.Business.ViewModels.Quiz
+﻿@using Quizzly.Business.ViewModels.Quiz
 @model QuizDetailsDto
+
 @{
     ViewData["Title"] = "Update Quiz";
 }
@@ -9,148 +10,63 @@
 
     <form asp-action="Update" method="post" enctype="multipart/form-data" class="bg-white p-4 rounded shadow-sm">
         @Html.AntiForgeryToken()
-
         <input type="hidden" asp-for="Id" />
 
-        <!-- Quiz Status Toggle -->
-        <div class="card mb-4">
-            <div class="card-header bg-light">
-                <h6 class="mb-0">Quiz Status</h6>
-            </div>
-            <div class="card-body">
-                <div class="form-check form-switch mb-3">
-                    <input asp-for="IsPublished" class="form-check-input" value="true" id="IsPublished" />
-                    <label asp-for="IsPublished" class="form-check-label fw-semibold">
-                        Publish Quiz
-                    </label>
-                </div>
-                <div class="alert alert-info mb-0">
-                    <small>
-                        <i class="fas fa-info-circle"></i>
-                        <strong>Published:</strong> Students can access and take the quiz<br />
-                        <strong>Draft:</strong> Only you can see and edit the quiz
-                    </small>
-                </div>
-            </div>
-        </div>
-
-        <!-- Basic Quiz Information -->
-        <div class="row mb-4">
+        <!-- Basic Info -->
+        <div class="row mb-3">
             <div class="col-md-8">
-                <div class="form-group mb-3">
-                    <label asp-for="Title" class="form-label fw-semibold">Quiz Title *</label>
-                    <input asp-for="Title" class="form-control" />
-                    <span asp-validation-for="Title" class="text-danger small"></span>
-                </div>
+                <label asp-for="Title" class="form-label fw-semibold">Quiz Title *</label>
+                <input asp-for="Title" class="form-control" />
+                <span asp-validation-for="Title" class="text-danger small"></span>
 
-                <div class="form-group mb-3">
-                    <label asp-for="Description" class="form-label fw-semibold">Description</label>
-                    <textarea asp-for="Description" class="form-control" rows="3"></textarea>
-                    <span asp-validation-for="Description" class="text-danger small"></span>
-                </div>
+                <label asp-for="Description" class="form-label fw-semibold mt-3">Description</label>
+                <textarea asp-for="Description" class="form-control" rows="3"></textarea>
             </div>
 
             <div class="col-md-4">
-                <div class="mb-3">
-                    <label asp-for="CategoryId" class="form-label">Category</label>
-                    <select asp-for="CategoryId" asp-items="Model.Categories" class="form-select">
-                        <option value="">-- Select Category --</option>
-                    </select>
-                    <span asp-validation-for="CategoryId" class="text-danger"></span>
-                </div>
+                <label asp-for="CategoryId" class="form-label fw-semibold">Category</label>
+                <select asp-for="CategoryId" asp-items="Model.Categories" class="form-select">
+                    <option value="">-- Select Category --</option>
+                </select>
 
-                <div class="form-group mb-3">
-                    <label asp-for="TimeLimit" class="form-label fw-semibold">Time Limit (minutes) *</label>
-                    <input asp-for="TimeLimit" type="number" class="form-control" min="1" max="180" />
-                    <span asp-validation-for="TimeLimit" class="text-danger small"></span>
-                </div>
+                <label asp-for="TimeLimit" class="form-label fw-semibold mt-3">Time Limit (minutes)</label>
+                <input asp-for="TimeLimit" type="number" class="form-control" min="1" />
             </div>
         </div>
 
         <!-- Quiz Settings -->
         <div class="row mb-4">
             <div class="col-md-6">
-                <div class="card">
-                    <div class="card-header bg-light">
-                        <h6 class="mb-0">Quiz Behavior</h6>
-                    </div>
-                    <div class="card-body">
-                        <div class="form-check form-switch mb-3">
-                            <input asp-for="ShuffleQuestions" class="form-check-input" value="true" />
-                            <label asp-for="ShuffleQuestions" class="form-check-label">Shuffle Questions</label>
-                        </div>
+                <div class="form-check form-switch">
+                    <input asp-for="ShuffleQuestions" class="form-check-input" />
+                    <label asp-for="ShuffleQuestions" class="form-check-label">Shuffle Questions</label>
+                </div>
 
-                        <div class="form-check form-switch mb-3">
-                            <input asp-for="ShuffleChoices" class="form-check-input" value="true" />
-                            <label asp-for="ShuffleChoices" class="form-check-label">Shuffle Choices</label>
-                        </div>
+                <div class="form-check form-switch">
+                    <input asp-for="ShuffleChoices" class="form-check-input" />
+                    <label asp-for="ShuffleChoices" class="form-check-label">Shuffle Choices</label>
+                </div>
 
-                        <div class="form-check form-switch mb-3">
-                            <input asp-for="AllowMultipleAttempts" class="form-check-input" value="true" id="AllowMultipleAttempts" />
-                            <label asp-for="AllowMultipleAttempts" class="form-check-label">Allow Multiple Attempts</label>
-                        </div>
-
-                        <div class="form-group mb-3" id="maxAttemptsGroup" style="display: none;">
-                            <label asp-for="MaxAttempts" class="form-label fw-semibold">Max Attempts</label>
-                            <input asp-for="MaxAttempts" type="number" class="form-control" min="1" max="5" />
-                            <span asp-validation-for="MaxAttempts" class="text-danger small"></span>
-                        </div>
-                    </div>
+                <div class="form-check form-switch">
+                    <input asp-for="AllowMultipleAttempts" class="form-check-input" />
+                    <label asp-for="AllowMultipleAttempts" class="form-check-label">Allow Multiple Attempts</label>
                 </div>
             </div>
 
             <div class="col-md-6">
-                <div class="card">
-                    <div class="card-header bg-light">
-                        <h6 class="mb-0">Grading & Display</h6>
-                    </div>
-                    <div class="card-body">
-                        <div class="form-check form-switch mb-3">
-                            <input asp-for="IsAutoGraded" class="form-check-input" value="true" />
-                            <label asp-for="IsAutoGraded" class="form-check-label">Auto Grade Quiz</label>
-                        </div>
+                <div class="form-check form-switch">
+                    <input asp-for="ShowCorrectAnswers" class="form-check-input" />
+                    <label asp-for="ShowCorrectAnswers" class="form-check-label">Show Correct Answers</label>
+                </div>
 
-                        <div class="form-check form-switch mb-3">
-                            <input asp-for="ShowCorrectAnswers" class="form-check-input" value="true" />
-                            <label asp-for="ShowCorrectAnswers" class="form-check-label">Show Correct Answers</label>
-                        </div>
-
-                        <div class="form-check form-switch mb-3">
-                            <input asp-for="ShowScoreImmediatlely" class="form-check-input" value="true" />
-                            <label asp-for="ShowScoreImmediatlely" class="form-check-label">Show Score Immediately</label>
-                        </div>
-
-                        <div class="form-group mb-3">
-                            <label asp-for="PassingScore" class="form-label fw-semibold">Passing Score (%)</label>
-                            <input asp-for="PassingScore" type="number" class="form-control" min="0" max="100" step="0.1" />
-                            <span asp-validation-for="PassingScore" class="text-danger small"></span>
-                        </div>
-                    </div>
+                <div class="form-check form-switch">
+                    <input asp-for="ShowScoreImmediatlely" class="form-check-input" />
+                    <label asp-for="ShowScoreImmediatlely" class="form-check-label">Show Score Immediately</label>
                 </div>
             </div>
         </div>
 
-        <!-- Date & Time Settings -->
-        <div class="row mb-4">
-            <div class="col-md-6">
-                <div class="form-group mb-3">
-                    <label asp-for="StartAt" class="form-label fw-semibold">Start Date & Time</label>
-                    <input asp-for="StartAt" type="datetime-local" class="form-control"
-                           value="@Model.StartAt?.ToString("yyyy-MM-ddTHH:mm")" />
-                    <span asp-validation-for="StartAt" class="text-danger small"></span>
-                </div>
-            </div>
-            <div class="col-md-6">
-                <div class="form-group mb-3">
-                    <label asp-for="EndAt" class="form-label fw-semibold">End Date & Time</label>
-                    <input asp-for="EndAt" type="datetime-local" class="form-control"
-                           value="@Model.EndAt?.ToString("yyyy-MM-ddTHH:mm")" />
-                    <span asp-validation-for="EndAt" class="text-danger small"></span>
-                </div>
-            </div>
-        </div>
-
-        <!-- Questions Section -->
+        <!-- Questions -->
         <div class="card mb-4">
             <div class="card-header bg-light d-flex justify-content-between align-items-center">
                 <h6 class="mb-0">Questions</h6>
@@ -158,28 +74,28 @@
                     <i class="fas fa-plus"></i> Add Question
                 </button>
             </div>
+
             <div class="card-body" id="questions-container">
                 @for (int i = 0; i < Model.Questions.Count; i++)
                 {
                     var question = Model.Questions[i];
-                    <div class="question-card card mb-3" data-index="@i">
-                        <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                    <div class="card mb-3 question-card" data-index="@i">
+                        <div class="card-header d-flex justify-content-between align-items-center bg-light">
                             <h6 class="mb-0">Question @(i + 1)</h6>
                             <button type="button" class="btn btn-sm btn-danger" onclick="removeQuestion(@i)">
                                 <i class="fas fa-trash"></i> Remove
                             </button>
                         </div>
+
                         <div class="card-body">
                             <div class="row mb-3">
                                 <div class="col-md-8">
                                     <label class="form-label fw-semibold">Question Text *</label>
                                     <textarea name="Questions[@i].Text" class="form-control" rows="2">@question.Text</textarea>
-                                    <span class="text-danger small" data-valmsg-for="Questions[@i].Text" data-valmsg-replace="true"></span>
                                 </div>
                                 <div class="col-md-2">
                                     <label class="form-label fw-semibold">Points *</label>
-                                    <input name="Questions[@i].Points" type="number" class="form-control" min="0.5" step="0.5" value="@question.Points" />
-                                    <span class="text-danger small" data-valmsg-for="Questions[@i].Points" data-valmsg-replace="true"></span>
+                                    <input name="Questions[@i].Points" type="number" class="form-control" value="@question.Points" min="0.5" step="0.5" />
                                 </div>
                                 <div class="col-md-2">
                                     <label class="form-label fw-semibold">Type *</label>
@@ -189,23 +105,40 @@
                                         <option value="2" selected="@(question.QuestionType == Quizzly.DataAccess.Enums.QuestionType.ShortAnswer)">Short Answer</option>
                                         <option value="3" selected="@(question.QuestionType == Quizzly.DataAccess.Enums.QuestionType.Essay)">Essay</option>
                                     </select>
-                                    <span class="text-danger small" data-valmsg-for="Questions[@i].QuestionType" data-valmsg-replace="true"></span>
                                 </div>
                             </div>
 
+                            <!-- Required & AutoGrade -->
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <div class="form-check form-switch">
+                                        <input name="Questions[@i].IsRequired" type="checkbox" class="form-check-input" value="true" @(question.IsRequired ? "checked" : "") />
+                                        <label class="form-check-label">Required Question</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-check form-switch auto-grade-toggle" id="auto-grade-@i"
+                                         style="@(question.QuestionType == Quizzly.DataAccess.Enums.QuestionType.ShortAnswer || question.QuestionType == Quizzly.DataAccess.Enums.QuestionType.Essay ? "" : "display:none;")">
+                                        <input name="Questions[@i].AutoGrade" type="checkbox" class="form-check-input" value="true" @(question.AutoGrade ? "checked" : "") />
+                                        <label class="form-check-label">Auto Grade</label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Image -->
                             <div class="mb-3">
                                 <label class="form-label fw-semibold">Question Image</label>
                                 <input name="Questions[@i].ImageFile" type="file" class="form-control" accept="image/*" />
                                 @if (!string.IsNullOrEmpty(question.ImageUrl))
                                 {
                                     <div class="mt-2">
-                                        <img src="@question.ImageUrl" alt="Question Image" style="max-height: 150px;" class="img-thumbnail" />
+                                        <img src="@question.ImageUrl" alt="Question Image" class="img-thumbnail" style="max-height: 150px;" />
                                         <input type="hidden" name="Questions[@i].ImageUrl" value="@question.ImageUrl" />
                                     </div>
                                 }
                             </div>
 
-                            <!-- Choices for MCQ/TrueFalse -->
+                            <!-- Choices -->
                             <div class="choices-container" id="choices-@i" style="@(question.QuestionType == Quizzly.DataAccess.Enums.QuestionType.ShortAnswer || question.QuestionType == Quizzly.DataAccess.Enums.QuestionType.Essay ? "display:none;" : "")">
                                 <div class="d-flex justify-content-between align-items-center mb-2">
                                     <label class="form-label fw-semibold">Choices</label>
@@ -235,18 +168,18 @@
                                 </div>
                             </div>
 
-                            <!-- Correct Answer for Short Answer -->
+                            <!-- Short Answer -->
                             <div class="correct-answer-container" id="correct-answer-@i" style="@(question.QuestionType == Quizzly.DataAccess.Enums.QuestionType.ShortAnswer ? "" : "display:none;")">
                                 <label class="form-label fw-semibold">Correct Answer</label>
-                                <input type="text" name="Questions[@i].CorrectAnswer" class="form-control"
+                                <input type="text" name="Questions[@i].Choices[0].Text" class="form-control"
                                        value="@(question.Choices.FirstOrDefault()?.Text)" placeholder="Enter the correct answer" />
                             </div>
 
-                            <!-- Essay instructions -->
+                            <!-- Essay -->
                             <div class="essay-container" id="essay-@i" style="@(question.QuestionType == Quizzly.DataAccess.Enums.QuestionType.Essay ? "" : "display:none;")">
-                                <div class="alert alert-info">
-                                    <small><strong>Essay Question:</strong> Students will write their answer in a text area. Manual grading required.</small>
-                                </div>
+                                <label class="form-label fw-semibold">Model Answer (Optional)</label>
+                                <textarea name="Questions[@i].Choices[0].Text" class="form-control" rows="4"
+                                      placeholder="Enter a sample/model answer">@question.Choices.FirstOrDefault()?.Text</textarea>
                             </div>
                         </div>
                     </div>
@@ -254,7 +187,6 @@
             </div>
         </div>
 
-        <!-- Submit Buttons -->
         <div class="d-flex gap-2">
             <button type="submit" class="btn btn-primary">Update Quiz</button>
             <a href="@Url.Action("Index")" class="btn btn-secondary">Cancel</a>
@@ -265,35 +197,10 @@
 @section Scripts {
     <script>
         document.addEventListener("DOMContentLoaded", () => {
-            // Elements that may or may not exist
-            const allowMultipleAttempts = document.getElementById("AllowMultipleAttempts");
-            const maxAttemptsGroup = document.getElementById("maxAttemptsGroup");
-
-            // Toggle MaxAttempts visibility (if present)
-            if (allowMultipleAttempts && maxAttemptsGroup) {
-                const toggleMaxAttempts = () => {
-                    maxAttemptsGroup.style.display = allowMultipleAttempts.checked ? "block" : "none";
-                };
-                allowMultipleAttempts.addEventListener("change", toggleMaxAttempts);
-                toggleMaxAttempts();
-            }
-
-            // Use the model count as initial baseline
+            // initial count based on server model
             let questionCount = @Model.Questions.Count;
 
-            // Ensure DOM is normalized: reindex everything at start
-            reindexQuestions();
-
-            // Hook submit to reindex before posting
-            const form = document.querySelector("form");
-            if (form) {
-                form.addEventListener("submit", (e) => {
-                    reindexQuestions();
-                    // allow submit to continue
-                });
-            }
-
-            // Expose functions globally used by inline onclicks (your view may use these)
+            // expose functions globally for inline onclicks
             window.addQuestion = addQuestion;
             window.removeQuestion = removeQuestion;
             window.addChoice = addChoice;
@@ -303,40 +210,65 @@
             window.reindexChoices = reindexChoices;
             window.addTrueFalseChoices = addTrueFalseChoices;
 
-            // ---------- Functions ----------
+            // normalize existing DOM
+            reindexQuestions();
+
+            // ensure we reindex before submit so names are stable
+            const form = document.querySelector("form");
+            if (form) {
+                form.addEventListener("submit", () => reindexQuestions());
+            }
+
+            // ---------- functions ----------
 
             function addQuestion() {
-                const container = document.getElementById("questions-container") || document.getElementById("questionsContainer");
+                const container = document.getElementById("questions-container");
                 if (!container) return;
 
                 const index = questionCount++;
 
                 const html = `
-                <div class="question-card card mb-3" data-index="${index}">
-                    <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                <div class="card mb-3 question-card" data-index="${index}">
+                    <div class="card-header d-flex justify-content-between align-items-center bg-light">
                         <h6 class="mb-0">Question ${index + 1}</h6>
                         <button type="button" class="btn btn-sm btn-danger" onclick="removeQuestion(${index})">
                             <i class="fas fa-trash"></i> Remove
                         </button>
                     </div>
+
                     <div class="card-body">
                         <div class="row mb-3">
                             <div class="col-md-8">
                                 <label class="form-label fw-semibold">Question Text *</label>
-                                <textarea name="Questions[${index}].Text" class="form-control" rows="2" required></textarea>
+                                <textarea name="Questions[${index}].Text" class="form-control" rows="2"></textarea>
                             </div>
                             <div class="col-md-2">
                                 <label class="form-label fw-semibold">Points *</label>
-                                <input name="Questions[${index}].Points" type="number" class="form-control" min="0.5" step="0.5" value="1" required />
+                                <input name="Questions[${index}].Points" type="number" class="form-control" value="1" min="0.5" step="0.5" />
                             </div>
                             <div class="col-md-2">
                                 <label class="form-label fw-semibold">Type *</label>
-                                <select name="Questions[${index}].QuestionType" class="form-select question-type" onchange="toggleChoices(${index})" required>
+                                <select name="Questions[${index}].QuestionType" class="form-select question-type" onchange="toggleChoices(${index})">
                                     <option value="0">Multiple Choice</option>
                                     <option value="1">True/False</option>
                                     <option value="2">Short Answer</option>
                                     <option value="3">Essay</option>
                                 </select>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="form-check form-switch">
+                                    <input name="Questions[${index}].IsRequired" type="checkbox" class="form-check-input" value="true" />
+                                    <label class="form-check-label">Required Question</label>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-check form-switch auto-grade-toggle" id="auto-grade-${index}" style="display:none;">
+                                    <input name="Questions[${index}].AutoGrade" type="checkbox" class="form-check-input" value="true" />
+                                    <label class="form-check-label">Auto Grade</label>
+                                </div>
                             </div>
                         </div>
 
@@ -357,28 +289,28 @@
 
                         <div class="correct-answer-container" id="correct-answer-${index}" style="display:none;">
                             <label class="form-label fw-semibold">Correct Answer</label>
-                            <input type="text" name="Questions[${index}].CorrectAnswer" class="form-control" placeholder="Enter the correct answer" />
+                            <input type="text" name="Questions[${index}].Choices[0].Text" class="form-control" placeholder="Enter the correct answer" />
                         </div>
 
                         <div class="essay-container" id="essay-${index}" style="display:none;">
-                            <div class="alert alert-info mb-0">
-                                <small><strong>Essay Question:</strong> Student will answer in text form. Manual grading required.</small>
-                            </div>
+                            <label class="form-label fw-semibold">Model Answer (Optional)</label>
+                            <textarea name="Questions[${index}].Choices[0].Text" class="form-control" rows="4" placeholder="Enter a sample/model answer"></textarea>
                         </div>
                     </div>
                 </div>`;
 
                 container.insertAdjacentHTML("beforeend", html);
-                reindexQuestions(); // normalize names & handlers
+                reindexQuestions();
             }
 
             function removeQuestion(index) {
                 const card = document.querySelector(`.question-card[data-index="${index}"]`);
                 if (!card) {
-                    // fallback: try find by position if index out-of-date
                     const all = Array.from(document.querySelectorAll('.question-card'));
-                    if (all[index]) all[index].remove();
-                    reindexQuestions();
+                    if (all[index]) {
+                        all[index].remove();
+                        reindexQuestions();
+                    }
                     return;
                 }
 
@@ -388,15 +320,8 @@
             }
 
             function addChoice(questionIndex) {
-
                 const card = document.querySelector(`.question-card[data-index="${questionIndex}"]`);
-                if (!card) {
-
-                    const cards = Array.from(document.querySelectorAll('.question-card'));
-                    if (!cards[questionIndex]) return;
-                }
-
-                const list = (card || Array.from(document.querySelectorAll('.question-card'))[questionIndex]).querySelector('.choices-list') || document.getElementById(`choices-list-${questionIndex}`);
+                const list = (card && card.querySelector('.choices-list')) || document.getElementById(`choices-list-${questionIndex}`);
                 if (!list) return;
 
                 const choiceIndex = list.children.length;
@@ -417,7 +342,6 @@
             }
 
             function removeChoice(qIndex, cIndex) {
-                // locate the existing choice input by exact name (best effort)
                 const selector = `[name="Questions[${qIndex}].Choices[${cIndex}].Text"]`;
                 const el = document.querySelector(selector);
                 if (el) {
@@ -427,7 +351,6 @@
                     return;
                 }
 
-                // fallback: remove nth child from list
                 const list = document.getElementById(`choices-list-${qIndex}`);
                 if (list && list.children[cIndex]) {
                     list.children[cIndex].remove();
@@ -440,17 +363,18 @@
                 questionCount = cards.length;
 
                 cards.forEach((card, qIndex) => {
-                    // set data-index and header
                     card.setAttribute('data-index', qIndex);
-                    const heading = card.querySelector('.card-header h6') || card.querySelector('.card-title') || card.querySelector('.card-header .mb-0');
+
+                    // update header title
+                    const heading = card.querySelector('.card-header h6') || card.querySelector('.card-header .mb-0');
                     if (heading) heading.textContent = `Question ${qIndex + 1}`;
 
-                    // update all elements' names that include Questions[<num>]
+                    // update all names for this card
                     card.querySelectorAll('[name]').forEach(el => {
                         el.name = el.name.replace(/Questions\[\d+\]/g, `Questions[${qIndex}]`);
                     });
 
-                    // update ids for containers (if present)
+                    // update containers IDs
                     const choicesContainer = card.querySelector('.choices-container');
                     if (choicesContainer) choicesContainer.id = `choices-${qIndex}`;
                     const choicesList = card.querySelector('.choices-list');
@@ -459,86 +383,86 @@
                     if (correct) correct.id = `correct-answer-${qIndex}`;
                     const essay = card.querySelector('.essay-container');
                     if (essay) essay.id = `essay-${qIndex}`;
+                    const autoGrade = card.querySelector('.auto-grade-toggle');
+                    if (autoGrade) autoGrade.id = `auto-grade-${qIndex}`;
 
-                    // update inline handlers to point to the new index (if your markup uses inline onclicks)
+                    // inline onclicks
                     const rmBtn = card.querySelector('.card-header .btn-danger');
                     if (rmBtn) rmBtn.setAttribute('onclick', `removeQuestion(${qIndex})`);
-
                     const addChoiceBtn = card.querySelector('button[onclick*="addChoice"]');
                     if (addChoiceBtn) addChoiceBtn.setAttribute('onclick', `addChoice(${qIndex})`);
-
                     const typeSelect = card.querySelector('.question-type, select[name*="QuestionType"]');
                     if (typeSelect) typeSelect.setAttribute('onchange', `toggleChoices(${qIndex})`);
 
-                    // reindex internal choices for this question
+                    // reindex choices inside
                     reindexChoices(qIndex);
                 });
             }
 
             function reindexChoices(questionIndex) {
-                const list = document.getElementById(`choices-list-${questionIndex}`);
-                if (!list) {
-                    // try locate relative to question card
-                    const card = document.querySelector(`.question-card[data-index="${questionIndex}"]`);
-                    if (!card) return;
-                    const altList = card.querySelector('.choices-list');
-                    if (!altList) return;
-                    altList.id = `choices-list-${questionIndex}`;
-                }
-                const choices = (document.getElementById(`choices-list-${questionIndex}`) || document.querySelector(`.question-card[data-index="${questionIndex}"] .choices-list`));
-                if (!choices) return;
+                const choicesContainer = document.getElementById(`choices-list-${questionIndex}`)
+                    || document.querySelector(`.question-card[data-index="${questionIndex}"] .choices-list`);
+                if (!choicesContainer) return;
 
-                const items = Array.from(choices.querySelectorAll('.choice-item'));
+                const items = Array.from(choicesContainer.querySelectorAll('.choice-item'));
                 items.forEach((item, cIndex) => {
-                    // update names for inputs inside this choice item
                     item.querySelectorAll('[name]').forEach(el => {
                         el.name = el.name.replace(/Choices\[\d+\]/g, `Choices[${cIndex}]`)
                                          .replace(/Questions\[\d+\]/g, `Questions[${questionIndex}]`);
                     });
-
-                    // update remove button onclick if present
                     const btn = item.querySelector('button');
                     if (btn) btn.setAttribute('onclick', `removeChoice(${questionIndex}, ${cIndex})`);
                 });
+
+                // ensure single-choice containers (short answer / essay) have Choices[0] as name if present
+                const correct = document.getElementById(`correct-answer-${questionIndex}`);
+                if (correct) {
+                    correct.querySelectorAll('[name]').forEach(el => {
+                        el.name = el.name.replace(/Questions\[\d+\]/g, `Questions[${questionIndex}]`)
+                                         .replace(/Choices\[\d+\]/g, `Choices[0]`);
+                    });
+                }
+                const essay = document.getElementById(`essay-${questionIndex}`);
+                if (essay) {
+                    essay.querySelectorAll('[name]').forEach(el => {
+                        el.name = el.name.replace(/Questions\[\d+\]/g, `Questions[${questionIndex}]`)
+                                         .replace(/Choices\[\d+\]/g, `Choices[0]`);
+                    });
+                }
             }
 
             function toggleChoices(questionIndex) {
-                // find select by name (safer than using ids)
-                const sel = document.querySelector(`[name="Questions[${questionIndex}].QuestionType"]`)
-                            || document.querySelector(`.question-card[data-index="${questionIndex}"] select.question-type`);
+                const sel = document.querySelector(`[name="Questions[${questionIndex}].QuestionType"]`) ||
+                            document.querySelector(`.question-card[data-index="${questionIndex}"] select.question-type`);
                 if (!sel) return;
                 const val = parseInt(sel.value);
 
-                const choices = document.getElementById(`choices-${questionIndex}`)
-                                || document.querySelector(`.question-card[data-index="${questionIndex}"] .choices-container`);
-                const correct = document.getElementById(`correct-answer-${questionIndex}`)
-                                || document.querySelector(`.question-card[data-index="${questionIndex}"] .correct-answer-container`);
-                const essay = document.getElementById(`essay-${questionIndex}`)
-                                || document.querySelector(`.question-card[data-index="${questionIndex}"] .essay-container`);
+                const choices = document.getElementById(`choices-${questionIndex}`);
+                const correct = document.getElementById(`correct-answer-${questionIndex}`);
+                const essay = document.getElementById(`essay-${questionIndex}`);
+                const autoGrade = document.getElementById(`auto-grade-${questionIndex}`);
 
                 if (choices) choices.style.display = 'none';
                 if (correct) correct.style.display = 'none';
                 if (essay) essay.style.display = 'none';
+                if (autoGrade) autoGrade.style.display = 'none';
 
                 if (val === 0 || val === 1) {
                     if (choices) choices.style.display = '';
-                    if (val === 1) {
-                        // True/False - ensure two options present
-                        addTrueFalseChoices(questionIndex);
-                    }
+                    if (val === 1) addTrueFalseChoices(questionIndex);
                 } else if (val === 2) {
                     if (correct) correct.style.display = '';
+                    if (autoGrade) autoGrade.style.display = '';
                 } else if (val === 3) {
                     if (essay) essay.style.display = '';
+                    if (autoGrade) autoGrade.style.display = '';
                 }
             }
 
             function addTrueFalseChoices(questionIndex) {
                 const list = document.getElementById(`choices-list-${questionIndex}`)
-                    || document.querySelector(`.question-card[data-index="${questionIndex}"] .choices-list`);
+                            || document.querySelector(`.question-card[data-index="${questionIndex}"] .choices-list`);
                 if (!list) return;
-
-                // If already have items, keep them (do not duplicate)
                 if (list.children.length > 0) return;
 
                 const options = [
@@ -563,14 +487,12 @@
                 reindexChoices(questionIndex);
             }
 
-            // Initialize UI for all questions: show/hide containers depending on type
+            // init: ensure existing questions are consistent
             (function initPerQuestion() {
                 const cards = Array.from(document.querySelectorAll('.question-card'));
                 cards.forEach((card, idx) => {
-                    // ensure dataset index exists
                     if (!card.hasAttribute('data-index')) card.setAttribute('data-index', idx);
 
-                    // ensure containers exist ids
                     const choices = card.querySelector('.choices-list');
                     if (choices && !choices.id) choices.id = `choices-list-${idx}`;
                     const choicesContainer = card.querySelector('.choices-container');
@@ -579,29 +501,24 @@
                     if (correct && !correct.id) correct.id = `correct-answer-${idx}`;
                     const essay = card.querySelector('.essay-container');
                     if (essay && !essay.id) essay.id = `essay-${idx}`;
+                    const autoGrade = card.querySelector('.auto-grade-toggle');
+                    if (autoGrade && !autoGrade.id) autoGrade.id = `auto-grade-${idx}`;
 
-                    // attach onchange handler (if select exists)
                     const typeSel = card.querySelector('.question-type, select[name*="QuestionType"]');
                     if (typeSel) {
                         typeSel.setAttribute('onchange', `toggleChoices(${idx})`);
-                        // call toggle to set initial visibility
                         toggleChoices(idx);
                     }
 
-                    // attach addChoice onclick if button present
                     const addBtn = card.querySelector('button[onclick*="addChoice"], .choices-container button');
                     if (addBtn) addBtn.setAttribute('onclick', `addChoice(${idx})`);
 
-                    // attach removeQuestion onclick
                     const rmBtn = card.querySelector('.card-header .btn-danger');
                     if (rmBtn) rmBtn.setAttribute('onclick', `removeQuestion(${idx})`);
 
-                    // ensure choice remove buttons are wired and names are well formed
                     reindexChoices(idx);
                 });
             })();
-        }); // DOMContentLoaded
+        });
     </script>
-}
-
 }

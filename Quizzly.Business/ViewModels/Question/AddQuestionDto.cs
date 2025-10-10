@@ -16,7 +16,12 @@ namespace Quizzly.Business.ViewModels.Question
         [Required]
         [Range(1, 100)]
         public decimal Points { get; set; }
-        public bool IsRequired { get; set; } = true;
+
+        [Required]
+        public bool IsRequired { get; set; }
+
+        [Required]
+        public bool AutoGrade { get; set; }
 
         [Url]
         [NotMapped]

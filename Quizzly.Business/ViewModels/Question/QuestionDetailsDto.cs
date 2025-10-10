@@ -11,7 +11,8 @@ namespace Quizzly.Business.ViewModels.Question
         public int Id { get; set; }
         public string Text { get; set; }
         public decimal Points { get; set; }
-        public bool IsRequired { get; set; } = true;
+        public bool IsRequired { get; set; }
+        public bool AutoGrade { get; set; } = false;
         public string? ImageUrl { get; set; }
         public IFormFile? ImageFile { get; set; }
         public QuestionType QuestionType { get; set; }

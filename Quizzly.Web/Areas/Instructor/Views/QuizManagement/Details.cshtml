@@ -25,7 +25,7 @@
                     <span class="ms-3">
                         <strong>Access Code:</strong>
                         <code class="fs-5 mx-2">@Model.AccessCode</code>
-                        <button type="button" class="btn btn-sm btn-outline-primary" onclick="copyAccessCode()">
+                        <button type="button" class="btn btn-sm btn-outline-primary" onclick="copyAccessCode(event)">
                             <i class="fas fa-copy"></i> Copy
                         </button>
                     </span>
@@ -79,7 +79,16 @@
                                 <span class="badge @GetQuestionTypeBadge(question.QuestionType)">@question.QuestionType</span>
                             </div>
 
-                            <p class="mb-3">@question.Text</p>
+                            <p class="mb-2">@question.Text</p>
+
+                            <div class="mb-2">
+                                <span class="badge @(question.IsRequired ? "bg-success" : "bg-secondary") me-2">
+                                    @(question.IsRequired ? "Required" : "Optional")
+                                </span>
+                                <span class="badge @(question.AutoGrade ? "bg-primary" : "bg-warning")">
+                                    @(question.AutoGrade ? "Auto-graded" : "Manual Grade")
+                                </span>
+                            </div>
 
                             @if (!string.IsNullOrEmpty(question.ImageUrl))
                             {
@@ -113,14 +122,14 @@
                             {
                                 <div class="alert alert-info mb-0">
                                     <small>
-                                        <strong>Short Answer Question:</strong>
+                                        <strong>Short Answer Question:</strong><br />
                                         @if (question.Choices.Any())
                                         {
                                             <span>Correct answer: <strong>@question.Choices.First().Text</strong></span>
                                         }
                                         else
                                         {
-                                            <span>Students will type their answer</span>
+                                            <span>No correct answer defined.</span>
                                         }
                                     </small>
                                 </div>
@@ -128,7 +137,11 @@
                             else if (question.QuestionType == Quizzly.DataAccess.Enums.QuestionType.Essay)
                             {
                                 <div class="alert alert-warning mb-0">
-                                    <small><strong>Essay Question:</strong> Students will write their answer in a text area. Manual grading required.</small>
+                                    <small><strong>Essay Question:</strong></small>
+                                    <div class="mt-2">
+                                        <label class="form-label fw-semibold">Model Answer (Optional)</label>
+                                        <textarea class="form-control" rows="3" readonly>@question.Choices.FirstOrDefault()?.Text</textarea>
+                                    </div>
                                 </div>
                             }
                         </div>
@@ -139,7 +152,6 @@
 
         <!-- Right Column - Settings & Analytics -->
         <div class="col-lg-4">
-            <!-- Quiz Settings -->
             <div class="card mb-4">
                 <div class="card-header bg-light">
                     <h5 class="mb-0">Quiz Settings</h5>
@@ -270,9 +282,7 @@
                                     options: {
                                         responsive: true,
                                         maintainAspectRatio: false,
-                                        plugins: {
-                                            legend: { display: false }
-                                        },
+                                        plugins: { legend: { display: false } },
                                         scales: {
                                             x: {
                                                 grid: { display: false },
@@ -306,22 +316,21 @@
 
 @section Scripts {
     <script>
-        function copyAccessCode() {
+        function copyAccessCode(event) {
             const accessCode = '@Model.AccessCode';
-            navigator.clipboard.writeText(accessCode).then(function() {
+            navigator.clipboard.writeText(accessCode).then(() => {
                 const originalText = event.target.innerHTML;
                 event.target.innerHTML = '<i class="fas fa-check"></i> Copied!';
                 event.target.classList.remove('btn-outline-primary');
                 event.target.classList.add('btn-success');
-
-                setTimeout(function() {
+                setTimeout(() => {
                     event.target.innerHTML = originalText;
                     event.target.classList.remove('btn-success');
                     event.target.classList.add('btn-outline-primary');
                 }, 2000);
-            }).catch(function(err) {
-                console.error('Failed to copy access code: ', err);
-                alert('Failed to copy access code. Please copy it manually.');
+            }).catch(err => {
+                console.error('Failed to copy access code:', err);
+                alert('Copy failed. Please copy manually.');
             });
         }
     </script>

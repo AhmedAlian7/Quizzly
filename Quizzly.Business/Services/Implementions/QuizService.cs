@@ -34,7 +34,6 @@ namespace Quizzly.Business.Services.Implementions
                 CategoryId = quiz.QuizCategoryId,
                 AllowMultipleAttempts = quiz.AllowMultipleAttempts,
                 MaxAttempts = quiz.MaxAttempts,
-                IsAutoGraded = quiz.IsAutoGraded,
                 PassingScore = quiz.PassingScore,
                 ShowCorrectAnswers = quiz.ShowCorrectAnswers,
                 ShowScoreImmediatlely = quiz.ShowScoreImmediatlely,
@@ -54,6 +53,8 @@ namespace Quizzly.Business.Services.Implementions
                     Text = q.Text,
                     QuestionType = q.QuestionType,
                     Points = q.Points,
+                    IsRequired = q.IsRequired,
+                    AutoGrade = q.AutoGrade,
                     ImageUrl = q.ImageUrl,
                     Choices = q.Choices.Select(c => new AddChoiceDto
                     {
@@ -103,7 +104,6 @@ namespace Quizzly.Business.Services.Implementions
             quiz.ShowScoreImmediatlely = dto.ShowScoreImmediatlely;
             quiz.UpdatedAt = DateTime.UtcNow;
             quiz.AllowMultipleAttempts = dto.AllowMultipleAttempts;
-            quiz.IsAutoGraded = dto.IsAutoGraded;
             quiz.IsPublished = dto.IsPublished;
             quiz.PassingScore = dto.PassingScore;
             quiz.MaxAttempts = dto.MaxAttempts;
@@ -128,6 +128,8 @@ namespace Quizzly.Business.Services.Implementions
                     {
                         Text = questionDto.Text,
                         Points = questionDto.Points,
+                        IsRequired = questionDto.IsRequired,
+                        AutoGrade = questionDto.AutoGrade,
                         QuestionType = questionDto.QuestionType,
                         QuizId = quiz.Id,
                         Choices = questionDto.Choices.Select(c => new Choice
@@ -142,6 +144,8 @@ namespace Quizzly.Business.Services.Implementions
                 {
                     question.Text = questionDto.Text;
                     question.Points = questionDto.Points;
+                    question.IsRequired = questionDto.IsRequired;
+                    question.AutoGrade = questionDto.AutoGrade;
                     question.QuestionType = questionDto.QuestionType;
 
                     var existingChoices = question.Choices.ToList();
