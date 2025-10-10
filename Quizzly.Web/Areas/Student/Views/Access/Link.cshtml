@@ -1,4 +1,4 @@
-@model Quizzly.Business.ViewModels.Student.StudentAccessViewModel
+@model StudentAccessViewModel
 @{
     ViewData["Title"] = "Quiz Access";
 }
@@ -6,78 +6,187 @@
 <div class="container py-5">
     <div class="row justify-content-center">
         <div class="col-lg-8">
-            <div class="card shadow-sm">
-                <div class="card-body p-4">
-                    <h2 class="h4 mb-1 text-primary">@Model.Title</h2>
-                    <p class="text-muted mb-3">@Model.Description</p>
-                    <div class="mb-3">
-                        <span class="badge bg-light text-dark">Instructor: @Model.InstructorName</span>
-                        <span class="badge bg-light text-dark ms-2">Duration: @Model.DurationMinutes min</span>
+            <!-- Main Quiz Card -->
+            <div class="card border shadow-sm mb-4">
+                <div class="card-body p-5">
+                    <!-- Title Section -->
+                    <div class="mb-4">
+                        <h1 class="h3 mb-2">@Model.Title</h1>
+                        @if (!string.IsNullOrWhiteSpace(Model.Description))
+                        {
+                            <p class="text-muted mb-0">@Model.Description</p>
+                        }
                     </div>
 
-                    <div class="alert alert-info">
-                        <strong>Instructions:</strong>
-                        <ul class="mb-0">
-                            <li>The timer starts immediately when you click Start.</li>
-                            <li>Auto-submit when time ends.</li>
-                            <li>Don’t close or refresh the page while taking the quiz.</li>
+                    <!-- Quiz Details -->
+                    <div class="row g-3 mb-4 pb-4 border-bottom">
+                        <div class="col-sm-6">
+                            <div class="d-flex align-items-center">
+                                <i class="bi bi-person fs-5 me-2 text-muted"></i>
+                                <div>
+                                    <small class="text-muted d-block">Instructor</small>
+                                    <span>@Model.InstructorName</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-sm-6">
+                            <div class="d-flex align-items-center">
+                                <i class="bi bi-clock fs-5 me-2 text-muted"></i>
+                                <div>
+                                    <small class="text-muted d-block">Duration</small>
+                                    <span>@Model.DurationMinutes minutes</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        @if (Model.StartAt.HasValue)
+                        {
+                            <div class="col-sm-6">
+                                <div class="d-flex align-items-center">
+                                    <i class="bi bi-calendar-check fs-5 me-2 text-muted"></i>
+                                    <div>
+                                        <small class="text-muted d-block">Available From</small>
+                                        <span>@Model.StartAt.Value.ToString("MMM dd, yyyy hh:mm tt")</span>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+
+                        @if (Model.EndAt.HasValue)
+                        {
+                            <div class="col-sm-6">
+                                <div class="d-flex align-items-center">
+                                    <i class="bi bi-calendar-x fs-5 me-2 text-muted"></i>
+                                    <div>
+                                        <small class="text-muted d-block">Available Until</small>
+                                        <span>@Model.EndAt.Value.ToString("MMM dd, yyyy hh:mm tt")</span>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+
+                    <!-- Attempt Information -->
+                    @if (!Model.AllowMultipleAttempts || Model.MaxAttempts.HasValue)
+                    {
+                        <div class="mb-4 pb-4 border-bottom">
+                            <div class="d-flex">
+                                <i class="bi bi-arrow-repeat fs-5 me-2 text-muted"></i>
+                                <div>
+                                    @if (!Model.AllowMultipleAttempts)
+                                    {
+                                        <strong>Single Attempt Only</strong>
+                                        <p class="text-muted mb-0 small">You can only take this quiz once.</p>
+                                    }
+                                    else if (Model.MaxAttempts.HasValue)
+                                    {
+                                        <strong>Maximum @Model.MaxAttempts Attempts</strong>
+                                        <p class="text-muted mb-0 small">You have @Model.MaxAttempts attempts for this quiz.</p>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    }
+
+                    <!-- Instructions -->
+                    <div class="mb-4">
+                        <h6 class="mb-3">Before You Start</h6>
+                        <ul class="list-unstyled mb-0">
+                            <li class="mb-2 d-flex">
+                                <i class="bi bi-check2 me-2 text-muted"></i>
+                                <span>The timer starts immediately when you begin</span>
+                            </li>
+                            <li class="mb-2 d-flex">
+                                <i class="bi bi-check2 me-2 text-muted"></i>
+                                <span>Your quiz will auto-submit when time runs out</span>
+                            </li>
+                            <li class="mb-2 d-flex">
+                                <i class="bi bi-check2 me-2 text-muted"></i>
+                                <span>Do not close or refresh the page during the quiz</span>
+                            </li>
+                            <li class="mb-0 d-flex">
+                                <i class="bi bi-check2 me-2 text-muted"></i>
+                                <span>Ensure you have a stable internet connection</span>
+                            </li>
                         </ul>
                     </div>
 
+                    <!-- Validation Messages -->
                     @if (!string.IsNullOrEmpty(Model.ValidationMessage))
                     {
-                        <div class="alert alert-warning">@Model.ValidationMessage</div>
-                        <a class="btn btn-secondary" href="@Url.Action("Index","Home", new { area = "Instructor" })">Back</a>
-                    }
-                    else
-                    {
-                        <div class="d-flex gap-2">
-                            <a class="btn btn-primary" href="#" id="startQuizBtn" data-url="@Url.Action("Start", "Quiz", new { area = "Student", token = Model.AccessToken })">Start Quiz</a>
-                            <a class="btn btn-outline-secondary" href="@Url.Action("Index", "Home", new { area = "Instructor" })">Cancel</a>
+                        <div class="alert alert-light border mb-4">
+                            <div class="d-flex">
+                                <i class="bi bi-info-circle fs-5 me-3 text-muted"></i>
+                                <div>
+                                    <strong>Unable to Start Quiz</strong>
+                                    <p class="mb-0 mt-1 text-muted">@Model.ValidationMessage</p>
+                                </div>
+                            </div>
                         </div>
                     }
+
+                    <!-- Action Buttons -->
+                    <div class="d-flex gap-2 pt-3">
+                        @if (string.IsNullOrEmpty(Model.ValidationMessage))
+                        {
+                            <button class="btn btn-dark btn-lg px-4" id="startQuizBtn" data-url="@Url.Action("Start", "Quiz", new { area = "Student", token = Model.AccessToken })">
+                                Start Quiz
+                            </button>
+                            <a class="btn btn-outline-secondary btn-lg px-4" href="@Url.Action("Index", "Dashboard", new { area = "Student" })">
+                                Cancel
+                            </a>
+                        }
+                        else
+                        {
+                            <a class="btn btn-outline-secondary btn-lg px-4" href="@Url.Action("Index", "Dashboard", new { area = "Student" })">
+                                Go Back
+                            </a>
+                        }
+                    </div>
                 </div>
             </div>
+
+            <!-- Footer Note -->
+            <p class="text-center text-muted small mb-0">
+                <i class="bi bi-shield-check me-1"></i>
+                Your responses are automatically saved as you progress through the quiz.
+            </p>
         </div>
     </div>
 </div>
 
-
 <script>
-    document.getElementById('startQuizBtn').addEventListener('click', function(e) {
+    document.getElementById('startQuizBtn')?.addEventListener('click', function(e) {
         e.preventDefault();
         const url = this.getAttribute('data-url');
 
         Swal.fire({
-            icon: 'info',
             title: 'Ready to Begin?',
-            html: '<p class="mb-2">The timer will start immediately</p><p class="text-muted small">Make sure you\'re ready before proceeding</p>',
+            text: 'The timer will start immediately after you confirm.',
+            icon: 'question',
             showCancelButton: true,
-            confirmButtonText: '<i class="bi bi-play-fill"></i> Start Quiz',
+            confirmButtonText: 'Start Quiz',
             cancelButtonText: 'Not Yet',
-            confirmButtonColor: '#0d6efd',
-            cancelButtonColor: '#6c757d',
             reverseButtons: true,
-            backdrop: true,
             allowOutsideClick: false,
             customClass: {
-                confirmButton: 'btn btn-primary px-4',
-                cancelButton: 'btn btn-secondary px-4'
+                confirmButton: 'btn btn-dark px-4',
+                cancelButton: 'btn btn-outline-secondary px-4'
             },
             buttonsStyling: false
         }).then((result) => {
             if (result.isConfirmed) {
-                // Show loading while redirecting
                 Swal.fire({
-                    title: 'Starting Quiz...',
+                    title: 'Loading Quiz...',
                     text: 'Please wait',
                     allowOutsideClick: false,
                     allowEscapeKey: false,
+                    showConfirmButton: false,
                     didOpen: () => {
                         Swal.showLoading();
                     }
                 });
-
                 window.location.href = url;
             }
         });

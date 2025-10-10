@@ -333,6 +333,50 @@
         });
     </script>
 
+    <script>
+        const Toast = Swal.mixin({
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true,
+            didOpen: (toast) => {
+                toast.addEventListener('mouseenter', Swal.stopTimer)
+                toast.addEventListener('mouseleave', Swal.resumeTimer)
+            }
+        });
+
+        @if (TempData["SuccessMessage"] != null)
+        {
+                    <text>
+                    Toast.fire({
+                        icon: 'success',
+                        title: '@Html.Raw(TempData["SuccessMessage"])'
+                    });
+                    </text>
+        }
+
+        @if (TempData["ErrorMessage"] != null)
+        {
+                    <text>
+                    Toast.fire({
+                        icon: 'error',
+                        title: '@Html.Raw(TempData["ErrorMessage"])'
+                    });
+                    </text>
+        }
+
+        @if (TempData["InfoMessage"] != null)
+        {
+                    <text>
+                    Toast.fire({
+                        icon: 'info',
+                        title: '@Html.Raw(TempData["InfoMessage"])'
+                    });
+                    </text>
+        }
+    </script>
+
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
