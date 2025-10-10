@@ -285,9 +285,23 @@
 
                 // Insert Auto Grade checkbox before the container
                 const autoGradeHtml = `
-                    <div class="mb-2 form-check form-switch" id="autograde-${qId}">
-                        <input name="addQuestionDtos[${qId - 1}].AutoGrade" class="form-check-input" type="checkbox" value="true" />
-                        <label class="form-check-label fw-semibold">Auto Grade</label>
+                    <div class="d-inline-flex align-items-center gap-2 border border-2 border-primary rounded-pill p-2 pe-3 mb-2">
+                        <img src="https://uxwing.com/wp-content/themes/uxwing/download/brands-and-social-media/grok-icon.svg"
+                             alt="Grok"
+                             width="32"
+                             height="32"
+                             class="grok-icon-${qId}">
+                        <div class="form-check form-switch mb-0">
+                            <input class="form-check-input"
+                                   type="checkbox"
+                                   role="switch"
+                                   id="grokToggle${qId}"
+                                   name="addQuestionDtos[${qId - 1}].AutoGrade"
+                                   value="true">
+                            <label class="form-check-label fw-semibold" for="grokToggle${qId}">
+                                Grok Auto Grade
+                            </label>
+                        </div>
                     </div>
                 `;
                 container.insertAdjacentHTML('beforebegin', autoGradeHtml);

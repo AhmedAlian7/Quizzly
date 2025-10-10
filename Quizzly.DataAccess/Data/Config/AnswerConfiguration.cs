@@ -21,6 +21,10 @@ namespace Quizzly.DataAccess.Data.Config
             builder.Property(a => a.IsCorrect)
                 .IsRequired();
 
+            builder.Property(a => a.Feedback)
+                .HasMaxLength(1000);
+
+
             // Configure foreign key relationship to Question entity
             builder.HasOne(a => a.Question)
                 .WithMany(q => q.Answers)
