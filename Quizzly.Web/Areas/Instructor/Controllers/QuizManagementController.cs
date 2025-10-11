@@ -124,7 +124,7 @@ namespace Quizzly.Web.Areas.Instructor.Controllers
                 }
             }
 
-             return RedirectToAction("Index", "QuizCategoryManagement", new { area = "Instructor" });
+             return RedirectToAction("Index", "QuizManagement", new { area = "Instructor" });
 
         }
 
@@ -202,7 +202,6 @@ namespace Quizzly.Web.Areas.Instructor.Controllers
         }
 
         [HttpPost]
-        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(int quizId)
         {
 

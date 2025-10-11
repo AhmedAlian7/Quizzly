@@ -119,11 +119,14 @@
             });
         });
 
-        // Confirm delete modal
+        // Confirm delete modal with warning
         function confirmDelete(categoryId, categoryName) {
             document.getElementById('categoryIdToDelete').value = categoryId;
-            document.getElementById('deleteModalBody').innerHTML =
-                `Are you sure you want to delete the category <strong>${categoryName}</strong>? This action cannot be undone.`;
+            document.getElementById('deleteModalBody').innerHTML = `
+                <div class="text-danger">
+                    <strong>Warning:</strong> Deleting the category <strong>${categoryName}</strong> will also permanently delete <strong>all quizzes</strong> associated with it.<br><br>
+                    Are you sure you want to continue?
+                </div>`;
             const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
             modal.show();
         }

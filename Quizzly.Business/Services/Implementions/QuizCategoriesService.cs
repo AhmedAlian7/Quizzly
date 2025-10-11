@@ -69,7 +69,19 @@ namespace Quizzly.Business.Services.Implementions
             var category = await _unitOfWork.QuizCategories
                 .GetByIdAsync(categoryId);
 
+            var quizzes = await _unitOfWork.Quizzes
+                .GetQuizzesByCategoryIdAsync(categoryId, category.InstructorId);
+
+            if (quizzes.Any())
+            {
+                foreach (var quiz in quizzes)
+                {
+                    quiz.IsDeleted = true;
+                }
+            }
+
             category.IsDeleted = true;
+            
 
             await _unitOfWork.SaveAsync();
 
