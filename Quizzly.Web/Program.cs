@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Quizzly.Business.Configuration;
 using Quizzly.Business.Services;
 using Quizzly.Business.Services.Implementions;
 using Quizzly.Business.Services.Interfaces;
@@ -8,6 +9,7 @@ using Quizzly.DataAccess.Data;
 using Quizzly.DataAccess.Entities;
 using Quizzly.DataAccess.Repositories.Implementions;
 using Quizzly.DataAccess.Repositories.Interfaces;
+using YourProjectName.Services;
 
 namespace Quizzly.Web
 {
@@ -36,6 +38,9 @@ namespace Quizzly.Web
 
             // 3amk Injection
             builder.Services.AddScoped<IAIGradingService, AIGradingService>();
+            builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("Smtp"));
+            builder.Services.AddScoped<IEmailService, EmailService>();
+
 
             // Add Identity
             builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>

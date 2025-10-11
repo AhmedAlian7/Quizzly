@@ -87,7 +87,6 @@ namespace Quizzly.Web.Areas.Authentication.Controllers
                     };
                     await _unitOfWork.Instructors.AddAsync(instructor);
                     await _unitOfWork.SaveAsync();
-                    return RedirectToAction("Index", "Dashboard", new { area = "Instructor"});
                 }
                 else if (register.Role == AppRoles.Student)
                 {
@@ -101,7 +100,7 @@ namespace Quizzly.Web.Areas.Authentication.Controllers
                 }
                 await _signInManager.SignInAsync(user, isPersistent: true);
                 TempData["SuccessMessage"] = "Account Created successfully!";
-                return RedirectToAction("Index", "Dashboard", new { area = "Student" });
+                return RedirectToDashboardOrHome(user, null);
             }
             else
             {
@@ -159,23 +158,8 @@ namespace Quizzly.Web.Areas.Authentication.Controllers
                 if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
                     return LocalRedirect(returnUrl);
 
-                if (await _userManager.IsInRoleAsync(user, AppRoles.Admin))
-                    return RedirectToAction("Index", "Product", new { area = "Admin" });
-
-                if (await _userManager.IsInRoleAsync(user, AppRoles.Instructor))
-                {
-                    TempData["SuccessMessage"] = "Login Successfully, Wellcome Back!";
-                    var instructor = (await _unitOfWork.Instructors.GetAllAsync("")).FirstOrDefault(i => i.UserId == user.Id);
-                    if (instructor != null)
-                        return RedirectToAction("Index", "Dashboard", new { area = "Instructor"});
-                }
-                if (await _userManager.IsInRoleAsync(user, AppRoles.Student))
-                {
-                    TempData["SuccessMessage"] = "Login Successfully, Wellcome Back!";
-                    var student = (await _unitOfWork.Students.GetAllAsync("")).FirstOrDefault(s => s.UserId == user.Id);
-                    if (student != null)
-                        return RedirectToAction("Index", "Dashboard", new { area = "Student" });
-                }
+                TempData["SuccessMessage"] = "Login Successfully, Wellcome Back!";
+                return RedirectToDashboardOrHome(user, returnUrl);
 
             }
 
@@ -369,19 +353,8 @@ namespace Quizzly.Web.Areas.Authentication.Controllers
 
                 TempData["SuccessMessage"] = $"Registration completed successfully! Welcome to Quizzly!";
 
-                // Redirect based on role
-                if (model.Role == AppRoles.Instructor)
-                {
-                    var instructor = (await _unitOfWork.Instructors.GetAllAsync("")).FirstOrDefault(i => i.UserId == user.Id);
-                    if (instructor != null)
-                        return RedirectToAction("Index", "Dashboard", new { area = "Instructor"});
-                }
-                else if (model.Role == AppRoles.Student)
-                {
-                    return RedirectToAction("Index", "Dashboard", new { area = "Student" });
-                }
-
-                return RedirectToAction("Index", "Dashboard", new { area = "Student" });
+                // Use the centralized redirect method
+                return RedirectToDashboardOrHome(user, null);
             }
             catch (Exception)
             {
@@ -403,13 +376,13 @@ namespace Quizzly.Web.Areas.Authentication.Controllers
             if (_userManager.IsInRoleAsync(user, AppRoles.Admin).Result)
                 return RedirectToAction("Index", "Dashboard", new { area = "Admin" });
 
-            if (_userManager.IsInRoleAsync(user,AppRoles.Instructor).Result)
-                    return RedirectToAction("Index", "Dashboard", new { area = "Instructor" });
+            if (_userManager.IsInRoleAsync(user, AppRoles.Instructor).Result)
+                return RedirectToAction("Index", "Dashboard", new { area = "Instructor" });
             
             if (_userManager.IsInRoleAsync(user, AppRoles.Student).Result)
-                    return RedirectToAction("Index", "Dashboard", new { area = "Student" });
+                return RedirectToAction("Index", "Dashboard", new { area = "Student" });
 
-
+            // Default fallback
             return RedirectToAction("Index", "Dashboard", new { area = "Student" });
         }
 

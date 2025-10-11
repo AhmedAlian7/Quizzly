@@ -82,9 +82,10 @@ public class ManualGradingController : Controller
                 }
             }
 
-            await _manualGradingService.UpdateAttemptTotalScoreAsync(model.AttemptId);
+            // Complete manual grading and send email notification to student
+            await _manualGradingService.CompleteManualGradingAsync(model.AttemptId);
 
-            TempData["SuccessMessage"] = "Manual grading saved successfully!";
+            TempData["SuccessMessage"] = "Manual grading saved successfully and student has been notified via email!";
             return RedirectToAction("Index");
         }
         catch (Exception ex)

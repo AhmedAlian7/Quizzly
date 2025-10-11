@@ -1,0 +1,38 @@
+﻿@{
+    ViewData["Title"] = "Send Email";
+}
+
+<div class="container mt-5">
+    <h2>Send Test Email</h2>
+
+    @if (ViewBag.Success != null)
+    {
+        <div class="alert alert-success">@ViewBag.Success</div>
+    }
+
+    @if (ViewBag.Error != null)
+    {
+        <div class="alert alert-danger">@ViewBag.Error</div>
+    }
+
+    <form method="post" asp-action="SendEmail">
+        @Html.AntiForgeryToken()
+
+        <div class="form-group mb-3">
+            <label for="toEmail">Recipient Email:</label>
+            <input type="email" class="form-control" id="toEmail" name="toEmail" required />
+        </div>
+
+        <div class="form-group mb-3">
+            <label for="subject">Subject:</label>
+            <input type="text" class="form-control" id="subject" name="subject" required />
+        </div>
+
+        <div class="form-group mb-3">
+            <label for="message">Message:</label>
+            <textarea class="form-control" id="message" name="message" rows="5" required></textarea>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Send Email</button>
+    </form>
+</div>

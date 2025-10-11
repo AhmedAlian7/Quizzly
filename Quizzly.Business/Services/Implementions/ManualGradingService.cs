@@ -6,10 +6,12 @@ using Quizzly.DataAccess.Repositories.Interfaces;
 public class ManualGradingService : IManualGradingService
 {
     private readonly IUnitOfWork _unitOfWork;
+    private readonly IEmailService _emailService;
 
-    public ManualGradingService(IUnitOfWork unitOfWork)
+    public ManualGradingService(IUnitOfWork unitOfWork, IEmailService emailService)
     {
         _unitOfWork = unitOfWork;
+        _emailService = emailService;
     }
 
     public async Task<QuizAttempt?> GetAttemptByIdAsync(int attemptId, string include = "Answers.Question,Student.User,Quiz")
@@ -113,5 +115,98 @@ public class ManualGradingService : IManualGradingService
             ans.PointsAwarded == null));
 
         return query.ToList();
+    }
+
+    // Complete manual grading and send email notification to student
+    public async Task CompleteManualGradingAsync(int attemptId)
+    {
+        // First update the attempt total score
+        await UpdateAttemptTotalScoreAsync(attemptId);
+
+        // Get the attempt with student and quiz details for email
+        var attempt = await _unitOfWork.QuizAttempts
+            .GetAttemptByIdAsync(attemptId, "Student.User,Quiz");
+
+        if (attempt?.Student?.User == null || attempt.Quiz == null)
+        {
+            throw new Exception("Attempt, student, or quiz information not found.");
+        }
+
+        // Send email notification to student
+        try
+        {
+            await SendGradingCompletionEmailAsync(attempt);
+        }
+        catch (Exception ex)
+        {
+            // Log the email error but don't fail the grading process
+            // You might want to log this to a logging service
+            Console.WriteLine($"Failed to send email notification: {ex.Message}");
+        }
+    }
+
+    private async Task SendGradingCompletionEmailAsync(QuizAttempt attempt)
+    {
+        var studentEmail = attempt.Student.User.Email;
+        var studentName = $"{attempt.Student.User.FirstName} {attempt.Student.User.LastName}";
+        var quizTitle = attempt.Quiz.Title;
+        var score = attempt.Score ?? 0m;
+        var maxScore = attempt.MaxScore;
+        var percentage = attempt.Percentage ?? 0m;
+
+        var subject = $"Quiz Grading Complete - {quizTitle}";
+        
+        var body = $@"
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8'>
+    <style>
+        body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
+        .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
+        .header {{ background-color: #4CAF50; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }}
+        .content {{ background-color: #f9f9f9; padding: 30px; border-radius: 0 0 8px 8px; }}
+        .score-box {{ background-color: white; border: 2px solid #4CAF50; border-radius: 8px; padding: 20px; margin: 20px 0; text-align: center; }}
+        .score {{ font-size: 2em; font-weight: bold; color: #4CAF50; }}
+        .details {{ margin: 15px 0; }}
+        .footer {{ text-align: center; margin-top: 30px; color: #666; font-size: 0.9em; }}
+    </style>
+</head>
+<body>
+    <div class='container'>
+        <div class='header'>
+            <h1>Quiz Grading Complete</h1>
+        </div>
+        <div class='content'>
+            <p>Dear {studentName},</p>
+            
+            <p>We are pleased to inform you that the manual grading for your quiz <strong>""{quizTitle}""</strong> has been completed.</p>
+            
+            <div class='score-box'>
+                <div class='score'>{score}/{maxScore}</div>
+                <div>Your Score</div>
+                <div style='margin-top: 10px; font-size: 1.2em; color: #666;'>{percentage:F1}%</div>
+            </div>
+            
+            <div class='details'>
+                <p><strong>Quiz:</strong> {quizTitle}</p>
+                <p><strong>Score:</strong> {score} out of {maxScore} points</p>
+                <p><strong>Percentage:</strong> {percentage:F1}%</p>
+                <p><strong>Graded on:</strong> {DateTime.UtcNow.ToString("MMMM dd, yyyy 'at' HH:mm UTC")}</p>
+            </div>
+            
+            <p>You can now view your detailed results and feedback in your student dashboard.</p>
+            
+            <p>Thank you for your participation!</p>
+            
+            <div class='footer'>
+                <p>Best regards,<br>Quizzly Team</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>";
+
+        await _emailService.SendEmailAsync(studentEmail ?? "", subject, body, true);
     }
 }

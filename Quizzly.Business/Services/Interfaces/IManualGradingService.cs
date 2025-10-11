@@ -10,6 +10,7 @@ namespace Quizzly.Business.Services.Interfaces
         Task UpdateAttemptTotalScoreAsync(int attemptId);
         Task<bool> AreAllAnswersGradedAsync(int attemptId);
         Task<List<QuizAttempt>> GetPendingAttemptsAsync();
+        Task CompleteManualGradingAsync(int attemptId);
 
     }
 }
