@@ -23,7 +23,9 @@ namespace Quizzly.Business.Services.Implementions
         // Get answers that need manual grading => ShortAnswer & Essay
         public async Task<List<Answer>> GetAnswersNeedingManualGradingAsync(int attemptId)
         {
-            var attempt = await _unitOfWork.QuizAttempts.GetAttemptByIdAsync(attemptId, "Answers.Question,Student.User,Quiz");
+            var attempt = await _unitOfWork.QuizAttempts
+                .GetAttemptByIdAsync(attemptId, "Answers.Question,Student.User,Quiz");
+
             if (attempt == null)
                 throw new Exception("Attempt not found.");
 
