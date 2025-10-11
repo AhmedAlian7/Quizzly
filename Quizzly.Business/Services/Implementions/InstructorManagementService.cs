@@ -104,8 +104,15 @@ namespace Quizzly.Business.Services.Implementions
                 Category = q.QuizCategory,
                 TimeLimit = q.DurationMintes,
                 CreatedAt = q.CreatedAt,
-                AvgScore = q.QuizAttempts
-                          .Average(qa => qa.Score),
+                AvgScore = q.QuizAttempts?
+                     .Where(qa => qa.Quiz?.InstructorId == InstructorId
+                                  && qa.Score.HasValue
+                                  && qa.Quiz.Questions.Any())
+                     .Select(qa =>
+                         (qa.Score.Value / (decimal)qa.Quiz.Questions.Sum(q => q.Points)) * 100
+                     )
+                     .DefaultIfEmpty(0)
+                     .Average() ?? 0,
             }).ToList();
 
             return QuizzesDto;
@@ -137,7 +144,6 @@ namespace Quizzly.Business.Services.Implementions
 
             foreach (var q in dto.addQuestionDtos)
             {
-                // Upload image if exists
                 if (q.ImageFile != null)
                 {
                     try
@@ -166,7 +172,7 @@ namespace Quizzly.Business.Services.Implementions
                 {
                     var choice = new Choice
                     {
-                        Text = q.CorrectAnswer ?? string.Empty,
+                        Text = q.CorrectAnswer,
                         IsCorrect = true,
                         CreatedAt = DateTime.UtcNow,
                         UpdatedAt = DateTime.UtcNow
@@ -180,7 +186,7 @@ namespace Quizzly.Business.Services.Implementions
                     {
                         var choice = new Choice
                         {
-                            Text = q.CorrectAnswer,
+                            Text = q.CorrectAnswer ?? string.Empty,
                             IsCorrect = true,
                             CreatedAt = DateTime.UtcNow,
                             UpdatedAt = DateTime.UtcNow
@@ -190,7 +196,6 @@ namespace Quizzly.Business.Services.Implementions
                 }
                 else
                 {
-                    // For Multiple Choice and True/False
                     if (q.Choices != null && q.Choices.Any())
                     {
                         foreach (var c in q.Choices)
