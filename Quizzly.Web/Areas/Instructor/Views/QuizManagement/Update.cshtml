@@ -231,7 +231,7 @@
 @section Scripts {
     <script>
         document.addEventListener("DOMContentLoaded", () => {
-            // Toggle badge display for IsPublished
+
             const isPublishedCheckbox = document.querySelector('input[name="IsPublished"]');
             const publishedBadge = document.getElementById('publishedBadge');
             const draftBadge = document.getElementById('draftBadge');
@@ -248,7 +248,6 @@
                 });
             }
 
-            // Toggle MaxAttempts field visibility
             const allowMultipleAttemptsToggle = document.getElementById('allowMultipleAttemptsToggle');
             const maxAttemptsContainer = document.getElementById('maxAttemptsContainer');
 
@@ -262,10 +261,8 @@
                 });
             }
 
-            // initial count based on server model
             let questionCount = @Model.Questions.Count;
 
-            // expose functions globally for inline onclicks
             window.addQuestion = addQuestion;
             window.removeQuestion = removeQuestion;
             window.addChoice = addChoice;
@@ -274,17 +271,25 @@
             window.reindexQuestions = reindexQuestions;
             window.reindexChoices = reindexChoices;
             window.addTrueFalseChoices = addTrueFalseChoices;
+            window.updateCorrectAnswer = updateCorrectAnswer;
 
-            // normalize existing DOM
             reindexQuestions();
 
-            // ensure we reindex before submit so names are stable
             const form = document.querySelector("form");
             if (form) {
                 form.addEventListener("submit", () => reindexQuestions());
             }
 
-            // ---------- functions ----------
+            function updateCorrectAnswer(qIndex, selectedIndex) {
+                const list = document.getElementById(`choices-list-${qIndex}`)
+                            || document.querySelector(`.question-card[data-index="${qIndex}"] .choices-list`);
+                if (!list) return;
+
+                const hiddenInputs = list.querySelectorAll('.is-correct-hidden');
+                hiddenInputs.forEach((input, index) => {
+                    input.value = index === selectedIndex ? "true" : "false";
+                });
+            }
 
             function addQuestion() {
                 const container = document.getElementById("questions-container");
@@ -394,7 +399,8 @@
                 const html = `
                     <div class="choice-item input-group mb-2">
                         <div class="input-group-text">
-                            <input name="Questions[${questionIndex}].Choices[${choiceIndex}].IsCorrect" type="checkbox" class="form-check-input" />
+                            <input type="radio" name="correctAnswer_${questionIndex}" value="${choiceIndex}" class="form-check-input" onchange="updateCorrectAnswer(${questionIndex}, ${choiceIndex})" />
+                            <input type="hidden" name="Questions[${questionIndex}].Choices[${choiceIndex}].IsCorrect" value="false" class="is-correct-hidden" />
                         </div>
                         <input name="Questions[${questionIndex}].Choices[${choiceIndex}].Text" type="text" class="form-control" placeholder="Choice text" />
                         <button type="button" class="btn btn-outline-danger" onclick="removeChoice(${questionIndex}, ${choiceIndex})">
@@ -437,6 +443,12 @@
                     // update all names for this card
                     card.querySelectorAll('[name]').forEach(el => {
                         el.name = el.name.replace(/Questions\[\d+\]/g, `Questions[${qIndex}]`);
+                        // Update radio button names
+                        if (el.type === 'radio' && el.name.startsWith('correctAnswer_')) {
+                            el.name = `correctAnswer_${qIndex}`;
+                            const currentValue = parseInt(el.value);
+                            el.onchange = () => updateCorrectAnswer(qIndex, currentValue);
+                        }
                     });
 
                     // update containers IDs
@@ -472,14 +484,21 @@
                 const items = Array.from(choicesContainer.querySelectorAll('.choice-item'));
                 items.forEach((item, cIndex) => {
                     item.querySelectorAll('[name]').forEach(el => {
-                        el.name = el.name.replace(/Choices\[\d+\]/g, `Choices[${cIndex}]`)
-                                         .replace(/Questions\[\d+\]/g, `Questions[${questionIndex}]`);
+                        if (el.type === 'radio') {
+                            el.name = `correctAnswer_${questionIndex}`;
+                            el.value = cIndex;
+                            el.onchange = () => updateCorrectAnswer(questionIndex, cIndex);
+                        } else if (el.type === 'hidden' && el.classList.contains('is-correct-hidden')) {
+                            el.name = `Questions[${questionIndex}].Choices[${cIndex}].IsCorrect`;
+                        } else {
+                            el.name = el.name.replace(/Choices\[\d+\]/g, `Choices[${cIndex}]`)
+                                             .replace(/Questions\[\d+\]/g, `Questions[${questionIndex}]`);
+                        }
                     });
                     const btn = item.querySelector('button');
                     if (btn) btn.setAttribute('onclick', `removeChoice(${questionIndex}, ${cIndex})`);
                 });
 
-                // ensure single-choice containers (short answer / essay) have Choices[0] as name if present
                 const correct = document.getElementById(`correct-answer-${questionIndex}`);
                 if (correct) {
                     correct.querySelectorAll('[name]').forEach(el => {
@@ -539,7 +558,8 @@
                     const html = `
                         <div class="choice-item input-group mb-2">
                             <div class="input-group-text">
-                                <input name="Questions[${questionIndex}].Choices[${idx}].IsCorrect" type="checkbox" class="form-check-input" ${opt.isCorrect ? "checked" : ""} />
+                                <input type="radio" name="correctAnswer_${questionIndex}" value="${idx}" class="form-check-input" ${opt.isCorrect ? "checked" : ""} onchange="updateCorrectAnswer(${questionIndex}, ${idx})" />
+                                <input type="hidden" name="Questions[${questionIndex}].Choices[${idx}].IsCorrect" value="${opt.isCorrect}" class="is-correct-hidden" />
                             </div>
                             <input name="Questions[${questionIndex}].Choices[${idx}].Text" type="text" class="form-control" value="${opt.text}" readonly />
                             <button type="button" class="btn btn-outline-danger" onclick="removeChoice(${questionIndex}, ${idx})">
@@ -580,6 +600,28 @@
 
                     const rmBtn = card.querySelector('.card-header .btn-danger');
                     if (rmBtn) rmBtn.setAttribute('onclick', `removeQuestion(${idx})`);
+
+                    const choicesList = card.querySelector('.choices-list');
+                    if (choicesList && choicesList.children.length > 0) {
+                        const questionType = parseInt(typeSel?.value || 0);
+                        if (questionType === 0 || questionType === 1) { // MCQ or True/False
+                            Array.from(choicesList.children).forEach((item, cIndex) => {
+                                const checkbox = item.querySelector('input[type="checkbox"]');
+                                if (checkbox) {
+                                    const isChecked = checkbox.checked;
+                                    const inputGroup = checkbox.closest('.input-group-text');
+
+                                    // Replace checkbox with radio + hidden input
+                                    checkbox.remove();
+                                    const radioHtml = `
+                                        <input type="radio" name="correctAnswer_${idx}" value="${cIndex}" class="form-check-input" ${isChecked ? 'checked' : ''} onchange="updateCorrectAnswer(${idx}, ${cIndex})" />
+                                        <input type="hidden" name="Questions[${idx}].Choices[${cIndex}].IsCorrect" value="${isChecked}" class="is-correct-hidden" />
+                                    `;
+                                    inputGroup.insertAdjacentHTML('afterbegin', radioHtml);
+                                }
+                            });
+                        }
+                    }
 
                     reindexChoices(idx);
                 });

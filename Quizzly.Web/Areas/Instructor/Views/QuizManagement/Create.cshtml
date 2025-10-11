@@ -123,7 +123,7 @@
 
 @section Scripts {
     <script>
-        let questionCount = 0;
+                let questionCount = 0;
 
         // Show/hide max attempts field
         document.getElementById('allowAttemptsSwitch').addEventListener('change', function () {
@@ -202,7 +202,8 @@
             return `
                 <div class="input-group mb-2 choice-row" id="choice-${qId}-${cIndex}">
                     <div class="input-group-text">
-                        <input type="checkbox" name="addQuestionDtos[${qId - 1}].Choices[${cIndex}].IsCorrect" value="true" class="form-check-input mt-0" />
+                        <input type="radio" name="correctAnswer_${qId}" value="${cIndex}" class="form-check-input mt-0" onchange="updateCorrectAnswer(${qId}, ${cIndex})" />
+                        <input type="hidden" name="addQuestionDtos[${qId - 1}].Choices[${cIndex}].IsCorrect" value="false" class="is-correct-hidden" />
                     </div>
                     <input name="addQuestionDtos[${qId - 1}].Choices[${cIndex}].Text" class="form-control" placeholder="Choice ${cIndex + 1}" required />
                     <button type="button" class="btn btn-outline-danger" onclick="removeChoice(${qId}, ${cIndex})">
@@ -210,6 +211,15 @@
                     </button>
                 </div>
             `;
+        }
+
+        function updateCorrectAnswer(qId, selectedIndex) {
+            const container = document.getElementById(`choices-list-${qId}`);
+            const hiddenInputs = container.querySelectorAll('.is-correct-hidden');
+
+            hiddenInputs.forEach((input, index) => {
+                input.value = index === selectedIndex ? "true" : "false";
+            });
         }
 
         function addChoice(qId) {
@@ -228,11 +238,13 @@
             const rows = document.querySelectorAll(`#choices-list-${qId} .choice-row`);
             rows.forEach((row, i) => {
                 row.id = `choice-${qId}-${i}`;
-                const checkbox = row.querySelector('input[type="checkbox"]');
+                const radio = row.querySelector('input[type="radio"]');
+                const hidden = row.querySelector('input[type="hidden"]');
                 const text = row.querySelector('input.form-control');
 
-                checkbox.name = `addQuestionDtos[${qId - 1}].Choices[${i}].IsCorrect`;
-                checkbox.value = "true";
+                radio.value = i;
+                radio.onchange = () => updateCorrectAnswer(qId, i);
+                hidden.name = `addQuestionDtos[${qId - 1}].Choices[${i}].IsCorrect`;
                 text.name = `addQuestionDtos[${qId - 1}].Choices[${i}].Text`;
                 text.placeholder = `Choice ${i + 1}`;
             });
@@ -258,13 +270,15 @@
                     <div id="choices-list-${qId}">
                         <div class="input-group mb-2 choice-row">
                             <div class="input-group-text">
-                                <input type="checkbox" name="addQuestionDtos[${qId - 1}].Choices[0].IsCorrect" value="true" class="form-check-input mt-0" checked />
+                                <input type="radio" name="correctAnswer_${qId}" value="0" class="form-check-input mt-0" onchange="updateCorrectAnswer(${qId}, 0)" checked />
+                                <input type="hidden" name="addQuestionDtos[${qId - 1}].Choices[0].IsCorrect" value="true" class="is-correct-hidden" />
                             </div>
                             <input name="addQuestionDtos[${qId - 1}].Choices[0].Text" class="form-control" value="True" readonly />
                         </div>
                         <div class="input-group mb-2 choice-row">
                             <div class="input-group-text">
-                                <input type="checkbox" name="addQuestionDtos[${qId - 1}].Choices[1].IsCorrect" value="true" class="form-check-input mt-0" />
+                                <input type="radio" name="correctAnswer_${qId}" value="1" class="form-check-input mt-0" onchange="updateCorrectAnswer(${qId}, 1)" />
+                                <input type="hidden" name="addQuestionDtos[${qId - 1}].Choices[1].IsCorrect" value="false" class="is-correct-hidden" />
                             </div>
                             <input name="addQuestionDtos[${qId - 1}].Choices[1].Text" class="form-control" value="False" readonly />
                         </div>
@@ -362,6 +376,12 @@
                 inputs.forEach(input => {
                     if (input.name && input.name.includes('addQuestionDtos')) {
                         input.name = input.name.replace(/addQuestionDtos\[\d+\]/g, `addQuestionDtos[${i}]`);
+                    }
+                    // Update radio button names
+                    if (input.type === 'radio' && input.name.startsWith('correctAnswer_')) {
+                        input.name = `correctAnswer_${newIndex}`;
+                        const currentValue = parseInt(input.value);
+                        input.onchange = () => updateCorrectAnswer(newIndex, currentValue);
                     }
                 });
 
