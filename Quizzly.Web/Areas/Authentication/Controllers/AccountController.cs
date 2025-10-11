@@ -87,7 +87,7 @@ namespace Quizzly.Web.Areas.Authentication.Controllers
                     };
                     await _unitOfWork.Instructors.AddAsync(instructor);
                     await _unitOfWork.SaveAsync();
-                    return RedirectToAction("Index", "Dashboard", new { area = "Instructor", InstructorId = instructor.Id });
+                    return RedirectToAction("Index", "Dashboard", new { area = "Instructor"});
                 }
                 else if (register.Role == AppRoles.Student)
                 {
@@ -167,7 +167,7 @@ namespace Quizzly.Web.Areas.Authentication.Controllers
                     TempData["SuccessMessage"] = "Login Successfully, Wellcome Back!";
                     var instructor = (await _unitOfWork.Instructors.GetAllAsync("")).FirstOrDefault(i => i.UserId == user.Id);
                     if (instructor != null)
-                        return RedirectToAction("Index", "Dashboard", new { area = "Instructor", InstructorId = instructor.Id });
+                        return RedirectToAction("Index", "Dashboard", new { area = "Instructor"});
                 }
                 if (await _userManager.IsInRoleAsync(user, AppRoles.Student))
                 {
@@ -209,74 +209,208 @@ namespace Quizzly.Web.Areas.Authentication.Controllers
             returnUrl ??= Url.Content("~/");
             if (remoteError != null)
             {
-                TempData["error"] = $"Login failed: {remoteError}";
+                TempData["ErrorMessage"] = $"Login failed: {remoteError}";
                 return RedirectToAction(nameof(Login));
             }
 
             var info = await _signInManager.GetExternalLoginInfoAsync();
             if (info == null)
             {
-                TempData["error"] = "Error while Creating account.";
+                TempData["ErrorMessage"] = "Error while retrieving external login information.";
                 return RedirectToAction(nameof(Login));
             }
 
+            // Check if user already exists and has completed registration
             var signInResult = await _signInManager.ExternalLoginSignInAsync(info.LoginProvider, info.ProviderKey, isPersistent: true);
             if (signInResult.Succeeded)
             {
-                TempData["success1"] = $"Login with {info.LoginProvider} successful";
-
+                TempData["SuccessMessage"] = $"Login with {info.LoginProvider} successful";
                 var userSignedIn = await _userManager.FindByLoginAsync(info.LoginProvider, info.ProviderKey);
                 return RedirectToDashboardOrHome(userSignedIn!, returnUrl);
             }
 
+            // User doesn't exist or hasn't completed registration - redirect to completion form
             var email = info.Principal.FindFirstValue(ClaimTypes.Email) ?? $"{info.ProviderKey}@{info.LoginProvider}.com";
             var name = info.Principal.FindFirstValue(ClaimTypes.Name) ?? email.Split('@')[0];
-            var userName = await GenerateUniqueUserNameAsync(name);
-            var user = await _userManager.FindByEmailAsync(email);
-            if (user == null)
+            var nameParts = name.Split(' ');
+            var firstName = nameParts.Length > 0 ? nameParts[0] : "";
+            var lastName = nameParts.Length > 1 ? string.Join(" ", nameParts.Skip(1)) : "";
+
+            var completionViewModel = new ExternalLoginCompletionViewModel
             {
-                user = new ApplicationUser
+                Email = email,
+                FirstName = firstName,
+                LastName = lastName,
+                ExternalLoginProvider = info.LoginProvider,
+                ExternalLoginProviderKey = info.ProviderKey,
+                RolesList = AppRoles.All.Select(r => new SelectListItem
+                {
+                    Text = r,
+                    Value = r
+                }).ToList()
+            };
+
+            // Store external login info in TempData for the completion form
+            TempData["ExternalLoginProvider"] = info.LoginProvider;
+            TempData["ExternalLoginProviderKey"] = info.ProviderKey;
+            TempData["ExternalEmail"] = email;
+
+            return View("ExternalLoginCompletion", completionViewModel);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ExternalLoginCompletion(ExternalLoginCompletionViewModel model)
+        {
+            // Additional server-side validations
+            if (!model.AcceptTerms)
+            {
+                ModelState.AddModelError(nameof(model.AcceptTerms), "You must accept the Terms and Conditions.");
+            }
+
+            if (string.IsNullOrWhiteSpace(model.Role) || !AppRoles.All.Contains(model.Role))
+            {
+                ModelState.AddModelError(nameof(model.Role), "Please select a valid role.");
+            }
+
+            // Validate role-specific fields
+            if (model.Role == AppRoles.Instructor && string.IsNullOrWhiteSpace(model.InstructorTitle))
+            {
+                ModelState.AddModelError(nameof(model.InstructorTitle), "Instructor title is required.");
+            }
+
+            if (model.Role == AppRoles.Student && string.IsNullOrWhiteSpace(model.StudentNumber))
+            {
+                ModelState.AddModelError(nameof(model.StudentNumber), "Student number is required.");
+            }
+
+            if (!ModelState.IsValid)
+            {
+                model.RolesList = AppRoles.All.Select(r => new SelectListItem
+                {
+                    Text = r,
+                    Value = r
+                }).ToList();
+                return View(model);
+            }
+
+            try
+            {
+                // Get external login info from the current request
+                var info = await _signInManager.GetExternalLoginInfoAsync();
+                if (info == null)
+                {
+                    TempData["ErrorMessage"] = "External login session expired. Please try again.";
+                    return RedirectToAction(nameof(Login));
+                }
+
+                // Create the user
+                var userName = await GenerateUniqueUserNameAsync(model.Email.Split('@')[0]);
+                var user = new ApplicationUser
                 {
                     UserName = userName,
-                    Email = email,
+                    Email = model.Email,
+                    FirstName = model.FirstName,
+                    LastName = model.LastName,
                     CreatedAt = DateTime.Now
                 };
 
                 var createResult = await _userManager.CreateAsync(user);
                 if (!createResult.Succeeded)
                 {
-                    TempData["error"] = "Error while creating user.";
-                    return RedirectToAction(nameof(Login));
+                    foreach (var error in createResult.Errors)
+                        ModelState.AddModelError("", error.Description);
+                    
+                    model.RolesList = AppRoles.All.Select(r => new SelectListItem
+                    {
+                        Text = r,
+                        Value = r
+                    }).ToList();
+                    return View(model);
                 }
-                await _userManager.AddToRoleAsync(user, AppRoles.Instructor);
-            }
 
-            var alreadyLinked = (await _userManager.GetLoginsAsync(user))
-                .Any(login => login.LoginProvider == info.LoginProvider && login.ProviderKey == info.ProviderKey);
+                // Add user to role
+                await _userManager.AddToRoleAsync(user, model.Role);
 
-            if (!alreadyLinked)
-            {
+                // Create domain entity based on selected role
+                if (model.Role == AppRoles.Instructor)
+                {
+                    var instructor = new DataAccess.Entities.Instructor
+                    {
+                        UserId = user.Id,
+                        Title = model.InstructorTitle
+                    };
+                    await _unitOfWork.Instructors.AddAsync(instructor);
+                    await _unitOfWork.SaveAsync();
+                }
+                else if (model.Role == AppRoles.Student)
+                {
+                    var student = new DataAccess.Entities.Student
+                    {
+                        UserId = user.Id,
+                        StudentNumber = model.StudentNumber
+                    };
+                    await _unitOfWork.Students.AddAsync(student);
+                    await _unitOfWork.SaveAsync();
+                }
+
+                // Link external login using the original info
                 var linkResult = await _userManager.AddLoginAsync(user, info);
                 if (!linkResult.Succeeded)
                 {
-                    TempData["error"] = "Error while linking external login.";
+                    // If linking fails, clean up the user
+                    await _userManager.DeleteAsync(user);
+                    TempData["ErrorMessage"] = "Failed to link external login. Please try again.";
                     return RedirectToAction(nameof(Login));
                 }
-            }
 
-            await _signInManager.SignInAsync(user, isPersistent: true);
-            TempData["success1"] = $"Login with {info.LoginProvider} successful";
-            return RedirectToDashboardOrHome(user, returnUrl);
+                // Sign in the user
+                await _signInManager.SignInAsync(user, isPersistent: true);
+
+                TempData["SuccessMessage"] = $"Registration completed successfully! Welcome to Quizzly!";
+
+                // Redirect based on role
+                if (model.Role == AppRoles.Instructor)
+                {
+                    var instructor = (await _unitOfWork.Instructors.GetAllAsync("")).FirstOrDefault(i => i.UserId == user.Id);
+                    if (instructor != null)
+                        return RedirectToAction("Index", "Dashboard", new { area = "Instructor"});
+                }
+                else if (model.Role == AppRoles.Student)
+                {
+                    return RedirectToAction("Index", "Dashboard", new { area = "Student" });
+                }
+
+                return RedirectToAction("Index", "Dashboard", new { area = "Student" });
+            }
+            catch (Exception)
+            {
+                TempData["ErrorMessage"] = "An error occurred while completing your registration. Please try again.";
+                model.RolesList = AppRoles.All.Select(r => new SelectListItem
+                {
+                    Text = r,
+                    Value = r
+                }).ToList();
+                return View(model);
+            }
         }
+
         private IActionResult RedirectToDashboardOrHome(ApplicationUser user, string? returnUrl)
         {
             if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl) && returnUrl != "/")
                 return LocalRedirect(returnUrl);
 
             if (_userManager.IsInRoleAsync(user, AppRoles.Admin).Result)
-                return RedirectToAction("Dashboard", "User", new { area = "Admin" });
+                return RedirectToAction("Index", "Dashboard", new { area = "Admin" });
 
-            return RedirectToAction("Index", "Home", new { area = "Customer" });
+            if (_userManager.IsInRoleAsync(user,AppRoles.Instructor).Result)
+                    return RedirectToAction("Index", "Dashboard", new { area = "Instructor" });
+            
+            if (_userManager.IsInRoleAsync(user, AppRoles.Student).Result)
+                    return RedirectToAction("Index", "Dashboard", new { area = "Student" });
+
+
+            return RedirectToAction("Index", "Dashboard", new { area = "Student" });
         }
 
         private async Task<string> GenerateUniqueUserNameAsync(string rawName)

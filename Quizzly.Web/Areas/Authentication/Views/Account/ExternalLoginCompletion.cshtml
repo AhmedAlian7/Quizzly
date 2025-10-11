@@ -1,0 +1,146 @@
+@model Quizzly.Business.ViewModels.Authentication.ExternalLoginCompletionViewModel
+
+@{
+    ViewData["Title"] = "Complete Your Registration";
+}
+
+@section Styles {
+    <link href="~/css/register.css" rel="stylesheet" />
+}
+
+<section class="register-container">
+    <div class="container">
+        <div class="row justify-content-center align-items-center">
+            <div class="col-lg-5 col-md-6 d-none d-md-block illustration-side">
+                <img src="https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-login-form/draw2.webp"
+                     class="img-fluid" alt="Registration illustration">
+            </div>
+            <div class="col-lg-6 col-md-8 col-sm-12">
+                <div class="form-card">
+                    <h1 class="form-title">Complete Registration</h1>
+                    <p class="form-subtitle">You've signed in with @Model.ExternalLoginProvider. Please provide additional information to complete your account.</p>
+
+                    <form asp-action="ExternalLoginCompletion" method="post" novalidate>
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+                        
+                        <!-- Hidden fields for external login info -->
+                        <input asp-for="ExternalLoginProvider" type="hidden" />
+                        <input asp-for="ExternalLoginProviderKey" type="hidden" />
+                        <input asp-for="Email" type="hidden" />
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="FirstName" class="form-label">First Name</label>
+                                <input asp-for="FirstName" class="form-control" placeholder="Enter your first name" />
+                                <span asp-validation-for="FirstName" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="LastName" class="form-label">Last Name</label>
+                                <input asp-for="LastName" class="form-control" placeholder="Enter your last name" />
+                                <span asp-validation-for="LastName" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Email" class="form-label">Email Address</label>
+                            <input asp-for="Email" class="form-control" readonly />
+                            <small class="text-muted">Email from @Model.ExternalLoginProvider</small>
+                            <span asp-validation-for="Email" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Select Your Role</label>
+                            <div class="role-selection">
+                                <label class="role-card" for="roleInstructor">
+                                    <input type="radio" asp-for="Role" value="Instructor" id="roleInstructor" />
+                                    <div class="role-content">
+                                        <div class="role-icon">👨‍🏫</div>
+                                        <div class="role-title">Instructor</div>
+                                        <div class="role-description">Create and manage quizzes</div>
+                                    </div>
+                                    <div class="role-checkmark"></div>
+                                </label>
+
+                                <label class="role-card" for="roleStudent">
+                                    <input type="radio" asp-for="Role" value="Student" id="roleStudent" />
+                                    <div class="role-content">
+                                        <div class="role-icon">🎓</div>
+                                        <div class="role-title">Student</div>
+                                        <div class="role-description">Take and track your quizzes</div>
+                                    </div>
+                                    <div class="role-checkmark"></div>
+                                </label>
+                            </div>
+                            <span asp-validation-for="Role" class="text-danger"></span>
+                        </div>
+
+                        <!-- Instructor-specific fields -->
+                        <div class="role-dependent-field mb-3" id="instructorTitleDiv" style="display:none;">
+                            <label asp-for="InstructorTitle" class="form-label">Title</label>
+                            <input asp-for="InstructorTitle" class="form-control" placeholder="e.g., Professor, Lecturer" />
+                            <span asp-validation-for="InstructorTitle" class="text-danger"></span>
+                        </div>
+
+                        <!-- Student-specific fields -->
+                        <div class="role-dependent-field mb-3" id="studentNumberDiv" style="display:none;">
+                            <label asp-for="StudentNumber" class="form-label">Student Number</label>
+                            <input asp-for="StudentNumber" class="form-control" placeholder="Enter your student ID" />
+                            <span asp-validation-for="StudentNumber" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-check mb-4">
+                            <input asp-for="AcceptTerms" class="form-check-input" />
+                            <label asp-for="AcceptTerms" class="form-check-label">
+                                I agree to the <a asp-action="PrivacyPolicy" target="_blank" class="link-primary">Terms & Conditions</a>
+                            </label>
+                            <span asp-validation-for="AcceptTerms" class="text-danger d-block"></span>
+                        </div>
+
+                        <div class="text-center">
+                            <button type="submit" class="btn btn-primary w-100 mb-3">
+                                Complete Registration
+                            </button>
+                            <p class="text-muted mb-0">
+                                Already have an account? <a asp-action="Login" class="link-primary">Sign in here</a>
+                            </p>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const roleRadios = document.querySelectorAll('input[name="Role"]');
+            const instructorDiv = document.getElementById('instructorTitleDiv');
+            const studentDiv = document.getElementById('studentNumberDiv');
+            const roleCards = document.querySelectorAll('.role-card');
+
+            function updateRoleSelection() {
+                const selectedRole = document.querySelector('input[name="Role"]:checked');
+
+                // Update card styles
+                roleCards.forEach(card => card.classList.remove('selected'));
+                if (selectedRole) {
+                    selectedRole.closest('.role-card').classList.add('selected');
+                }
+
+                // Show/hide role-specific fields
+                const value = selectedRole ? selectedRole.value : '';
+                instructorDiv.style.display = value === 'Instructor' ? 'block' : 'none';
+                studentDiv.style.display = value === 'Student' ? 'block' : 'none';
+            }
+
+            roleRadios.forEach(radio => {
+                radio.addEventListener('change', updateRoleSelection);
+            });
+
+            // Initialize on page load
+            updateRoleSelection();
+        });
+    </script>
+}
