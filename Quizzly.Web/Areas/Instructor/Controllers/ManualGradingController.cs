@@ -1,75 +1,78 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Quizzly.Business.Services.Interfaces;
-using Quizzly.Business.Services.Implementions;
-using Quizzly.Business.ViewModels;
 using Quizzly.Business.ViewModels.Instructor;
 using Quizzly.DataAccess.Constants;
 
-namespace Quizzly.Web.Areas.Instructor.Controllers
+[Area("Instructor")]
+[Authorize(Roles = AppRoles.Instructor)]
+public class ManualGradingController : Controller
 {
-    [Area("Instructor")]
-    [Authorize(Roles = AppRoles.Instructor)]
-    public class ManualGradingController : Controller
+    private readonly IManualGradingService _manualGradingService;
+
+    public ManualGradingController(IManualGradingService manualGradingService)
     {
-        private readonly IManualGradingService _manualGradingService;
+        _manualGradingService = manualGradingService;
+    }
 
-        public ManualGradingController(IManualGradingService manualGradingService)
+    [HttpGet]
+    public async Task<IActionResult> Index()
+    {
+        var attempts = await _manualGradingService.GetPendingAttemptsAsync();
+        var viewModel = attempts.Select(a => new ManualGradingListDto
         {
-            _manualGradingService = manualGradingService;
+            AttemptId = a.Id,
+            QuizTitle = a.Quiz.Title,
+            StudentName = a.Student.User.FirstName + " " + a.Student.User.LastName,
+            IsGraded = a.Answers.All(ans => ans.PointsAwarded.HasValue)
+        }).ToList();
+
+        return View(viewModel);
+    }
+
+    // GET: ManualGrading/Attempt/5
+    [HttpGet]
+    public async Task<IActionResult> Attempt(int attemptId)
+    {
+        var answers = await _manualGradingService.GetAnswersNeedingManualGradingAsync(attemptId);
+
+        if (answers == null || !answers.Any())
+        {
+            TempData["InfoMessage"] = "No answers need manual grading for this attempt.";
+            return RedirectToAction("Index");
         }
 
-        [HttpGet]
-        public async Task<IActionResult> Index()
+        var first = answers.First();
+        var viewModel = new ManualGradingDto
         {
-            var attempts = await _manualGradingService.GetPendingAttemptsAsync();
-            var viewModel = attempts.Select(a => new ManualGradingListDto
+            AttemptId = attemptId,
+            StudentName = first.QuizAttempt.Student.User.FirstName + " " + first.QuizAttempt.Student.User.LastName,
+            QuizTitle = first.QuizAttempt.Quiz.Title,
+            Answers = answers.Select(a => new ManualAnswerDto
             {
-                AttemptId = a.Id,
-                QuizTitle = a.Quiz.Title,
-                StudentName = a.Student.User.FirstName + " " + a.Student.User.LastName,
-                IsGraded = a.Answers.All(ans => ans.PointsAwarded.HasValue)
-            }).ToList();
+                AnswerId = a.Id,
+                QuestionText = a.Question.Text,
+                StudentAnswer = a.TextAnswer,
+                MaxPoints = a.Question?.Points ?? 0, // Always get from Question
+                PointsAwarded = a.PointsAwarded
+            }).ToList()
+        };
 
-            return View(viewModel);
+        return View("ManualGrading", viewModel);
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Submit(ManualGradingDto model)
+    {
+        if (!ModelState.IsValid)
+        {
+            TempData["ErrorMessage"] = "Invalid form data. Please check your inputs.";
+            return View("ManualGrading", model);
         }
 
-        // GET: ManualGrading/Attempt/5
-        [HttpGet]
-        public async Task<IActionResult> Attempt(int attemptId)
+        try
         {
-            var answers = await _manualGradingService.GetAnswersNeedingManualGradingAsync(attemptId);
-            if (answers == null || !answers.Any())
-                return RedirectToAction("Index");
-
-            var first = answers.First();
-
-            var viewModel = new ManualGradingDto
-            {
-                AttemptId = attemptId,
-                StudentName = first.QuizAttempt.Student.User.FirstName + " " + first.QuizAttempt.Student.User.LastName,
-                QuizTitle = first.QuizAttempt.Quiz.Title,
-                Answers = answers.Select(a => new ManualAnswerDto
-                {
-                    AnswerId = a.Id,
-                    QuestionText = a.Question.Text,
-                    StudentAnswer = a.TextAnswer,
-                    MaxPoints = a.Question?.Points ?? a.MaxPoints,
-                    PointsAwarded = a.PointsAwarded
-                }).ToList()
-            };
-  
-            return View("ManualGrading", viewModel);
-
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Submit(ManualGradingDto model)
-        {
-            if (!ModelState.IsValid)
-                return View("ManualGrading", model);
-
             // Grade all answers in one submission
             foreach (var answer in model.Answers)
             {
@@ -81,11 +84,33 @@ namespace Quizzly.Web.Areas.Instructor.Controllers
 
             await _manualGradingService.UpdateAttemptTotalScoreAsync(model.AttemptId);
 
-/*            var refreshedAttempts = await _manualGradingService.GetPendingAttemptsAsync();
-*/
-
             TempData["SuccessMessage"] = "Manual grading saved successfully!";
             return RedirectToAction("Index");
+        }
+        catch (Exception ex)
+        {
+            TempData["ErrorMessage"] = $"Error saving grades: {ex.Message}";
+
+            // Reload the data to display the form again
+            var answers = await _manualGradingService.GetAnswersNeedingManualGradingAsync(model.AttemptId);
+            if (answers != null && answers.Any())
+            {
+                var first = answers.First();
+                model.StudentName = first.QuizAttempt.Student.User.FirstName + " " + first.QuizAttempt.Student.User.LastName;
+                model.QuizTitle = first.QuizAttempt.Quiz.Title;
+
+                // Update MaxPoints from actual Question data
+                foreach (var answer in model.Answers)
+                {
+                    var actualAnswer = answers.FirstOrDefault(a => a.Id == answer.AnswerId);
+                    if (actualAnswer != null)
+                    {
+                        answer.MaxPoints = actualAnswer.Question?.Points ?? 0;
+                    }
+                }
+            }
+
+            return View("ManualGrading", model);
         }
     }
 }
