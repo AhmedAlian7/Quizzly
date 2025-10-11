@@ -95,11 +95,14 @@ namespace Quizzly.Web
             app.UseAuthorization();
 
             app.MapStaticAssets();
+            
+            // Map area routes
             app.MapControllerRoute(
-                name: "default",
-                pattern: "{area=Instructor}/{controller=Dashboard}/{action=Index}/{id?}")
+                name: "areas",
+                pattern: "{area:exists}/{controller}/{action}/{id?}")
                 .WithStaticAssets();
 
+            // Map default route
             app.MapControllerRoute(
                 name: "default",
                 pattern: "{controller=Home}/{action=Index}/{id?}")

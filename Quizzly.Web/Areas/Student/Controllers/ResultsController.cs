@@ -24,7 +24,7 @@ namespace Quizzly.Web.Areas.Student.Controllers
         public async Task<IActionResult> Index(int page = 1)
         {
             var user = await _userManager.GetUserAsync(User);
-            var vm = await _studentQuizService.GetResultsOverviewAsync(user!.Id, page, Numbers.DefaultPageSize);
+            var vm = await _studentQuizService.GetResultsOverviewAsync(user!.Id, page, Numbers.DefaultPageSize - 5);
             return View(vm);
         }
     }
