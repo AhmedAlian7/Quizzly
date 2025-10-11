@@ -231,7 +231,7 @@
 @section Scripts {
     <script>
         document.addEventListener("DOMContentLoaded", () => {
-            // Toggle badge display for IsPublished
+
             const isPublishedCheckbox = document.querySelector('input[name="IsPublished"]');
             const publishedBadge = document.getElementById('publishedBadge');
             const draftBadge = document.getElementById('draftBadge');
@@ -248,7 +248,6 @@
                 });
             }
 
-            // Toggle MaxAttempts field visibility
             const allowMultipleAttemptsToggle = document.getElementById('allowMultipleAttemptsToggle');
             const maxAttemptsContainer = document.getElementById('maxAttemptsContainer');
 
@@ -262,10 +261,8 @@
                 });
             }
 
-            // initial count based on server model
             let questionCount = @Model.Questions.Count;
 
-            // expose functions globally for inline onclicks
             window.addQuestion = addQuestion;
             window.removeQuestion = removeQuestion;
             window.addChoice = addChoice;
@@ -276,16 +273,12 @@
             window.addTrueFalseChoices = addTrueFalseChoices;
             window.updateCorrectAnswer = updateCorrectAnswer;
 
-            // normalize existing DOM
             reindexQuestions();
 
-            // ensure we reindex before submit so names are stable
             const form = document.querySelector("form");
             if (form) {
                 form.addEventListener("submit", () => reindexQuestions());
             }
-
-            // ---------- functions ----------
 
             function updateCorrectAnswer(qIndex, selectedIndex) {
                 const list = document.getElementById(`choices-list-${qIndex}`)
@@ -506,7 +499,6 @@
                     if (btn) btn.setAttribute('onclick', `removeChoice(${questionIndex}, ${cIndex})`);
                 });
 
-                // ensure single-choice containers (short answer / essay) have Choices[0] as name if present
                 const correct = document.getElementById(`correct-answer-${questionIndex}`);
                 if (correct) {
                     correct.querySelectorAll('[name]').forEach(el => {
@@ -609,7 +601,6 @@
                     const rmBtn = card.querySelector('.card-header .btn-danger');
                     if (rmBtn) rmBtn.setAttribute('onclick', `removeQuestion(${idx})`);
 
-                    // Convert existing checkboxes to radio buttons for MCQ/True-False
                     const choicesList = card.querySelector('.choices-list');
                     if (choicesList && choicesList.children.length > 0) {
                         const questionType = parseInt(typeSel?.value || 0);

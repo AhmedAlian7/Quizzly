@@ -159,6 +159,110 @@
             margin-top: auto;
         }
 
+        /* User Dropdown */
+        .user-dropdown {
+            position: relative;
+        }
+
+        .user-dropdown-toggle {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 8px;
+            transition: background-color 0.2s;
+        }
+
+            .user-dropdown-toggle:hover {
+                background-color: #F1F5F9;
+            }
+
+        .user-avatar {
+            background: var(--primary-color);
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+        }
+
+        .user-info {
+            text-align: left;
+        }
+
+        .user-name {
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: #1E293B;
+            display: block;
+        }
+
+        .user-role {
+            font-size: 0.75rem;
+            color: #64748B;
+        }
+
+        .dropdown-menu {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            margin-top: 0.5rem;
+            background: white;
+            border: 1px solid #E2E8F0;
+            border-radius: 8px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            min-width: 200px;
+            padding: 0.5rem 0;
+            display: none;
+            z-index: 1000;
+        }
+
+            .dropdown-menu.show {
+                display: block;
+            }
+
+        .dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            color: #475569;
+            text-decoration: none;
+            transition: all 0.2s;
+            border: none;
+            background: transparent;
+            width: 100%;
+            text-align: left;
+            cursor: pointer;
+        }
+
+            .dropdown-item:hover {
+                background-color: #F8FAFC;
+                color: #1E293B;
+            }
+
+            .dropdown-item i {
+                font-size: 1rem;
+                width: 20px;
+            }
+
+        .dropdown-divider {
+            height: 1px;
+            background-color: #E2E8F0;
+            margin: 0.5rem 0;
+        }
+
+        .dropdown-item.text-danger:hover {
+            background-color: #FEE2E2;
+            color: #DC2626;
+        }
+
         /* Responsive */
         @@media (max-width: 768px) {
             .sidebar
@@ -177,6 +281,10 @@
 
         .sidebar-toggle {
             display: block;
+        }
+
+        .user-info {
+            display: none;
         }
 
         }
@@ -283,13 +391,25 @@
                     <i class="bi bi-bell"></i>
                     <span class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle"></span>
                 </button>
-                <div class="d-flex align-items-center">
-                    <div class="user-avatar bg-primary text-white rounded-circle d-flex justify-content-center align-items-center" style="width: 36px; height: 36px;">
-                        <i class="bi bi-person"></i>
-                    </div>
-                    <div class="ms-2">
-                        <div class="fw-bold">@insName</div>
-                        <small class="text-muted">Instructor</small>
+
+                <div class="user-dropdown">
+                    <button class="user-dropdown-toggle" onclick="toggleUserDropdown()">
+                        <div class="user-avatar">
+                            <i class="bi bi-person"></i>
+                        </div>
+                        <div class="user-info">
+                            <span class="user-name">@insName</span>
+                            <small class="user-role">Instructor</small>
+                        </div>
+                        <i class="bi bi-chevron-down"></i>
+                    </button>
+
+                    <div class="dropdown-menu" id="userDropdown">
+                        <div class="dropdown-divider"></div>
+                        <button type="button" class="dropdown-item text-danger" onclick="confirmLogout()">
+                            <i class="bi bi-box-arrow-right"></i>
+                            <span>Logout</span>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -298,6 +418,32 @@
         <main role="main" class="content-wrapper">
             @RenderBody()
         </main>
+    </div>
+
+    <!-- Bootstrap Logout Confirmation Modal -->
+    <div class="modal fade" id="logoutModal" tabindex="-1" aria-labelledby="logoutModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header border-0 pb-0">
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-center px-4 pb-4">
+                    <div class="mb-3">
+                        <i class="bi bi-box-arrow-right text-danger" style="font-size: 3rem;"></i>
+                    </div>
+                    <h5 class="modal-title fw-bold mb-2" id="logoutModalLabel">Confirm Logout</h5>
+                    <p class="text-muted mb-4">Are you sure you want to logout from your account?</p>
+                    <form id="logoutForm" asp-area="Authentication" asp-controller="Account" asp-action="Logout" method="post">
+                        <div class="d-flex gap-2 justify-content-center">
+                            <button type="button" class="btn btn-light px-4" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-danger px-4">
+                                <i class="bi bi-box-arrow-right me-1"></i> Logout
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Scripts -->
@@ -312,6 +458,31 @@
             sidebar.classList.toggle('active');
             overlay.classList.toggle('active');
         }
+
+        function toggleUserDropdown() {
+            const dropdown = document.getElementById('userDropdown');
+            dropdown.classList.toggle('show');
+        }
+
+        function confirmLogout() {
+            // Close the user dropdown
+            const dropdown = document.getElementById('userDropdown');
+            dropdown.classList.remove('show');
+
+            // Show the logout confirmation modal
+            const logoutModal = new bootstrap.Modal(document.getElementById('logoutModal'));
+            logoutModal.show();
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+            const dropdown = document.getElementById('userDropdown');
+            const toggle = document.querySelector('.user-dropdown-toggle');
+
+            if (dropdown && !dropdown.contains(event.target) && !toggle.contains(event.target)) {
+                dropdown.classList.remove('show');
+            }
+        });
 
         document.addEventListener('DOMContentLoaded', () => {
             // Set active menu item based on current page
@@ -350,32 +521,32 @@
 
         @if (TempData["SuccessMessage"] != null)
         {
-                    <text>
-                    Toast.fire({
-                        icon: 'success',
-                        title: '@Html.Raw(TempData["SuccessMessage"])'
-                    });
-                    </text>
+                            <text>
+                            Toast.fire({
+                                icon: 'success',
+                                title: '@Html.Raw(TempData["SuccessMessage"])'
+                            });
+                            </text>
         }
 
         @if (TempData["ErrorMessage"] != null)
         {
-                    <text>
-                    Toast.fire({
-                        icon: 'error',
-                        title: '@Html.Raw(TempData["ErrorMessage"])'
-                    });
-                    </text>
+                            <text>
+                            Toast.fire({
+                                icon: 'error',
+                                title: '@Html.Raw(TempData["ErrorMessage"])'
+                            });
+                            </text>
         }
 
         @if (TempData["InfoMessage"] != null)
         {
-                    <text>
-                    Toast.fire({
-                        icon: 'info',
-                        title: '@Html.Raw(TempData["InfoMessage"])'
-                    });
-                    </text>
+                            <text>
+                            Toast.fire({
+                                icon: 'info',
+                                title: '@Html.Raw(TempData["InfoMessage"])'
+                            });
+                            </text>
         }
     </script>
 
