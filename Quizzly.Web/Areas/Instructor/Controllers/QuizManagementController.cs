@@ -46,6 +46,7 @@ namespace Quizzly.Web.Areas.Instructor.Controllers
         public async Task<IActionResult> QuizzesByCategory(int CategoryId)
         {
             var user = await _userManager.GetUserAsync(User);
+
             var instructor = await _instructorManagementService
                 .GetInstructorByUserIdAsync(user.Id);
 
@@ -89,44 +90,39 @@ namespace Quizzly.Web.Areas.Instructor.Controllers
         }
 
         [HttpPost]
-        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(AddQuizDto addQuizDto , string formAction)
         {
              var user = await _userManager.GetUserAsync(User);
              var instructor = await _instructorManagementService
                     .GetInstructorByUserIdAsync(user.Id);
 
-             if (!ModelState.IsValid)
-             {
-                 var errors = ModelState.Values
-                     .SelectMany(v => v.Errors)
-                     .Select(e => e.ErrorMessage)
-                     .ToList();
-             
-                 // Reload categories
-                 addQuizDto.Categories = (await _quizCategoriesService.GetAllByInstructorIdAsync(instructor.Id))
-                     .Select(c => new SelectListItem
-                     {
-                         Value = c.Id.ToString(),
-                         Text = c.Name
-                     });
+            if (!ModelState.IsValid)
+            {
 
-                 return Json(new { success = false, errors = errors });
-             }
+                addQuizDto.Categories = (await _quizCategoriesService.GetAllByInstructorIdAsync(instructor.Id))
+                    .Select(c => new SelectListItem
+                    {
+                        Value = c.Id.ToString(),
+                        Text = c.Name
+                    });
+                return View(addQuizDto);
 
-            
+            }
 
-             if (instructor == null)
-                 return Json(new { success = false, error = "Instructor profile not found." });
+            else
+            {
+                if(instructor == null)
+                    return NotFound("Instructor profile not found.");
 
-             var quizId = await _instructorManagementService
-                 .AddQuizAsync(instructor.Id, addQuizDto);
+                var quizId = await _instructorManagementService
+                    .AddQuizAsync(instructor.Id, addQuizDto);
 
-             if (formAction == "publish")
-             {
-                var token = await _quizService.PublishQuizAsync(quizId);
-                return View("Token",token);
-             }
+                if (formAction == "publish")
+                {
+                    var token = await _quizService.PublishQuizAsync(quizId);
+                    return View("Token", token);
+                }
+            }
 
              return RedirectToAction("Index", "QuizCategoryManagement", new { area = "Instructor" });
 
