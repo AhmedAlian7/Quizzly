@@ -1,0 +1,110 @@
+﻿.join-quiz-icon i {
+    font-size: 4rem;
+    color: #2563EB;
+    background: linear-gradient(135deg, #2563EB, #3B82F6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.05);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+.card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+    .card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1) !important;
+    }
+
+.form-control:focus {
+    border-color: #2563EB;
+    box-shadow: 0 0 0 0.2rem rgba(37, 99, 235, 0.25);
+}
+
+.input-group-text {
+    background-color: #f8f9fa !important;
+    border-color: #dee2e6;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #2563EB, #3B82F6);
+    border: none;
+    transition: all 0.3s ease;
+}
+
+    .btn-primary:hover {
+        background: linear-gradient(135deg, #1e40af, #2563EB);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+    }
+
+    .btn-primary:active {
+        transform: translateY(0);
+    }
+
+.form-text {
+    color: #6b7280;
+    font-size: 0.875rem;
+}
+
+.input-group-lg .form-control {
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
+}
+
+.input-group-lg .input-group-text {
+    padding: 0.75rem 1rem;
+}
+
+/* Loading state */
+.btn.loading {
+    position: relative;
+    color: transparent !important;
+}
+
+    .btn.loading::after {
+        content: "";
+        position: absolute;
+        width: 16px;
+        height: 16px;
+        top: 50%;
+        left: 50%;
+        margin-left: -8px;
+        margin-top: -8px;
+        border: 2px solid #ffffff;
+        border-radius: 50%;
+        border-top-color: transparent;
+        animation: spin 1s linear infinite;
+    }
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .join-quiz-icon i {
+        font-size: 3rem;
+    }
+
+    .card-body {
+        padding: 2rem !important;
+    }
+}
