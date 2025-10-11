@@ -25,10 +25,10 @@
         padding-bottom: 10px;
     }
 
-    .grading-header h2 {
-        font-weight: 600;
-        color: #212529;
-    }
+        .grading-header h2 {
+            font-weight: 600;
+            color: #212529;
+        }
 
     .student-info {
         color: #6c757d;
@@ -68,9 +68,9 @@
         border-radius: 8px;
     }
 
-    .btn-submit:hover {
-        background: linear-gradient(90deg, #157347, #0d5032);
-    }
+        .btn-submit:hover {
+            background: linear-gradient(90deg, #157347, #0d5032);
+        }
 
     .alert {
         border-radius: 10px;
@@ -97,6 +97,8 @@
         <form asp-action="Submit" method="post">
             @Html.AntiForgeryToken()
             <input type="hidden" asp-for="AttemptId" />
+            <input type="hidden" asp-for="StudentName" />
+            <input type="hidden" asp-for="QuizTitle" />
 
             <table class="table table-hover align-middle">
                 <thead>
@@ -115,13 +117,17 @@
                             <td class="student-answer">@Model.Answers[i].StudentAnswer</td>
                             <td class="text-center">@Model.Answers[i].MaxPoints</td>
                             <td class="text-center">
-                                <input asp-for="@Model.Answers[i].PointsAwarded"
+                                <input type="hidden" name="Answers[@i].AnswerId" value="@Model.Answers[i].AnswerId" />
+                                <input type="hidden" name="Answers[@i].QuestionText" value="@Model.Answers[i].QuestionText" />
+                                <input type="hidden" name="Answers[@i].StudentAnswer" value="@Model.Answers[i].StudentAnswer" />
+                                <input type="hidden" name="Answers[@i].MaxPoints" value="@Model.Answers[i].MaxPoints" />
+                                <input name="Answers[@i].PointsAwarded"
                                        class="form-control mx-auto"
                                        type="number"
                                        min="0"
                                        max="@Model.Answers[i].MaxPoints"
-                                       step="0.1" />
-                                <input type="hidden" asp-for="@Model.Answers[i].AnswerId" />
+                                       step="0.1"
+                                       value="@Model.Answers[i].PointsAwarded" />
                             </td>
                         </tr>
                     }
@@ -129,6 +135,7 @@
             </table>
 
             <div class="text-end mt-4">
+                <a asp-action="Index" class="btn btn-secondary me-2">Cancel</a>
                 <button type="submit" class="btn btn-submit">Submit Grades</button>
             </div>
         </form>
