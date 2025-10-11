@@ -169,7 +169,7 @@ namespace Quizzly.Business.Services.Implementions
                 }
                 catch
                 {
-                    // ignore bad payload and continue
+                    // ignore
                 }
             }
 
@@ -177,7 +177,7 @@ namespace Quizzly.Business.Services.Implementions
             attempt.IsCompleted = true;
 
             decimal score = 0m;
-            foreach (var q in attempt.Quiz!.Questions)
+            foreach (var q in attempt.Quiz!.Questions) // calculate score for auto-graded questions
             {
                 if (q.QuestionType == QuestionType.MCQ || q.QuestionType == QuestionType.TrueFalse)
                 {
@@ -238,7 +238,7 @@ namespace Quizzly.Business.Services.Implementions
                         }
                         catch (Exception)
                         {
-                            // If AI grading fails, mark as not graded and continue
+                            //  mark as not graded and continue
                             foreach (var ans in attempt.Answers.Where(a => a.QuestionId == q.Id))
                             {
                                 ans.IsCorrect = null;
@@ -305,7 +305,7 @@ namespace Quizzly.Business.Services.Implementions
                 }
                 catch
                 {
-                    // ignore bad payload and continue
+                    // ignore
                 }
             }
 
@@ -330,7 +330,7 @@ namespace Quizzly.Business.Services.Implementions
                            (q.QuestionType == QuestionType.Essay || q.QuestionType == QuestionType.ShortAnswer) && q.AutoGrade)
                 .ToList();
             var autoMax = autoGradedQuestions.Sum(q => q.Points);
-            var autoScore = attempt.Score ?? 0m; // attempt.Score is computed from all auto-graded questions (MCQ, True/False, and AI-graded Essay/ShortAnswer)
+            var autoScore = attempt.Score ?? 0m;
             var autoPct = autoMax > 0 ? Math.Round((autoScore / autoMax) * 100m, 2) : (decimal?)0;
 
             var vm = new QuizResultViewModel
@@ -472,8 +472,7 @@ namespace Quizzly.Business.Services.Implementions
                     AttemptId = a.Id,
                     QuizId = a.QuizId,
                     QuizTitle = a.Quiz.Title,
-                    Percentage = a.Quiz.ShowScoreImmediatlely
-                        ? (
+                    Percentage = a.Quiz.ShowScoreImmediatlely ? (
                             (
                                 (a.Quiz.Questions.Where(q => q.QuestionType == QuestionType.MCQ || q.QuestionType == QuestionType.TrueFalse).Sum(q => (decimal?)q.Points) ?? 0) > 0
                             )
