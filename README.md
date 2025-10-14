@@ -2,6 +2,8 @@
 
 Quizzly is an online quiz management system built with ASP.NET Core that enables instructors to create, manage, and grade quizzes while providing students with an intuitive interface to take quizzes and view their results.
 
+🌐 **Live Demo**: [http://quizzly.runasp.net](http://quizzly.runasp.net)
+
 ## 🎯 Overview
 
 Quizzly is designed to streamline the quiz creation and management process for educational institutions. It supports multiple question types, automated and manual grading, real-time analytics, and seamless integration with external services.
