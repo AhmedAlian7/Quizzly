@@ -241,7 +241,7 @@ namespace Quizzly.Business.Services.Implementions
                             //  mark as not graded and continue
                             foreach (var ans in attempt.Answers.Where(a => a.QuestionId == q.Id))
                             {
-                                ans.IsCorrect = null;
+                                ans.IsCorrect = false;
                                 ans.IsGraded = false;
                                 ans.PointsAwarded = null;
                                 ans.GradedAt = null;
@@ -253,7 +253,7 @@ namespace Quizzly.Business.Services.Implementions
                         // No student answer or model answer, mark as not graded
                         foreach (var ans in attempt.Answers.Where(a => a.QuestionId == q.Id))
                         {
-                            ans.IsCorrect = null;
+                            ans.IsCorrect = false;
                             ans.IsGraded = false;
                             ans.PointsAwarded = null;
                             ans.GradedAt = null;
@@ -295,11 +295,11 @@ namespace Quizzly.Business.Services.Implementions
                         if (p == null) continue;
                         if (p.choiceId.HasValue)
                         {
-                            await _uow.Answers.AddAsync(new Answer { QuizAttemptId = attempt.Id, QuestionId = p.questionId, ChoiceId = p.choiceId, IsCorrect = null, IsGraded = false });
+                            await _uow.Answers.AddAsync(new Answer { QuizAttemptId = attempt.Id, QuestionId = p.questionId, ChoiceId = p.choiceId, IsCorrect = false, IsGraded = false });
                         }
                         else if (!string.IsNullOrWhiteSpace(p.textAnswer))
                         {
-                            await _uow.Answers.AddAsync(new Answer { QuizAttemptId = attempt.Id, QuestionId = p.questionId, TextAnswer = p.textAnswer, IsCorrect = null, IsGraded = false });
+                            await _uow.Answers.AddAsync(new Answer { QuizAttemptId = attempt.Id, QuestionId = p.questionId, TextAnswer = p.textAnswer, IsCorrect = false, IsGraded = false });
                         }
                     }
                 }
