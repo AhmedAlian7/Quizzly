@@ -22,9 +22,11 @@
     <!-- Navigation Header Bar -->
     <nav class="navbar navbar-student sticky-top">
         <div class="container-fluid px-4">
+
             <div class="d-flex align-items-center gap-3">
-                <a class="navbar-brand mb-0" href="@Url.Action("Index", "Dashboard", new { area = "Student" })">
-                    Quizzly <span class="text-muted">• Student</span>
+                <a class="navbar-brand mb-0 d-flex align-items-center gap-2" href="@Url.Action("Index", "Dashboard", new { area = "Student" })">
+                    <img src="~/images/quizzly-logo.png" alt="Quizzly Logo" style="height: 32px;" />
+                    <span>Quizzly <span class="text-muted">• Student</span></span>
                 </a>
                 <h1 class="page-title mb-0 d-none d-xl-block">@ViewData["Title"]</h1>
             </div>

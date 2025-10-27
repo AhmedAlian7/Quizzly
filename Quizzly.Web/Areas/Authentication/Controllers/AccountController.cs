@@ -28,6 +28,9 @@ namespace Quizzly.Web.Areas.Authentication.Controllers
         [HttpGet]
         public IActionResult Register()
         {
+            if (User.Identity?.IsAuthenticated == true)
+                return RedirectToRoleHome();
+
             var roleList = AppRoles.All.Select(r => new SelectListItem
             {
                 Text = r,
