@@ -253,9 +253,10 @@ If you find Quizzly helpful, please consider giving us a star ⭐
 
 ---
 
-<img src="images/quizzly-logo.png" alt="Quizzly Logo" width="80" />
 
 **Quizzly** - Make taking online quizzes more **quickly** ✨😉
+
+<img src="images/quizzly-logo.png" alt="Quizzly Logo" width="48" />
 
 ---
 
