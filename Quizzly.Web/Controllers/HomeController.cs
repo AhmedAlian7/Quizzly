@@ -9,38 +9,27 @@ namespace Quizzly.Web.Controllers
 {
     public class HomeController : Controller
     {
-        private readonly ILogger<HomeController> _logger;
-        private readonly UserManager<ApplicationUser> _userManager;
-
-        public HomeController(ILogger<HomeController> logger, UserManager<ApplicationUser> userManager)
+        public HomeController()
         {
-            _logger = logger;
-            _userManager = userManager;
         }
 
-        public async Task<IActionResult> Index()
+        public IActionResult Index()
         {
-            if (User.Identity?.IsAuthenticated != true)
-            {
+            if (!User.Identity?.IsAuthenticated ?? true)
                 return RedirectToAction("Login", "Account", new { area = "Authentication" });
-            }
 
-            var user = await _userManager.GetUserAsync(User);
-            if (user == null)
-            {
-                return RedirectToAction("Login", "Account", new { area = "Authentication" });
-            }
+            return RedirectToRoleHome();
+        }
 
-            // Redirect based on user role
-            if (await _userManager.IsInRoleAsync(user, AppRoles.Instructor))
-            {
+        private IActionResult RedirectToRoleHome()
+        {
+            if (User.IsInRole(AppRoles.Instructor))
                 return RedirectToAction("Index", "Dashboard", new { area = "Instructor" });
-            }
-            else if (await _userManager.IsInRoleAsync(user, AppRoles.Student))
-            {
-                return RedirectToAction("Index", "Dashboard", new { area = "Student" });
-            }
 
+            if (User.IsInRole(AppRoles.Student))
+                return RedirectToAction("Index", "Dashboard", new { area = "Student" });
+
+            // fallback
             return RedirectToAction("Login", "Account", new { area = "Authentication" });
         }
 

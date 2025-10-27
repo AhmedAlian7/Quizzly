@@ -120,8 +120,19 @@ namespace Quizzly.Web.Areas.Authentication.Controllers
         [HttpGet]
         public IActionResult Login(string returnUrl = null)
         {
+            if (User.Identity?.IsAuthenticated == true)
+                return RedirectToRoleHome();
+
             ViewData["ReturnUrl"] = returnUrl;
             return View();
+        }
+        private IActionResult RedirectToRoleHome()
+        {
+            if (User.IsInRole(AppRoles.Instructor))
+                return RedirectToAction("Index", "Dashboard", new { area = "Instructor" });
+            if (User.IsInRole(AppRoles.Student))
+                return RedirectToAction("Index", "Dashboard", new { area = "Student" });
+            return RedirectToAction("Index", "Home");
         }
 
         [HttpPost]

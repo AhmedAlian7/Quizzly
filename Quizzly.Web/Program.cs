@@ -59,6 +59,22 @@ namespace Quizzly.Web
             .AddEntityFrameworkStores<AppDbContext>()
             .AddDefaultTokenProviders();
 
+            // Configure cookie settings for HTTP hosting compatibility
+            builder.Services.ConfigureApplicationCookie(options =>
+            {
+                options.LoginPath = "/Authentication/Account/Login";
+                options.AccessDeniedPath = "/Authentication/Account/AccessDenied";
+                options.LogoutPath = "/Authentication/Account/Logout";
+                options.ExpireTimeSpan = TimeSpan.FromDays(30); // Remember me duration
+                options.SlidingExpiration = true;
+                
+                // Critical: Allow cookies to work on HTTP (for runasp.net hosting)
+                options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest; // Works on both HTTP and HTTPS
+                options.Cookie.SameSite = SameSiteMode.Lax;
+                options.Cookie.HttpOnly = true;
+                options.Cookie.IsEssential = true;
+            });
+
             // Register External Login
             builder.Services.AddAuthentication()
                 .AddGoogle(options =>
